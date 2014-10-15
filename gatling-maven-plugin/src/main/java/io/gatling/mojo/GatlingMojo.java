@@ -155,6 +155,13 @@ public class GatlingMojo extends AbstractMojo {
 	private boolean skip;
 
 	/**
+	 * Disable the Scala compiler, if scala-maven-plugin already's in charge
+	 * of compiling the simulations.
+	 */
+	@Parameter(property = "gatling.disableCompiler", defaultValue = "false")
+	private boolean disableCompiler;
+
+	/**
 	 * The Maven Project.
 	 */
 	@Component
@@ -222,13 +229,20 @@ public class GatlingMojo extends AbstractMojo {
 
 	private void executeGatling(String[] gatlingJvmArgs, String[] gatlingArgs, String[] zincJvmArgs) throws Exception {
 		String testClasspath = buildTestClasspath();
-		String compilerClasspath = buildCompilerClasspath();
-		String[] compilerArguments = { testClasspath };
 		Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
-		JavaMainCaller compilerCaller = new GatlingJavaMainCallerByFork(this, COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, propagateSystemProperties);
+		if(!disableCompiler) {
+			String compilerClasspath = buildCompilerClasspath();
+			String[] compilerArguments = { testClasspath };
+			JavaMainCaller compilerCaller = new GatlingJavaMainCallerByFork(this, COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, propagateSystemProperties);
+			try {
+				compilerCaller.run(false);
+			} catch(ExecuteException e) {
+				throw new CompilationException(e);
+			}
+		}
+
 		JavaMainCaller gatlingCaller = new GatlingJavaMainCallerByFork(this, GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties);
 		try {
-			compilerCaller.run(false);
 			gatlingCaller.run(false);
 		} catch (ExecuteException e) {
 			if (e.getExitValue() == 2)
@@ -250,7 +264,9 @@ public class GatlingMojo extends AbstractMojo {
 	private String buildTestClasspath() throws Exception {
 		List<String> testClasspathElements = mavenProject.getTestClasspathElements();
 		testClasspathElements.add(configFolder.getPath());
-		testClasspathElements.add(getCompilerJar().getPath());
+		if(!disableCompiler) {
+			testClasspathElements.add(getCompilerJar().getPath());
+		}
 		// Find plugin jar and add it to classpath
 		testClasspathElements.add(MainHelper.locateJar(GatlingMojo.class));
 		// Jenkins seems to need scala-maven-plugin in the test classpath in

@@ -4,8 +4,8 @@ script: mvn test
 
 env:
   global:
-    - secure: "Dk88FTma4oY3Xa1Di2646RFphHyioVhAzNHrXjJiK0VTeozmXsLPys9G1lSM4Fxnfq01rYn6g6hWTPB6LNLkP+RvQJG3f1Hx+17J68Rrg1TeZn3mxJw2PgnfZ8rxDJ+X1PsSuPkkVG/aX7fhlQHvWNyxDw8cHH3gHOLPmwxdoF0="
-    - secure: "gAVemjzkOCiUdH9r4ZlG47hNwvB85fHVMCgu0Eiod4YLkNoh5Ak7uc62EAW0qyJ4a697OmG33TsjINyiXixll2TyuvEiveuhVlgruJsifJC0nHBms5MoD05Y6m7MrkbffNY0sqNXxT8/BCuk/KtLQuamwUqFZ/5ZKo+KLfSdcgk="
+    - secure: "JePSQ4loMaGJ8vb88//sa4lcZw5VfuA5+PRQH4z907pmexaMphvfDXKYBvMsW6e9B6/jIMOtp2KBtWHcOAqvDtct8KZmDr59guTJU0Ftgl2aa/OpkGgKaTIHvKdQNUOssspFNP2wGYv7RJaRZSNO4/pPlQMmHfA68lLKjM37P+U="
+    - secure: "QNtTRXz8OBfuWQ5WwBLOOUEu0mi1t+yAUoUlDfx5afGiPtt+TEt/GfVgjIOyMJAzG00vaePPjmqTGtrnA7g8CLVU8wuEQKxDbfaiyrhJzokI8FEEqi6eRetNf5D7YTAHcdhnp2SKsT+ihuSLkEAZDjIXtzh2vGfb6vCWTqDp5s0="
 
 # If building master, Publish to Sonatype
 after_success: "[[ $TRAVIS_PULL_REQUEST == \"false\" ]] && mvn deploy"

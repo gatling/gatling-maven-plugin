@@ -121,7 +121,7 @@
 							<artifactItems>
 								<artifactItem>
 									<groupId>io.gatling.highcharts</groupId>
-									<artifactId>gatling-charts-highcharts</artifactId>
+									<artifactId>gatling-charts-highcharts-bundle</artifactId>
 									<version>${project.version}</version>
 									<type>zip</type>
 									<classifier>bundle</classifier>

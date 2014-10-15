@@ -22,6 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.exec.ExecuteException;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.factory.ArtifactFactory;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -50,6 +54,7 @@ import static org.codehaus.plexus.util.StringUtils.trim;
       requiresDependencyResolution = ResolutionScope.TEST)
 public class GatlingMojo extends AbstractMojo {
 
+	public static final String SCALA_VERSION = "2.11.2";
 	public static final String[] SCALA_INCLUDES = { "**/*.scala" };
 	public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
 	public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
@@ -168,6 +173,30 @@ public class GatlingMojo extends AbstractMojo {
 	private ToolchainManager toolchainManager;
 
 	/**
+	 * Maven's artifact resolver.
+	 */
+	@Component
+	private ArtifactResolver artifactResolver;
+
+	/**
+	 * Maven's artifact resolver.
+	 */
+	@Component
+	private ArtifactFactory artifactFactory;
+
+	/**
+	 * Location of the local repository.
+	 */
+	@Parameter(defaultValue = "${localRepository}")
+	private ArtifactRepository localRepo;
+
+	/**
+	 * List of Remote Repositories used by the resolver
+	 */
+	@Parameter(defaultValue = "${project.remoteArtifactRepositories}")
+	protected List<ArtifactRepository> remoteRepos;
+
+	/**
 	 * Executes Gatling simulations.
 	 */
 	@Override
@@ -221,12 +250,19 @@ public class GatlingMojo extends AbstractMojo {
 	private String buildTestClasspath() throws Exception {
 		List<String> testClasspathElements = mavenProject.getTestClasspathElements();
 		testClasspathElements.add(configFolder.getPath());
+		testClasspathElements.add(getCompilerJar().getPath());
 		// Find plugin jar and add it to classpath
 		testClasspathElements.add(MainHelper.locateJar(GatlingMojo.class));
 		// Jenkins seems to need scala-maven-plugin in the test classpath in
 		// order to work
 		testClasspathElements.add(MainHelper.locateJar(MainWithArgsInFile.class));
 		return MainHelper.toMultiPath(testClasspathElements);
+	}
+
+	private File getCompilerJar() throws Exception {
+		Artifact artifact = artifactFactory.createArtifact("org.scala-lang", "scala-compiler", SCALA_VERSION, Artifact.SCOPE_RUNTIME, "jar");
+		artifactResolver.resolve(artifact, remoteRepos, localRepo);
+		return artifact.getFile();
 	}
 
 	private List<String> gatlingJvmArgs() {

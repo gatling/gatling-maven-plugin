@@ -164,13 +164,13 @@ public class GatlingMojo extends AbstractMojo {
 	/**
 	 * The Maven Project.
 	 */
-	@Component
+	@Parameter(defaultValue = "${project}", readonly = true)
 	private MavenProject mavenProject;
 
 	/**
 	 * The Maven Session Object.
 	 */
-	@Component
+	@Parameter(defaultValue = "${session}", readonly = true)
 	private MavenSession session;
 
 	/**
@@ -194,13 +194,13 @@ public class GatlingMojo extends AbstractMojo {
 	/**
 	 * Location of the local repository.
 	 */
-	@Parameter(defaultValue = "${localRepository}")
+	@Parameter(defaultValue = "${localRepository}", readonly = true)
 	private ArtifactRepository localRepo;
 
 	/**
 	 * List of Remote Repositories used by the resolver
 	 */
-	@Parameter(defaultValue = "${project.remoteArtifactRepositories}")
+	@Parameter(defaultValue = "${project.remoteArtifactRepositories}", readonly = true)
 	protected List<ArtifactRepository> remoteRepos;
 
 	/**

@@ -39,10 +39,9 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.util.DirectoryScanner;
-import scala_maven_executions.JavaMainCaller;
-import scala_maven_executions.MainWithArgsInFile;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * Mojo to execute Gatling.
@@ -52,18 +51,19 @@ import static java.util.Arrays.asList;
       requiresDependencyResolution = ResolutionScope.TEST)
 public class GatlingMojo extends AbstractMojo {
 
+	// Compiler constants
 	public static final String SCALA_VERSION = "2.11.2";
-	public static final String[] SCALA_INCLUDES = {"**/*.scala"};
 	public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
-	public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
+	public static final List<String> ZINC_JVM_ARGS = singletonList("-Xss10M");
 
-	public static final String[] GATLING_JVM_ARGS = {
+	// Gatling constants
+	public static final String[] SCALA_INCLUDES = {"**/*.scala"};
+	public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
+	public static final List<String> GATLING_JVM_ARGS = asList(
 			"-server", "-XX:+UseThreadPriorities", "-XX:ThreadPriorityPolicy=42", "-Xms512M",
 			"-Xmx512M", "-Xmn100M", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+AggressiveOpts",
 			"-XX:+OptimizeStringConcat", "-XX:+UseFastAccessorMethods", "-XX:+UseParNewGC",
-			"-XX:+UseConcMarkSweepGC", "-XX:+CMSParallelRemarkEnabled"};
-
-	public static final String[] ZINC_JVM_ARGS = {"-Xss10M"};
+			"-XX:+UseConcMarkSweepGC", "-XX:+CMSParallelRemarkEnabled");
 
 	/**
 	 * Run simulation but does not generate reports. By default false.
@@ -141,7 +141,7 @@ public class GatlingMojo extends AbstractMojo {
 	private String outputDirectoryBaseName;
 
 	/**
-	 * Propagate System properties in fork mode to forked process.
+	 * Propagate System properties to forked processes.
 	 */
 	@Parameter(property = "gatling.propagateSystemProperties", defaultValue = "true")
 	private boolean propagateSystemProperties;
@@ -153,7 +153,7 @@ public class GatlingMojo extends AbstractMojo {
 	private boolean skip;
 
 	/**
-	 * Disable the Scala compiler, if scala-maven-plugin already's in charge
+	 * Disable the Scala compiler, if scala-maven-plugin is already in charge
 	 * of compiling the simulations.
 	 */
 	@Parameter(property = "gatling.disableCompiler", defaultValue = "false")
@@ -210,10 +210,12 @@ public class GatlingMojo extends AbstractMojo {
 			// Create results directories
 			resultsFolder.mkdirs();
 			try {
-				String[] gatlingJvmArgs = gatlingJvmArgs().toArray(new String[gatlingJvmArgs().size()]);
-				String[] gatlingArgs = gatlingArgs().toArray(new String[gatlingArgs().size()]);
-				String[] zincJvmArgs = zincJvmArgs().toArray(new String[zincJvmArgs().size()]);
-				executeGatling(gatlingJvmArgs, gatlingArgs, zincJvmArgs);
+				String testClasspath = buildTestClasspath();
+				Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
+				if (!disableCompiler) {
+					executeCompiler(zincJvmArgs(), testClasspath, toolchain);
+				}
+				executeGatling(gatlingJvmArgs(), gatlingArgs(), testClasspath, toolchain);
 			} catch (Exception e) {
 				if (failOnError) {
 					throw new MojoExecutionException("Gatling failed.", e);
@@ -221,27 +223,26 @@ public class GatlingMojo extends AbstractMojo {
 					getLog().warn("There was some errors while running your simulation, but failOnError set to false won't fail your build.");
 				}
 			}
-		} else
+		} else {
 			getLog().info("Skipping gatling-maven-plugin");
+		}
 	}
 
-	private void executeGatling(String[] gatlingJvmArgs, String[] gatlingArgs, String[] zincJvmArgs) throws Exception {
-		String testClasspath = buildTestClasspath();
-		Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
-		if (!disableCompiler) {
-			String compilerClasspath = buildCompilerClasspath();
-			String[] compilerArguments = {testClasspath};
-			JavaMainCaller compilerCaller = new GatlingJavaMainCallerByFork(this, COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, propagateSystemProperties);
-			try {
-				compilerCaller.run(false);
-			} catch (ExecuteException e) {
-				throw new CompilationException(e);
-			}
-		}
-
-		JavaMainCaller gatlingCaller = new GatlingJavaMainCallerByFork(this, GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties);
+	private void executeCompiler(List<String> zincJvmArgs, String testClasspath, Toolchain toolchain) throws Exception {
+		String compilerClasspath = buildCompilerClasspath();
+		List<String> compilerArguments = singletonList(testClasspath);
+		Fork forkedCompiler = new Fork(COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, false);
 		try {
-			gatlingCaller.run(false);
+			forkedCompiler.run();
+		} catch (ExecuteException e) {
+			throw new CompilationException(e);
+		}
+	}
+
+	private void executeGatling(List<String> gatlingJvmArgs, List<String> gatlingArgs, String testClasspath, Toolchain toolchain) throws Exception {
+		Fork forkedGatling = new Fork(GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties);
+		try {
+			forkedGatling.run();
 		} catch (ExecuteException e) {
 			if (e.getExitValue() == 2)
 				throw new GatlingSimulationAssertionsFailedException(e);
@@ -252,11 +253,13 @@ public class GatlingMojo extends AbstractMojo {
 
 	private String buildCompilerClasspath() throws Exception {
 		URL[] classpathUrls = ((URLClassLoader) Thread.currentThread().getContextClassLoader()).getURLs();
-		List<String> classpathElements = new ArrayList<String>();
+		List<String> compilerClasspathElements = new ArrayList<String>();
 		for (URL url : classpathUrls) {
-			classpathElements.add(new File(url.toURI()).getAbsolutePath());
+			compilerClasspathElements.add(new File(url.toURI()).getAbsolutePath());
 		}
-		return GatlingMojoUtils.toMultiPath(classpathElements);
+		// Add plugin jar to classpath (used by MainWithArgsInFile)
+		compilerClasspathElements.add(GatlingMojoUtils.locateJar(GatlingMojo.class));
+		return GatlingMojoUtils.toMultiPath(compilerClasspathElements);
 	}
 
 	private String buildTestClasspath() throws Exception {
@@ -265,11 +268,8 @@ public class GatlingMojo extends AbstractMojo {
 		if (!disableCompiler) {
 			testClasspathElements.add(getCompilerJar().getPath());
 		}
-		// Find plugin jar and add it to classpath
+		// Add plugin jar to classpath (used by MainWithArgsInFile)
 		testClasspathElements.add(GatlingMojoUtils.locateJar(GatlingMojo.class));
-		// Jenkins seems to need scala-maven-plugin in the test classpath in
-		// order to work
-		testClasspathElements.add(GatlingMojoUtils.locateJar(MainWithArgsInFile.class));
 		return GatlingMojoUtils.toMultiPath(testClasspathElements);
 	}
 
@@ -280,11 +280,11 @@ public class GatlingMojo extends AbstractMojo {
 	}
 
 	private List<String> gatlingJvmArgs() {
-		return gatlingJvmArgs != null ? gatlingJvmArgs : asList(GATLING_JVM_ARGS);
+		return gatlingJvmArgs != null ? gatlingJvmArgs : GATLING_JVM_ARGS;
 	}
 
 	private List<String> zincJvmArgs() {
-		List<String> args = zincJvmArgs != null ? zincJvmArgs : asList(ZINC_JVM_ARGS);
+		List<String> args = zincJvmArgs != null ? zincJvmArgs : ZINC_JVM_ARGS;
 		args.add("-Dgatling.core.directory.simulations=" + simulationsFolder);
 		return args;
 	}

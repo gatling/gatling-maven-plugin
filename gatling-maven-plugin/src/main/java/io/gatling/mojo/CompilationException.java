@@ -18,10 +18,6 @@ package io.gatling.mojo;
 @SuppressWarnings("serial")
 public class CompilationException extends RuntimeException {
 
-	public CompilationException() {
-		this(null);
-	}
-
 	public CompilationException(Throwable t) {
 		super("Simulations compilation failed.", t);
 	}

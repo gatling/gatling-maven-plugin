@@ -18,10 +18,6 @@ package io.gatling.mojo;
 @SuppressWarnings("serial")
 public class GatlingSimulationAssertionsFailedException extends RuntimeException {
 
-	public GatlingSimulationAssertionsFailedException() {
-		this(null);
-	}
-
 	public GatlingSimulationAssertionsFailedException(Throwable t) {
 		super("Gatling simulation assertions failed !", t);
 	}

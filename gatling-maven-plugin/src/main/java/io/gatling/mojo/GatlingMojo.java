@@ -40,11 +40,9 @@ import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.util.DirectoryScanner;
 import scala_maven_executions.JavaMainCaller;
-import scala_maven_executions.MainHelper;
 import scala_maven_executions.MainWithArgsInFile;
 
 import static java.util.Arrays.asList;
-import static org.codehaus.plexus.util.StringUtils.trim;
 
 /**
  * Mojo to execute Gatling.
@@ -55,7 +53,7 @@ import static org.codehaus.plexus.util.StringUtils.trim;
 public class GatlingMojo extends AbstractMojo {
 
 	public static final String SCALA_VERSION = "2.11.2";
-	public static final String[] SCALA_INCLUDES = { "**/*.scala" };
+	public static final String[] SCALA_INCLUDES = {"**/*.scala"};
 	public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
 	public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
 
@@ -63,9 +61,9 @@ public class GatlingMojo extends AbstractMojo {
 			"-server", "-XX:+UseThreadPriorities", "-XX:ThreadPriorityPolicy=42", "-Xms512M",
 			"-Xmx512M", "-Xmn100M", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+AggressiveOpts",
 			"-XX:+OptimizeStringConcat", "-XX:+UseFastAccessorMethods", "-XX:+UseParNewGC",
-			"-XX:+UseConcMarkSweepGC", "-XX:+CMSParallelRemarkEnabled" };
+			"-XX:+UseConcMarkSweepGC", "-XX:+CMSParallelRemarkEnabled"};
 
-	public static final String[] ZINC_JVM_ARGS = { "-Xss10M" };
+	public static final String[] ZINC_JVM_ARGS = {"-Xss10M"};
 
 	/**
 	 * Run simulation but does not generate reports. By default false.
@@ -230,13 +228,13 @@ public class GatlingMojo extends AbstractMojo {
 	private void executeGatling(String[] gatlingJvmArgs, String[] gatlingArgs, String[] zincJvmArgs) throws Exception {
 		String testClasspath = buildTestClasspath();
 		Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
-		if(!disableCompiler) {
+		if (!disableCompiler) {
 			String compilerClasspath = buildCompilerClasspath();
-			String[] compilerArguments = { testClasspath };
+			String[] compilerArguments = {testClasspath};
 			JavaMainCaller compilerCaller = new GatlingJavaMainCallerByFork(this, COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, propagateSystemProperties);
 			try {
 				compilerCaller.run(false);
-			} catch(ExecuteException e) {
+			} catch (ExecuteException e) {
 				throw new CompilationException(e);
 			}
 		}
@@ -258,21 +256,21 @@ public class GatlingMojo extends AbstractMojo {
 		for (URL url : classpathUrls) {
 			classpathElements.add(new File(url.toURI()).getAbsolutePath());
 		}
-		return MainHelper.toMultiPath(classpathElements);
+		return GatlingMojoUtils.toMultiPath(classpathElements);
 	}
 
 	private String buildTestClasspath() throws Exception {
 		List<String> testClasspathElements = mavenProject.getTestClasspathElements();
 		testClasspathElements.add(configFolder.getPath());
-		if(!disableCompiler) {
+		if (!disableCompiler) {
 			testClasspathElements.add(getCompilerJar().getPath());
 		}
 		// Find plugin jar and add it to classpath
-		testClasspathElements.add(MainHelper.locateJar(GatlingMojo.class));
+		testClasspathElements.add(GatlingMojoUtils.locateJar(GatlingMojo.class));
 		// Jenkins seems to need scala-maven-plugin in the test classpath in
 		// order to work
-		testClasspathElements.add(MainHelper.locateJar(MainWithArgsInFile.class));
-		return MainHelper.toMultiPath(testClasspathElements);
+		testClasspathElements.add(GatlingMojoUtils.locateJar(MainWithArgsInFile.class));
+		return GatlingMojoUtils.toMultiPath(testClasspathElements);
 	}
 
 	private File getCompilerJar() throws Exception {
@@ -332,15 +330,6 @@ public class GatlingMojo extends AbstractMojo {
 		return args;
 	}
 
-	public static String fileNameToClassName(String fileName) {
-		String trimmedFileName = trim(fileName);
-
-		int lastIndexOfExtensionDelim = trimmedFileName.lastIndexOf(".");
-		String strippedFileName = lastIndexOfExtensionDelim > 0 ? trimmedFileName.substring(0, lastIndexOfExtensionDelim) : trimmedFileName;
-
-		return strippedFileName.replace(File.separatorChar, '.');
-	}
-
 	/**
 	 * Resolve simulation files to execute from the simulation folder.
 	 *
@@ -363,7 +352,7 @@ public class GatlingMojo extends AbstractMojo {
 
 		List<String> includedClassNames = new ArrayList<String>();
 		for (String includedFile : includedFiles) {
-			includedClassNames.add(fileNameToClassName(includedFile));
+			includedClassNames.add(GatlingMojoUtils.fileNameToClassName(includedFile));
 		}
 
 		getLog().debug("resolved simulation classes: " + includedClassNames);

@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static io.gatling.mojo.GatlingMojo.fileNameToClassName;
+import static io.gatling.mojo.GatlingMojoUtils.fileNameToClassName;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(value = Parameterized.class)

@@ -125,15 +125,12 @@ public class Fork {
 	private File createArgFile(List<String> args) throws IOException {
 		final File argFile = File.createTempFile(ARG_FILE_PREFIX, ARG_FILE_SUFFIX);
 		argFile.deleteOnExit();
-		final PrintWriter out = new PrintWriter(argFile);
-		try {
+		try(final PrintWriter out = new PrintWriter(argFile)) {
 			for (String arg : args) {
 				out.println(escapeArgumentForScalacArgumentFile(arg));
 			}
-		} finally {
-			out.close();
+			return argFile;
 		}
-		return argFile;
 	}
 
 	private String escapeArgumentForScalacArgumentFile(String arg) {

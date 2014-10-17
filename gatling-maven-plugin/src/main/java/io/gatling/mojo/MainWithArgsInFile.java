@@ -52,16 +52,16 @@ public class MainWithArgsInFile {
 
 	private static List<String> readArgFile(File argFile) throws IOException {
 		ArrayList<String> args = new ArrayList<String>();
-		final BufferedReader in = new BufferedReader(new FileReader(argFile));
-		try {
+		try(
+				final FileReader fr = new FileReader(argFile);
+				final BufferedReader in = new BufferedReader(fr)
+		) {
 			String line;
 			while ((line = in.readLine()) != null) {
 				args.add(unescapeArgumentForScalacArgumentFile(line));
 			}
-		} finally {
-			in.close();
+			return args;
 		}
-		return args;
 	}
 
 	private static String unescapeArgumentForScalacArgumentFile(String arg) {

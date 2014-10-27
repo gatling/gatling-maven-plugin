@@ -47,7 +47,7 @@
 								<args>
 									<arg>-encoding</arg>
 									<arg>UTF-8</arg>
-									<arg>-target:jvm-1.6</arg>
+									<arg>-target:jvm-1.7</arg>
 									<arg>-deprecation</arg>
 									<arg>-feature</arg>
 									<arg>-unchecked</arg>

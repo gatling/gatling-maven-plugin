@@ -23,7 +23,7 @@
 	<properties>
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
-		<scala.version>2.11.3</scala.version>
+		<scala.version>2.11.4</scala.version>
 
 		<maven-resouces-plugin.version>2.7</maven-resouces-plugin.version>
 		<header.basedir>${project.parent.basedir}</header.basedir>

@@ -29,7 +29,21 @@
 		<header.basedir>${project.parent.basedir}</header.basedir>
 	</properties>
 
+	<dependencies>
+		<dependency>
+			<groupId>io.gatling</groupId>
+			<artifactId>gatling-app</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.gatling</groupId>
+			<artifactId>gatling-recorder</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
 	<build>
+		<sourceDirectory>src/main/scala</sourceDirectory>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -39,9 +53,7 @@
 					<executions>
 						<execution>
 							<goals>
-								<goal>add-source</goal>
 								<goal>compile</goal>
-								<goal>testCompile</goal>
 							</goals>
 							<configuration>
 								<args>
@@ -109,6 +121,10 @@
 		</extensions>
 		<plugins>
 			<plugin>
+				<groupId>net.alchim31.maven</groupId>
+				<artifactId>scala-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
@@ -122,7 +138,7 @@
 								<artifactItem>
 									<groupId>io.gatling.highcharts</groupId>
 									<artifactId>gatling-charts-highcharts-bundle</artifactId>
-									<version>${project.version}</version>
+									<version>${gatling.version}</version>
 									<type>zip</type>
 									<classifier>bundle</classifier>
 									<outputDirectory>${project.build.directory}</outputDirectory>
@@ -137,7 +153,7 @@
 				<version>${maven-resouces-plugin.version}</version>
 				<executions>
 					<execution>
-						<id>copy-assets</id>
+						<id>copy-sources</id>
 						<phase>prepare-package</phase>
 						<goals>
 							<goal>copy-resources</goal>
@@ -145,11 +161,11 @@
 						<configuration>
 							<resources>
 								<resource>
-									<directory>${project.build.directory}/gatling-charts-highcharts-bundle-${project.version}/assets</directory>
+									<directory>${project.basedir}/src/main/scala</directory>
 									<filtering>false</filtering>
 								</resource>
 							</resources>
-							<outputDirectory>${project.build.directory}/classes/archetype-resources/src/main/resources/assets</outputDirectory>
+							<outputDirectory>${project.build.directory}/classes/archetype-resources/src/test/scala</outputDirectory>
 						</configuration>
 					</execution>
 					<execution>

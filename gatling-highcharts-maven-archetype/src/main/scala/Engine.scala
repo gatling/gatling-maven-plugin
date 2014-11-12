@@ -9,5 +9,5 @@ object Engine extends App {
 	props.requestBodiesDirectory(IDEPathHelper.requestBodiesDirectory.toString)
 	props.binariesDirectory(IDEPathHelper.mavenBinariesDirectory.toString)
 
-	new Gatling(props.build, None).start
+	Gatling.fromMap(props.build)
 }

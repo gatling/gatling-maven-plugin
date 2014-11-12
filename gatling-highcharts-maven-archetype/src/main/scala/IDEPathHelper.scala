@@ -1,4 +1,5 @@
 import java.nio.file.Path
+
 import io.gatling.core.util.PathHelper._
 
 object IDEPathHelper {

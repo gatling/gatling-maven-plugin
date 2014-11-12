@@ -145,7 +145,7 @@
 						<configuration>
 							<resources>
 								<resource>
-									<directory>${project.build.directory}/gatling-charts-highcharts-${project.version}/assets</directory>
+									<directory>${project.build.directory}/gatling-charts-highcharts-bundle-${project.version}/assets</directory>
 									<filtering>false</filtering>
 								</resource>
 							</resources>
@@ -161,7 +161,7 @@
 						<configuration>
 							<resources>
 								<resource>
-									<directory>${project.build.directory}/gatling-charts-highcharts-${project.version}/conf</directory>
+									<directory>${project.build.directory}/gatling-charts-highcharts-bundle-${project.version}/conf</directory>
 									<filtering>false</filtering>
 								</resource>
 							</resources>

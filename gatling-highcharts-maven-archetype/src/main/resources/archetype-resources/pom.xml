@@ -86,7 +86,6 @@
 	</dependencies>
 
 	<build>
-		<sourceDirectory>src/main/scala</sourceDirectory>
 		<testSourceDirectory>src/test/scala</testSourceDirectory>
 		<pluginManagement>
 			<plugins>
@@ -104,12 +103,11 @@
 				<executions>
 					<execution>
 						<goals>
-							<goal>compile</goal>
 							<goal>testCompile</goal>
 						</goals>
 						<configuration>
 							<args>
-								<arg>-target:jvm-1.6</arg>
+								<arg>-target:jvm-1.7</arg>
 								<arg>-deprecation</arg>
 								<arg>-feature</arg>
 								<arg>-unchecked</arg>

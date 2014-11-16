@@ -69,8 +69,8 @@ public class RecorderMojo extends AbstractMojo {
 	/**
 	 * Uses <folderName> as the folder where request bodies are stored.
 	 */
-	@Parameter(property = "gatling.recorder.requestBodiesFolder", alias = "rbf", defaultValue = "${basedir}/src/test/resources/request-bodies")
-	private String requestBodiesFolder;
+	@Parameter(property = "gatling.recorder.bodiesFolder", alias = "bdf", defaultValue = "${basedir}/src/test/resources/bodies")
+	private String bodiesFolder;
 
 	/**
 	 * The name of the generated class.
@@ -110,7 +110,7 @@ public class RecorderMojo extends AbstractMojo {
 		if (proxyPort != null) props.proxyPort(proxyPort);
 		if (proxySSLPort != null) props.proxyPort(proxySSLPort);
 		props.simulationOutputFolder(outputFolder);
-		props.requestBodiesFolder(requestBodiesFolder);
+		props.bodiesFolder(bodiesFolder);
 		if (className != null) props.simulationClassName(className);
 		if (packageName != null) props.simulationPackage(packageName);
 		if (encoding != null) props.encoding(encoding);

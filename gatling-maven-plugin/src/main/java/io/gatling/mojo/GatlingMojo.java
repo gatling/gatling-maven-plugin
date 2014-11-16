@@ -104,8 +104,8 @@ public class GatlingMojo extends AbstractMojo {
 	/**
 	 * Use this folder as the folder where request bodies are stored.
 	 */
-	@Parameter(property = "gatling.requestBodiesFolder", alias = "bf", defaultValue = "${basedir}/src/test/resources/request-bodies")
-	private File requestBodiesFolder;
+	@Parameter(property = "gatling.bodiesFolder", alias = "bdf", defaultValue = "${basedir}/src/test/resources/bodies")
+	private File bodiesFolder;
 
 	/**
 	 * Use this folder as the folder where results are stored.
@@ -311,7 +311,7 @@ public class GatlingMojo extends AbstractMojo {
 		List<String> args = new ArrayList<String>();
 		args.addAll(asList("-df", dataFolder.getCanonicalPath(),
 		                   "-rf", resultsFolder.getCanonicalPath(),
-		                   "-rbf", requestBodiesFolder.getCanonicalPath(),
+		                   "-bdf", bodiesFolder.getCanonicalPath(),
 		                   "-sf", simulationsFolder.getCanonicalPath(),
 		                   "-s", simulationClass,
 		                   "-m"));

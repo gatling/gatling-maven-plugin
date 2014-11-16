@@ -6,7 +6,7 @@ object Recorder extends App {
 	val props = new RecorderPropertiesBuilder
 	props.simulationOutputFolder(IDEPathHelper.recorderOutputDirectory.toString)
 	props.simulationPackage("${package}")
-	props.requestBodiesFolder(IDEPathHelper.requestBodiesDirectory.toString)
+	props.bodiesFolder(IDEPathHelper.bodiesDirectory.toString)
 
 	RecorderController(props.build, Some(IDEPathHelper.recorderConfigFile))
 }

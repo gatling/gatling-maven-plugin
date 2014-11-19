@@ -1,5 +1,5 @@
+import io.gatling.recorder.GatlingRecorder
 import io.gatling.recorder.config.RecorderPropertiesBuilder
-import io.gatling.recorder.controller.RecorderController
 
 object Recorder extends App {
 
@@ -8,5 +8,5 @@ object Recorder extends App {
 	props.simulationPackage("${package}")
 	props.bodiesFolder(IDEPathHelper.bodiesDirectory.toString)
 
-	RecorderController(props.build, Some(IDEPathHelper.recorderConfigFile))
+	GatlingRecorder.fromMap(props.build, Some(IDEPathHelper.recorderConfigFile))
 }

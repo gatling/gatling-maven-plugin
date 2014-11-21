@@ -2,11 +2,6 @@ language: java
 before_script: ./make_credentials.py
 script: mvn test
 
-env:
-  global:
-    - secure: "JePSQ4loMaGJ8vb88//sa4lcZw5VfuA5+PRQH4z907pmexaMphvfDXKYBvMsW6e9B6/jIMOtp2KBtWHcOAqvDtct8KZmDr59guTJU0Ftgl2aa/OpkGgKaTIHvKdQNUOssspFNP2wGYv7RJaRZSNO4/pPlQMmHfA68lLKjM37P+U="
-    - secure: "QNtTRXz8OBfuWQ5WwBLOOUEu0mi1t+yAUoUlDfx5afGiPtt+TEt/GfVgjIOyMJAzG00vaePPjmqTGtrnA7g8CLVU8wuEQKxDbfaiyrhJzokI8FEEqi6eRetNf5D7YTAHcdhnp2SKsT+ihuSLkEAZDjIXtzh2vGfb6vCWTqDp5s0="
-
 # If building master, Publish to Sonatype
 after_success: "[[ $TRAVIS_PULL_REQUEST == \"false\" ]] && mvn deploy"
 

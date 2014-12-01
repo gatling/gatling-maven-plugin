@@ -6,30 +6,6 @@
 	<artifactId>\${artifactId}</artifactId>
 	<version>\${version}</version>
 
-	<repositories>
-		<repository>
-			<id>sonatype</id>
-			<name>Sonatype OSS</name>
-			<url>https://oss.sonatype.org/content/groups/public</url>
-			<releases>
-				<updatePolicy>never</updatePolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>sonatype</id>
-			<name>Sonatype OSS</name>
-			<url>https://oss.sonatype.org/content/groups/public</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</pluginRepository>
-	</pluginRepositories>
-
 	<properties>
 		<maven.compiler.source>${maven.compiler.source}</maven.compiler.source>
 		<maven.compiler.target>${maven.compiler.target}</maven.compiler.target>

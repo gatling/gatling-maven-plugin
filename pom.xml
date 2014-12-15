@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
@@ -50,7 +50,7 @@
 
 	<properties>
 		<encoding>UTF-8</encoding>
-		<gatling.version>2.1.0</gatling.version>
+		<gatling.version>2.2.0-SNAPSHOT</gatling.version>
 		<commons-exec.version>1.2</commons-exec.version>
 		<junit.version>4.11</junit.version>
 		<maven3.version>3.0</maven3.version>
@@ -169,7 +169,7 @@
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore />
+										<ignore/>
 									</action>
 								</pluginExecution>
 							</pluginExecutions>

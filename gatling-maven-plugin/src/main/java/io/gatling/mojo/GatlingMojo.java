@@ -116,8 +116,8 @@ public class GatlingMojo extends AbstractMojo {
 	/**
 	 * Extra JVM arguments to pass when running Gatling.
 	 */
-	@Parameter(property = "gatling.gatlingJvmArgs")
-	private List<String> gatlingJvmArgs;
+	@Parameter(property = "gatling.jvmArgs")
+	private List<String> jvmArgs;
 
 	/**
 	 * Extra JVM arguments to pass when running Zinc.
@@ -280,7 +280,7 @@ public class GatlingMojo extends AbstractMojo {
 	}
 
 	private List<String> gatlingJvmArgs() {
-		return gatlingJvmArgs != null ? gatlingJvmArgs : GATLING_JVM_ARGS;
+		return jvmArgs != null ? jvmArgs : GATLING_JVM_ARGS;
 	}
 
 	private List<String> zincJvmArgs() {

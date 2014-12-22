@@ -16,6 +16,7 @@
 package io.gatling.mojo;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -230,7 +231,7 @@ public class GatlingMojo extends AbstractMojo {
 
 	private void executeCompiler(List<String> zincJvmArgs, String testClasspath, Toolchain toolchain) throws Exception {
 		String compilerClasspath = buildCompilerClasspath();
-		List<String> compilerArguments = singletonList(testClasspath);
+		List<String> compilerArguments = compilerArgs(testClasspath);
 		Fork forkedCompiler = new Fork(COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, false);
 		try {
 			forkedCompiler.run();
@@ -308,7 +309,7 @@ public class GatlingMojo extends AbstractMojo {
 		}
 
 		// Arguments
-		List<String> args = new ArrayList<String>();
+		List<String> args = new ArrayList<>();
 		args.addAll(asList("-df", dataFolder.getCanonicalPath(),
 		                   "-rf", resultsFolder.getCanonicalPath(),
 		                   "-bdf", bodiesFolder.getCanonicalPath(),
@@ -328,6 +329,13 @@ public class GatlingMojo extends AbstractMojo {
 			args.addAll(asList("-on", outputDirectoryBaseName));
 		}
 
+		return args;
+	}
+
+	private List<String> compilerArgs(String classpathElements) throws Exception {
+		List<String> args = new ArrayList<>();
+		args.addAll(asList("-ccp", classpathElements));
+		args.addAll(asList("-sf", simulationsFolder.getCanonicalPath()));
 		return args;
 	}
 

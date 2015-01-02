@@ -5,6 +5,8 @@ script: mvn test
 # If building master, Publish to Sonatype
 after_success: "[[ $TRAVIS_PULL_REQUEST == \"false\" ]] && mvn deploy"
 
+sudo:false
+
 # whitelist
 branches:
   only:

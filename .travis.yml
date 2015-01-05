@@ -1,5 +1,5 @@
 language: java
-before_script: ./make_credentials.py
+before_script: "[[ $TRAVIS_PULL_REQUEST == \"false\" ]] && ./make_credentials.py"
 script: mvn test
 
 # If building master, Publish to Sonatype

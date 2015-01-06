@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.exec.ExecuteException;
@@ -203,6 +205,25 @@ public class GatlingMojo extends AbstractMojo {
 	protected List<ArtifactRepository> remoteRepos;
 
 	/**
+	 * List of list of include patterns to use for scanning. By default &#42;&#42;&#47;&#42;.scala
+	 */
+	@Parameter
+	private String[] includes;
+
+	/**
+	 * List of list of exclude patterns to use for scanning. By default empty.
+	 */
+	@Parameter
+	private String[] excludes;
+
+	/**
+	 * Iterate over multiple scenarios if more than one scenario file is found. By default false.
+	 * If multiple scenarios are found but {@literal runMultipleScenarios} is false the execution will fail.
+	 */
+	@Parameter(defaultValue = "false")
+	private boolean runMultipleScenarios;
+
+	/**
 	 * Executes Gatling simulations.
 	 */
 	@Override
@@ -216,7 +237,11 @@ public class GatlingMojo extends AbstractMojo {
 				if (!disableCompiler) {
 					executeCompiler(zincJvmArgs(), testClasspath, toolchain);
 				}
-				executeGatling(gatlingJvmArgs(), gatlingArgs(), testClasspath, toolchain);
+
+				Collection<String> simulations = simulations();
+				for (String simulation : simulations) {
+				    executeGatling(gatlingJvmArgs(), gatlingArgs(simulation), testClasspath, toolchain);
+				}
 			} catch (Exception e) {
 				if (failOnError) {
 					throw new MojoExecutionException("Gatling failed.", e);
@@ -288,7 +313,7 @@ public class GatlingMojo extends AbstractMojo {
 		return zincJvmArgs != null ? zincJvmArgs : ZINC_JVM_ARGS;
 	}
 
-	private List<String> gatlingArgs() throws Exception {
+	private List<String> simulations() throws MojoFailureException {
 		// Solves the simulations, if no simulation file is defined
 		if (simulationClass == null) {
 			List<String> simulations = resolveSimulations(simulationsFolder);
@@ -296,8 +321,13 @@ public class GatlingMojo extends AbstractMojo {
 			if (simulations.isEmpty()) {
 				getLog().error("No simulations to run");
 				throw new MojoFailureException("No simulations to run");
+			}
 
-			} else if (simulations.size() > 1) {
+			if(runMultipleScenarios) {
+				return simulations;
+			}
+
+			if (simulations.size() > 1) {
 				getLog().error("More than 1 simulation to run, need to specify one");
 				throw new MojoFailureException("More than 1 simulation to run, need to specify one");
 
@@ -306,6 +336,10 @@ public class GatlingMojo extends AbstractMojo {
 			}
 		}
 
+		return Collections.singletonList(simulationClass);
+	}
+
+	private List<String> gatlingArgs(String simulationClass) throws Exception {
 		// Arguments
 		List<String> args = new ArrayList<>();
 		args.addAll(asList("-df", dataFolder.getCanonicalPath(),
@@ -350,7 +384,16 @@ public class GatlingMojo extends AbstractMojo {
 		scanner.setBasedir(simulationsFolder);
 
 		// Resolve includes
-		scanner.setIncludes(SCALA_INCLUDES);
+		if(includes == null || includes.length == 0){
+			scanner.setIncludes(SCALA_INCLUDES);
+		}
+		else {
+			scanner.setIncludes(includes);
+		}
+
+		if(excludes != null && excludes.length != 0) {
+			scanner.setExcludes(excludes);
+		}
 
 		// Resolve simulations to execute
 		scanner.scan();

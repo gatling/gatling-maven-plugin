@@ -33,109 +33,109 @@ import org.codehaus.plexus.util.StringUtils;
 
 public class Fork {
 
-	private static final String ARG_FILE_PREFIX = "gatling-maven-plugin-";
-	private static final String ARG_FILE_SUFFIX = ".args";
+  private static final String ARG_FILE_PREFIX = "gatling-maven-plugin-";
+  private static final String ARG_FILE_SUFFIX = ".args";
 
-	private final String javaExecutable;
-	private final String mainClassName;
-	private final List<String> jvmArgs = new ArrayList<String>();
-	private final List<String> args = new ArrayList<String>();
+  private final String javaExecutable;
+  private final String mainClassName;
+  private final List<String> jvmArgs = new ArrayList<String>();
+  private final List<String> args = new ArrayList<String>();
 
-	public Fork(String mainClassName, String classpath,
-	            List<String> jvmArgs, List<String> args,
-	            Toolchain toolchain, boolean propagateSystemProperties) throws Exception {
+  public Fork(String mainClassName, String classpath,
+              List<String> jvmArgs, List<String> args,
+              Toolchain toolchain, boolean propagateSystemProperties) throws Exception {
 
-		this.javaExecutable = findJavaExecutable(toolchain);
-		this.mainClassName = mainClassName;
-		this.jvmArgs.addAll(jvmArgs);
-		this.args.addAll(args);
+    this.javaExecutable = findJavaExecutable(toolchain);
+    this.mainClassName = mainClassName;
+    this.jvmArgs.addAll(jvmArgs);
+    this.args.addAll(args);
 
-		if (StringUtils.isNotEmpty(classpath)) {
-			this.jvmArgs.add("-classpath");
-			this.jvmArgs.add(classpath);
-		}
+    if (StringUtils.isNotEmpty(classpath)) {
+      this.jvmArgs.add("-classpath");
+      this.jvmArgs.add(classpath);
+    }
 
-		if (propagateSystemProperties) {
-			for (Entry<Object, Object> systemProp : System.getProperties().entrySet()) {
-				String name = systemProp.getKey().toString();
-				String value = systemProp.getValue().toString();
-				if (isPropagatableProperty(name)) {
-					this.jvmArgs.add("-D" + name + "=" + StringUtils.escape(value));
-				}
-			}
-		}
-	}
+    if (propagateSystemProperties) {
+      for (Entry<Object, Object> systemProp : System.getProperties().entrySet()) {
+        String name = systemProp.getKey().toString();
+        String value = systemProp.getValue().toString();
+        if (isPropagatableProperty(name)) {
+          this.jvmArgs.add("-D" + name + "=" + StringUtils.escape(value));
+        }
+      }
+    }
+  }
 
-	public void run() throws Exception {
-		List<String> command = buildCommand();
+  public void run() throws Exception {
+    List<String> command = buildCommand();
 
-		Executor exec = new DefaultExecutor();
-		exec.setStreamHandler(new PumpStreamHandler(System.out, System.err, System.in));
-		exec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
+    Executor exec = new DefaultExecutor();
+    exec.setStreamHandler(new PumpStreamHandler(System.out, System.err, System.in));
+    exec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
 
-		CommandLine cl = new CommandLine(javaExecutable);
-		for (String arg : command) {
-			cl.addArgument(arg, false);
-		}
+    CommandLine cl = new CommandLine(javaExecutable);
+    for (String arg : command) {
+      cl.addArgument(arg, false);
+    }
 
-		int exitValue = exec.execute(cl);
-		if (exitValue != 0) {
-			throw new MojoFailureException("command line returned non-zero value:" + exitValue);
-		}
-	}
+    int exitValue = exec.execute(cl);
+    if (exitValue != 0) {
+      throw new MojoFailureException("command line returned non-zero value:" + exitValue);
+    }
+  }
 
-	private List<String> buildCommand() throws IOException {
-		ArrayList<String> command = new ArrayList<String>(2 + jvmArgs.size() + args.size());
-		command.addAll(jvmArgs);
-		command.add(MainWithArgsInFile.class.getName());
-		command.add(mainClassName);
-		command.add(createArgFile(args).getCanonicalPath());
-		return command;
-	}
+  private List<String> buildCommand() throws IOException {
+    ArrayList<String> command = new ArrayList<String>(2 + jvmArgs.size() + args.size());
+    command.addAll(jvmArgs);
+    command.add(MainWithArgsInFile.class.getName());
+    command.add(mainClassName);
+    command.add(createArgFile(args).getCanonicalPath());
+    return command;
+  }
 
-	private boolean isPropagatableProperty(String name) {
-		return !name.startsWith("java.") //
-				&& !name.startsWith("sun.") //
-				&& !name.startsWith("maven.") //
-				&& !name.startsWith("file.") //
-				&& !name.startsWith("awt.") //
-				&& !name.startsWith("os.") //
-				&& !name.startsWith("user.") //
-				&& !name.equals("line.separator") //
-				&& !name.equals("path.separator");
-	}
+  private boolean isPropagatableProperty(String name) {
+    return !name.startsWith("java.") //
+      && !name.startsWith("sun.") //
+      && !name.startsWith("maven.") //
+      && !name.startsWith("file.") //
+      && !name.startsWith("awt.") //
+      && !name.startsWith("os.") //
+      && !name.startsWith("user.") //
+      && !name.equals("line.separator") //
+      && !name.equals("path.separator");
+  }
 
-	private String findJavaExecutable(Toolchain toolchain) {
-		String fromToolchain = toolchain != null ? toolchain.findTool("java") : null;
-		if (fromToolchain != null) {
-			return fromToolchain;
-		} else {
-			String javaHome;
-			javaHome = System.getProperty("java.home");
-			if (javaHome == null) {
-				javaHome = System.getenv("JAVA_HOME");
-				if (javaHome == null) {
-					throw new IllegalStateException("Couldn't locate java, try setting JAVA_HOME environment variable.");
-				}
-			}
-			return javaHome + File.separator + "bin" + File.separator + "java";
-		}
-	}
+  private String findJavaExecutable(Toolchain toolchain) {
+    String fromToolchain = toolchain != null ? toolchain.findTool("java") : null;
+    if (fromToolchain != null) {
+      return fromToolchain;
+    } else {
+      String javaHome;
+      javaHome = System.getProperty("java.home");
+      if (javaHome == null) {
+        javaHome = System.getenv("JAVA_HOME");
+        if (javaHome == null) {
+          throw new IllegalStateException("Couldn't locate java, try setting JAVA_HOME environment variable.");
+        }
+      }
+      return javaHome + File.separator + "bin" + File.separator + "java";
+    }
+  }
 
-	private File createArgFile(List<String> args) throws IOException {
-		final File argFile = File.createTempFile(ARG_FILE_PREFIX, ARG_FILE_SUFFIX);
-		argFile.deleteOnExit();
-		try(final PrintWriter out = new PrintWriter(argFile)) {
-			for (String arg : args) {
-				out.println(escapeArgumentForScalacArgumentFile(arg));
-			}
-			return argFile;
-		}
-	}
+  private File createArgFile(List<String> args) throws IOException {
+    final File argFile = File.createTempFile(ARG_FILE_PREFIX, ARG_FILE_SUFFIX);
+    argFile.deleteOnExit();
+    try (final PrintWriter out = new PrintWriter(argFile)) {
+      for (String arg : args) {
+        out.println(escapeArgumentForScalacArgumentFile(arg));
+      }
+      return argFile;
+    }
+  }
 
-	private String escapeArgumentForScalacArgumentFile(String arg) {
-		return arg.matches(".*\\s.*")
-				? '"' + arg + '"'
-				: arg;
-	}
+  private String escapeArgumentForScalacArgumentFile(String arg) {
+    return arg.matches(".*\\s.*")
+      ? '"' + arg + '"'
+      : arg;
+  }
 }

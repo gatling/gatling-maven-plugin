@@ -217,11 +217,11 @@ public class GatlingMojo extends AbstractMojo {
   private String[] excludes;
 
   /**
-   * Iterate over multiple scenarios if more than one scenario file is found. By default false.
-   * If multiple scenarios are found but {@literal runMultipleScenarios} is false the execution will fail.
+   * Iterate over multiple simulations if more than one simulation file is found. By default false.
+   * If multiple simulations are found but {@literal runMultipleSimulations} is false the execution will fail.
    */
   @Parameter(defaultValue = "false")
-  private boolean runMultipleScenarios;
+  private boolean runMultipleSimulations;
 
   /**
    * Executes Gatling simulations.
@@ -315,7 +315,9 @@ public class GatlingMojo extends AbstractMojo {
 
   private List<String> simulations() throws MojoFailureException {
     // Solves the simulations, if no simulation file is defined
-    if (simulationClass == null) {
+    if (simulationClass != null) {
+      return Collections.singletonList(simulationClass);
+    } else {
       List<String> simulations = resolveSimulations(simulationsFolder);
 
       if (simulations.isEmpty()) {
@@ -323,20 +325,14 @@ public class GatlingMojo extends AbstractMojo {
         throw new MojoFailureException("No simulations to run");
       }
 
-      if (runMultipleScenarios) {
-        return simulations;
+      if (simulations.size() > 1 && !runMultipleSimulations) {
+        String message = "More than 1 simulation to run, need to specify one, or enable runMultipleSimulations";
+        getLog().error(message);
+        throw new MojoFailureException(message);
       }
 
-      if (simulations.size() > 1) {
-        getLog().error("More than 1 simulation to run, need to specify one");
-        throw new MojoFailureException("More than 1 simulation to run, need to specify one");
-
-      } else {
-        simulationClass = simulations.get(0);
-      }
+      return simulations;
     }
-
-    return Collections.singletonList(simulationClass);
   }
 
   private List<String> gatlingArgs(String simulationClass) throws Exception {

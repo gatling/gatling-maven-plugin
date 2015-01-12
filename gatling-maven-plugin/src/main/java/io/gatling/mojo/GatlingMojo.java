@@ -16,7 +16,6 @@
 package io.gatling.mojo;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -41,7 +40,9 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
-import org.codehaus.plexus.util.DirectoryScanner;
+
+import io.gatling.app.classloader.SimulationClassLoader;
+import io.gatling.core.scenario.Simulation;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -60,7 +61,6 @@ public class GatlingMojo extends AbstractMojo {
   public static final List<String> ZINC_JVM_ARGS = singletonList("-Xss10M");
 
   // Gatling constants
-  public static final String[] SCALA_INCLUDES = {"**/*.scala"};
   public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
   public static final List<String> GATLING_JVM_ARGS = asList(
     "-server", "-XX:+UseThreadPriorities", "-XX:ThreadPriorityPolicy=42", "-Xms512M",
@@ -205,7 +205,7 @@ public class GatlingMojo extends AbstractMojo {
   protected List<ArtifactRepository> remoteRepos;
 
   /**
-   * List of list of include patterns to use for scanning. By default &#42;&#42;&#47;&#42;.scala
+   * List of list of include patterns to use for scanning. Includes all simulations by default.
    */
   @Parameter
   private String[] includes;
@@ -222,6 +222,12 @@ public class GatlingMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "false")
   private boolean runMultipleSimulations;
+
+  /**
+   * Folder where the compiled classes are written.
+   */
+  @Parameter(defaultValue = "${project.build.testOutputDirectory}", readonly = true)
+  private File compiledClassesFolder;
 
   /**
    * Executes Gatling simulations.
@@ -318,7 +324,7 @@ public class GatlingMojo extends AbstractMojo {
     if (simulationClass != null) {
       return Collections.singletonList(simulationClass);
     } else {
-      List<String> simulations = resolveSimulations(simulationsFolder);
+      List<String> simulations = resolveSimulations();
 
       if (simulations.isEmpty()) {
         getLog().error("No simulations to run");
@@ -372,35 +378,21 @@ public class GatlingMojo extends AbstractMojo {
    *
    * @return a comma separated String of simulation class names.
    */
-  private List<String> resolveSimulations(File simulationsFolder) {
-    DirectoryScanner scanner = new DirectoryScanner();
+  private List<String> resolveSimulations() {
+    SimulationClassLoader classLoader = SimulationClassLoader.apply(compiledClassesFolder.toPath());
+    List<String> includes = GatlingMojoUtils.arrayAsListEmptyIfNull(this.includes);
+    List<String> excludes = GatlingMojoUtils.arrayAsListEmptyIfNull(this.excludes);
+    List<String> simulationsClasses = new ArrayList<>();
 
-    // Set Base Directory
-    getLog().debug("effective simulationsFolder: " + simulationsFolder.getPath());
-    scanner.setBasedir(simulationsFolder);
-
-    // Resolve includes
-    if (includes == null || includes.length == 0) {
-      scanner.setIncludes(SCALA_INCLUDES);
-    } else {
-      scanner.setIncludes(includes);
+    for (Class<Simulation> simulation : GatlingMojoUtils.scalaSeqToJavaList(classLoader.simulationClasses())) {
+      String className = simulation.getCanonicalName();
+      boolean isIncluded = includes.isEmpty() || includes.contains(className);
+      boolean isExcluded =  excludes.contains(className);
+      if (isIncluded && !isExcluded) {
+        simulationsClasses.add(className);
+      }
     }
-
-    if (excludes != null && excludes.length != 0) {
-      scanner.setExcludes(excludes);
-    }
-
-    // Resolve simulations to execute
-    scanner.scan();
-
-    String[] includedFiles = scanner.getIncludedFiles();
-
-    List<String> includedClassNames = new ArrayList<String>();
-    for (String includedFile : includedFiles) {
-      includedClassNames.add(GatlingMojoUtils.fileNameToClassName(includedFile));
-    }
-
-    getLog().debug("resolved simulation classes: " + includedClassNames);
-    return includedClassNames;
+    return simulationsClasses;
   }
+
 }

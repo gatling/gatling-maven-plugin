@@ -7,6 +7,11 @@ after_success: "[[ $TRAVIS_PULL_REQUEST == \"false\" ]] && mvn deploy"
 
 sudo: false
 
+# Cache settings
+cache:
+  directories:
+    - $HOME/.m2/repository
+
 # whitelist
 branches:
   only:

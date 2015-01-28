@@ -1,6 +1,6 @@
 language: java
 before_script: "[[ $TRAVIS_PULL_REQUEST == \"false\" ]] && ./make_credentials.py"
-script: mvn test
+script: mvn clean test
 
 # If building master, Publish to Sonatype
 after_success: "[[ $TRAVIS_PULL_REQUEST == \"false\" ]] && mvn deploy"

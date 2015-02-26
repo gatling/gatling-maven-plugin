@@ -61,13 +61,13 @@ public class RecorderMojo extends AbstractMojo {
   private Integer proxySSLPort;
 
   /**
-   * Uses <folderName> as the folder where generated simulations will be stored.
+   * Uses as the folder where generated simulations will be stored.
    */
   @Parameter(property = "gatling.recorder.outputFolder", alias = "of", defaultValue = "${basedir}/src/test/scala")
   private String outputFolder;
 
   /**
-   * Uses <folderName> as the folder where request bodies are stored.
+   * Uses as the folder where request bodies are stored.
    */
   @Parameter(property = "gatling.recorder.bodiesFolder", alias = "bdf", defaultValue = "${basedir}/src/test/resources/bodies")
   private String bodiesFolder;

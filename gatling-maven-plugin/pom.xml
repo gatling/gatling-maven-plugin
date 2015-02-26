@@ -16,7 +16,7 @@
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
 
-		<maven-plugin-plugin.version>3.3</maven-plugin-plugin.version>
+		<maven-plugin-plugin.version>3.4</maven-plugin-plugin.version>
 
 		<header.basedir>${project.parent.basedir}</header.basedir>
 	</properties>

@@ -229,6 +229,9 @@ public class GatlingMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project.build.testOutputDirectory}", readonly = true)
   private File compiledClassesFolder;
 
+  @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
+  private List<Artifact> artifacts;
+
   /**
    * Executes Gatling simulations.
    */
@@ -284,11 +287,17 @@ public class GatlingMojo extends AbstractMojo {
   }
 
   private String buildCompilerClasspath() throws Exception {
-    URL[] classpathUrls = ((URLClassLoader) Thread.currentThread().getContextClassLoader()).getURLs();
+
     List<String> compilerClasspathElements = new ArrayList<String>();
-    for (URL url : classpathUrls) {
-      compilerClasspathElements.add(new File(url.toURI()).getAbsolutePath());
+    for (Artifact artifact: artifacts) {
+      String groupId = artifact.getGroupId();
+      if (!groupId.startsWith("org.codehaus.plexus")
+        && !groupId.startsWith("org.apache.maven")
+        && !groupId.startsWith("org.sonatype")) {
+        compilerClasspathElements.add(artifact.getFile().getAbsolutePath());
+      }
     }
+
     // Add plugin jar to classpath (used by MainWithArgsInFile)
     compilerClasspathElements.add(GatlingMojoUtils.locateJar(GatlingMojo.class));
     return GatlingMojoUtils.toMultiPath(compilerClasspathElements);

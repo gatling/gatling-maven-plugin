@@ -16,8 +16,6 @@
 package io.gatling.mojo;
 
 import java.io.File;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -229,6 +227,18 @@ public class GatlingMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project.build.testOutputDirectory}", readonly = true)
   private File compiledClassesFolder;
 
+  /**
+   * Override Gatling's default JVM args, instead of replacing them.
+   */
+  @Parameter(defaultValue = "false")
+  private boolean overrideGatlingJvmArgs;
+
+  /**
+   * Override Zinc's default JVM args, instead of replacing them.
+   */
+  @Parameter(defaultValue = "false")
+  private boolean overrideZincJvmArgs;
+
   @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> artifacts;
 
@@ -288,7 +298,7 @@ public class GatlingMojo extends AbstractMojo {
 
   private String buildCompilerClasspath() throws Exception {
 
-    List<String> compilerClasspathElements = new ArrayList<String>();
+    List<String> compilerClasspathElements = new ArrayList<>();
     for (Artifact artifact: artifacts) {
       String groupId = artifact.getGroupId();
       if (!groupId.startsWith("org.codehaus.plexus")
@@ -321,11 +331,19 @@ public class GatlingMojo extends AbstractMojo {
   }
 
   private List<String> gatlingJvmArgs() {
-    return jvmArgs != null ? jvmArgs : GATLING_JVM_ARGS;
+    List<String> completeJvmArgs = jvmArgs != null ? jvmArgs : new ArrayList<String>();
+    if (overrideGatlingJvmArgs) {
+      completeJvmArgs.addAll(GATLING_JVM_ARGS);
+    }
+    return completeJvmArgs;
   }
 
   private List<String> zincJvmArgs() {
-    return zincJvmArgs != null ? zincJvmArgs : ZINC_JVM_ARGS;
+    List<String> completeZincArgs = zincJvmArgs != null ? zincJvmArgs : new ArrayList<String>();
+    if (overrideZincJvmArgs) {
+      completeZincArgs.addAll(ZINC_JVM_ARGS);
+    }
+    return completeZincArgs;
   }
 
   private List<String> simulations() throws MojoFailureException {

@@ -331,19 +331,25 @@ public class GatlingMojo extends AbstractMojo {
   }
 
   private List<String> gatlingJvmArgs() {
-    List<String> completeJvmArgs = jvmArgs != null ? jvmArgs : new ArrayList<String>();
-    if (overrideGatlingJvmArgs) {
-      completeJvmArgs.addAll(GATLING_JVM_ARGS);
+    List<String> completeGatlingJvmArgs = new ArrayList<>();
+    if(jvmArgs != null) {
+      completeGatlingJvmArgs.addAll(jvmArgs);
     }
-    return completeJvmArgs;
+    if (overrideGatlingJvmArgs) {
+      completeGatlingJvmArgs.addAll(GATLING_JVM_ARGS);
+    }
+    return completeGatlingJvmArgs;
   }
 
   private List<String> zincJvmArgs() {
-    List<String> completeZincArgs = zincJvmArgs != null ? zincJvmArgs : new ArrayList<String>();
-    if (overrideZincJvmArgs) {
-      completeZincArgs.addAll(ZINC_JVM_ARGS);
+    List<String> completeZincJvmArgs = new ArrayList<>();
+    if(zincJvmArgs != null) {
+      completeZincJvmArgs.addAll(zincJvmArgs);
     }
-    return completeZincArgs;
+    if (overrideZincJvmArgs) {
+      completeZincJvmArgs.addAll(ZINC_JVM_ARGS);
+    }
+    return completeZincJvmArgs;
   }
 
   private List<String> simulations() throws MojoFailureException {

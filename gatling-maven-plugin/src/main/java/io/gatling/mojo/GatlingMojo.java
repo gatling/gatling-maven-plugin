@@ -23,9 +23,7 @@ import java.util.List;
 
 import org.apache.commons.exec.ExecuteException;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -36,6 +34,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
 
@@ -179,28 +178,10 @@ public class GatlingMojo extends AbstractMojo {
   private ToolchainManager toolchainManager;
 
   /**
-   * Maven's artifact resolver.
+   * Maven's repository.
    */
   @Component
-  private ArtifactResolver artifactResolver;
-
-  /**
-   * Maven's artifact resolver.
-   */
-  @Component
-  private ArtifactFactory artifactFactory;
-
-  /**
-   * Location of the local repository.
-   */
-  @Parameter(defaultValue = "${localRepository}", readonly = true)
-  private ArtifactRepository localRepo;
-
-  /**
-   * List of Remote Repositories used by the resolver
-   */
-  @Parameter(defaultValue = "${project.remoteArtifactRepositories}", readonly = true)
-  protected List<ArtifactRepository> remoteRepos;
+  private RepositorySystem repository;
 
   /**
    * List of list of include patterns to use for scanning. Includes all simulations by default.
@@ -325,8 +306,19 @@ public class GatlingMojo extends AbstractMojo {
   }
 
   private File getCompilerJar() throws Exception {
-    Artifact artifact = artifactFactory.createArtifact("org.scala-lang", "scala-compiler", SCALA_VERSION, Artifact.SCOPE_RUNTIME, "jar");
-    artifactResolver.resolve(artifact, remoteRepos, localRepo);
+    Artifact artifact = repository.createArtifact("org.scala-lang", "scala-compiler", SCALA_VERSION, Artifact.SCOPE_RUNTIME, "jar");
+
+    ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+    request.setArtifact(artifact);
+
+    request.setResolveRoot(true).setResolveTransitively(false);
+    request.setServers(session.getRequest().getServers());
+    request.setMirrors(session.getRequest().getMirrors());
+    request.setProxies(session.getRequest().getProxies());
+    request.setLocalRepository(session.getLocalRepository());
+    request.setRemoteRepositories(session.getRequest().getRemoteRepositories());
+    repository.resolve(request);
+
     return artifact.getFile();
   }
 

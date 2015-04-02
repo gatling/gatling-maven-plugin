@@ -54,7 +54,7 @@ import static java.util.Collections.singletonList;
 public class GatlingMojo extends AbstractMojo {
 
   // Compiler constants
-  public static final String SCALA_VERSION = "2.11.5";
+  public static final String SCALA_VERSION = "2.11.6";
   public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
   public static final List<String> ZINC_JVM_ARGS = singletonList("-Xss10M");
 

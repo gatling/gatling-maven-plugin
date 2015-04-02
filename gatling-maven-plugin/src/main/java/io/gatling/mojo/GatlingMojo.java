@@ -16,6 +16,10 @@
 package io.gatling.mojo;
 
 import java.io.File;
+import java.lang.reflect.Modifier;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,6 +27,7 @@ import java.util.List;
 
 import org.apache.commons.exec.ExecuteException;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -38,8 +43,7 @@ import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
 
-import io.gatling.app.classloader.SimulationClassLoader;
-import io.gatling.core.scenario.Simulation;
+import org.codehaus.plexus.util.DirectoryScanner;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -257,6 +261,7 @@ public class GatlingMojo extends AbstractMojo {
   private void executeCompiler(List<String> zincJvmArgs, String testClasspath, Toolchain toolchain) throws Exception {
     String compilerClasspath = buildCompilerClasspath();
     List<String> compilerArguments = compilerArgs(testClasspath);
+
     Fork forkedCompiler = new Fork(COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, false);
     try {
       forkedCompiler.run();
@@ -404,20 +409,70 @@ public class GatlingMojo extends AbstractMojo {
    * @return a comma separated String of simulation class names.
    */
   private List<String> resolveSimulations() {
-    SimulationClassLoader classLoader = SimulationClassLoader.apply(compiledClassesFolder.toPath());
-    List<String> includes = GatlingMojoUtils.arrayAsListEmptyIfNull(this.includes);
-    List<String> excludes = GatlingMojoUtils.arrayAsListEmptyIfNull(this.excludes);
-    List<String> simulationsClasses = new ArrayList<>();
 
-    for (Class<Simulation> simulation : GatlingMojoUtils.scalaSeqToJavaList(classLoader.simulationClasses())) {
-      String className = simulation.getCanonicalName();
-      boolean isIncluded = includes.isEmpty() || includes.contains(className);
-      boolean isExcluded =  excludes.contains(className);
-      if (isIncluded && !isExcluded) {
-        simulationsClasses.add(className);
+    try {
+      ClassLoader testClassLoader = new URLClassLoader(testClassPathUrls());
+
+      Class<?> simulationClass = testClassLoader.loadClass("io.gatling.core.scenario.Simulation");
+      List<String> includes = GatlingMojoUtils.arrayAsListEmptyIfNull(this.includes);
+      List<String> excludes = GatlingMojoUtils.arrayAsListEmptyIfNull(this.excludes);
+
+      List<String> simulationsClasses = new ArrayList<>();
+
+      for (String classFile: compiledClassFiles()) {
+        String className =pathToClassName(classFile);
+
+        boolean isIncluded = includes.isEmpty() || includes.contains(className);
+        boolean isExcluded =  excludes.contains(className);
+
+        if (isIncluded && !isExcluded) {
+          // check if the class is a concrete Simulation
+          Class<?> clazz = testClassLoader.loadClass(className);
+          if (simulationClass.isAssignableFrom(clazz) && isConcreteClass(clazz)) {
+            simulationsClasses.add(className);
+          }
+        }
       }
+
+      return simulationsClasses;
+
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    return simulationsClasses;
   }
 
+  private URL[] testClassPathUrls() throws DependencyResolutionRequiredException, MalformedURLException {
+
+    List<String> testClasspathElements = mavenProject.getTestClasspathElements();
+
+    URL[] urls = new URL[testClasspathElements.size()];
+    for (int i = 0; i < testClasspathElements.size(); i++) {
+
+      String url = "file:" + testClasspathElements.get(i);
+      if (!url.endsWith(".jar")) {
+        // directory, has to end with a /
+        url += "/";
+      }
+
+      urls[i] = new URL(url);
+    }
+
+    return urls;
+  }
+
+  private String[] compiledClassFiles() {
+    DirectoryScanner scanner = new DirectoryScanner();
+    scanner.setBasedir(compiledClassesFolder.getAbsolutePath());
+    scanner.setIncludes(new String[]{"**/*.class"});
+    scanner.scan();
+    return scanner.getIncludedFiles();
+  }
+
+  private String pathToClassName(String path) {
+    return path.substring(0, path.length() - ".class".length()).replace(File.separatorChar, '.');
+  }
+
+  private boolean isConcreteClass(Class<?> clazz) {
+    return !clazz.isInterface() && !Modifier.isAbstract(clazz.getModifiers());
+  }
 }

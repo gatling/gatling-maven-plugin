@@ -24,11 +24,6 @@
 	<dependencies>
 		<dependency>
 			<groupId>io.gatling</groupId>
-			<artifactId>gatling-app</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.gatling</groupId>
 			<artifactId>gatling-recorder</artifactId>
 			<scope>provided</scope>
 		</dependency>

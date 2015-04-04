@@ -87,6 +87,9 @@ public class GatlingMojo extends AbstractMojo {
   @Parameter(property = "gatling.configFolder", alias = "cd", defaultValue = "${basedir}/src/test/resources")
   private File configFolder;
 
+  @Parameter(defaultValue = "${basedir}/src/test/resources", readonly = true)
+  private File defaultConfigFolder;
+
   /**
    * Use this folder to discover simulations that could be run.
    */
@@ -301,7 +304,10 @@ public class GatlingMojo extends AbstractMojo {
 
   private String buildTestClasspath() throws Exception {
     List<String> testClasspathElements = mavenProject.getTestClasspathElements();
-    testClasspathElements.add(configFolder.getPath());
+    if (!configFolder.getAbsolutePath().equals(defaultConfigFolder.getAbsolutePath())) {
+      // src/test/resources content is already copied into test-classes
+      testClasspathElements.add(configFolder.getPath());
+    }
     if (!disableCompiler) {
       testClasspathElements.add(getCompilerJar().getPath());
     }

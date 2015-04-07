@@ -230,6 +230,9 @@ public class GatlingMojo extends AbstractMojo {
   @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> artifacts;
 
+  @Parameter(defaultValue = "${basedir}/target/gatling", readonly = true)
+  private File reportsDirectory;
+
   /**
    * Executes Gatling simulations.
    */

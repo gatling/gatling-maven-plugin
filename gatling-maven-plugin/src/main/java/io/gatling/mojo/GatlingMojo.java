@@ -16,14 +16,16 @@
 package io.gatling.mojo;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
 
 import org.apache.commons.exec.ExecuteException;
 import org.apache.maven.artifact.Artifact;
@@ -233,6 +235,9 @@ public class GatlingMojo extends AbstractMojo {
   @Parameter(defaultValue = "${basedir}/target/gatling", readonly = true)
   private File reportsDirectory;
 
+  @Parameter(property = "gatling.useOldJenkinsJUnitSupport", defaultValue = "false")
+  private boolean useOldJenkinsJUnitSupport;
+
   /**
    * Executes Gatling simulations.
    */
@@ -252,12 +257,15 @@ public class GatlingMojo extends AbstractMojo {
         for (String simulation : simulations) {
           executeGatling(gatlingJvmArgs(), gatlingArgs(simulation), testClasspath, toolchain);
         }
+
       } catch (Exception e) {
         if (failOnError) {
           throw new MojoExecutionException("Gatling failed.", e);
         } else {
           getLog().warn("There was some errors while running your simulation, but failOnError set to false won't fail your build.");
         }
+      } finally {
+          copyJUnitReports();
       }
     } else {
       getLog().info("Skipping gatling-maven-plugin");
@@ -285,6 +293,34 @@ public class GatlingMojo extends AbstractMojo {
         throw new GatlingSimulationAssertionsFailedException(e);
       else
         throw e; /* issue 1482*/
+    }
+  }
+
+  private void copyJUnitReports() throws MojoExecutionException {
+
+    try {
+      if (useOldJenkinsJUnitSupport) {
+        File[] runDirectories = reportsDirectory.listFiles(new FileFilter() {
+          @Override
+          public boolean accept(File pathname) {
+            return pathname.isDirectory();
+          }
+        });
+
+        for (File runDirectory: runDirectories) {
+          File jsDir = new File(runDirectory, "js");
+          if (jsDir.exists() && jsDir.isDirectory()) {
+            File assertionFile = new File(jsDir, "assertions.xml");
+            if (assertionFile.exists()) {
+              File newAssertionFile = new File(reportsDirectory, "assertions-" + runDirectory.getName() + ".xml");
+              Files.copy(assertionFile.toPath(), newAssertionFile.toPath(), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+              getLog().info("Copying assertion file " + assertionFile.getAbsolutePath() + " to " + newAssertionFile.getAbsolutePath());
+            }
+          }
+        }
+      }
+    } catch (IOException e) {
+      throw new MojoExecutionException("Failed to copy JUnit reports", e);
     }
   }
 
@@ -429,7 +465,7 @@ public class GatlingMojo extends AbstractMojo {
       List<String> simulationsClasses = new ArrayList<>();
 
       for (String classFile: compiledClassFiles()) {
-        String className =pathToClassName(classFile);
+        String className = pathToClassName(classFile);
 
         boolean isIncluded = includes.isEmpty() || includes.contains(className);
         boolean isExcluded =  excludes.contains(className);

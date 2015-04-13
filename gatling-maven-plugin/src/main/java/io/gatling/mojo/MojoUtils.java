@@ -15,34 +15,25 @@
  */
 package io.gatling.mojo;
 
+import org.codehaus.plexus.util.StringUtils;
+
 import java.io.File;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.codehaus.plexus.util.StringUtils;
+public class MojoUtils {
 
-import static org.codehaus.plexus.util.StringUtils.trim;
-
-public class GatlingMojoUtils {
-
-	private GatlingMojoUtils() {
-		throw new AssertionError();
-	}
+  private MojoUtils() {
+    throw new AssertionError();
+  }
 
 	public static String toMultiPath(List<String> paths) {
 		return StringUtils.join(paths.iterator(), File.pathSeparator);
-	}
-
-	public static String fileNameToClassName(String fileName) {
-		String trimmedFileName = trim(fileName);
-
-		int lastIndexOfExtensionDelim = trimmedFileName.lastIndexOf(".");
-		String strippedFileName = lastIndexOfExtensionDelim > 0 ? trimmedFileName.substring(0, lastIndexOfExtensionDelim) : trimmedFileName;
-
-		return strippedFileName.replace(File.separatorChar, '.');
 	}
 
 	public static String locateJar(Class<?> c) throws Exception {
@@ -64,4 +55,8 @@ public class GatlingMojoUtils {
 		}
 		throw new ClassNotFoundException("Cannot find class '" + c.getName() + " using the classloader");
 	}
+
+  public static <T> List<T> arrayAsListEmptyIfNull(T[] array) {
+    return array == null ? Collections.<T> emptyList() : Arrays.asList(array);
+  }
 }

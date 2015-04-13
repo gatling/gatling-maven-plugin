@@ -23,7 +23,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
@@ -48,7 +47,7 @@ import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
+import static io.gatling.mojo.MojoConstants.*;
 
 /**
  * Mojo to execute Gatling.
@@ -57,19 +56,6 @@ import static java.util.Collections.singletonList;
   defaultPhase = LifecyclePhase.INTEGRATION_TEST,
   requiresDependencyResolution = ResolutionScope.TEST)
 public class GatlingMojo extends AbstractMojo {
-
-  // Compiler constants
-  public static final String SCALA_VERSION = "2.11.6";
-  public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
-  public static final List<String> ZINC_JVM_ARGS = singletonList("-Xss10M");
-
-  // Gatling constants
-  public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
-  public static final List<String> GATLING_JVM_ARGS = asList(
-    "-server", "-XX:+UseThreadPriorities", "-XX:ThreadPriorityPolicy=42", "-Xms512M",
-    "-Xmx512M", "-Xmn100M", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+AggressiveOpts",
-    "-XX:+OptimizeStringConcat", "-XX:+UseFastAccessorMethods", "-XX:+UseParNewGC",
-    "-XX:+UseConcMarkSweepGC", "-XX:+CMSParallelRemarkEnabled");
 
   /**
    * Run simulation but does not generate reports. By default false.
@@ -337,8 +323,8 @@ public class GatlingMojo extends AbstractMojo {
     }
 
     // Add plugin jar to classpath (used by MainWithArgsInFile)
-    compilerClasspathElements.add(GatlingMojoUtils.locateJar(GatlingMojo.class));
-    return GatlingMojoUtils.toMultiPath(compilerClasspathElements);
+    compilerClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
+    return MojoUtils.toMultiPath(compilerClasspathElements);
   }
 
   private String buildTestClasspath() throws Exception {
@@ -351,8 +337,8 @@ public class GatlingMojo extends AbstractMojo {
       testClasspathElements.add(getCompilerJar().getPath());
     }
     // Add plugin jar to classpath (used by MainWithArgsInFile)
-    testClasspathElements.add(GatlingMojoUtils.locateJar(GatlingMojo.class));
-    return GatlingMojoUtils.toMultiPath(testClasspathElements);
+    testClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
+    return MojoUtils.toMultiPath(testClasspathElements);
   }
 
   private File getCompilerJar() throws Exception {
@@ -459,8 +445,8 @@ public class GatlingMojo extends AbstractMojo {
       ClassLoader testClassLoader = new URLClassLoader(testClassPathUrls());
 
       Class<?> simulationClass = testClassLoader.loadClass("io.gatling.core.scenario.Simulation");
-      List<String> includes = GatlingMojoUtils.arrayAsListEmptyIfNull(this.includes);
-      List<String> excludes = GatlingMojoUtils.arrayAsListEmptyIfNull(this.excludes);
+      List<String> includes = MojoUtils.arrayAsListEmptyIfNull(this.includes);
+      List<String> excludes = MojoUtils.arrayAsListEmptyIfNull(this.excludes);
 
       List<String> simulationsClasses = new ArrayList<>();
 

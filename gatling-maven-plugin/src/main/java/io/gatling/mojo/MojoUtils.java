@@ -26,12 +26,9 @@ import java.util.regex.Pattern;
 
 import org.codehaus.plexus.util.StringUtils;
 
-import scala.collection.JavaConversions$;
-import scala.collection.Seq;
+public class MojoUtils {
 
-public class GatlingMojoUtils {
-
-  private GatlingMojoUtils() {
+  private MojoUtils() {
     throw new AssertionError();
   }
 
@@ -57,10 +54,6 @@ public class GatlingMojoUtils {
       throw new ClassNotFoundException("Cannot parse location of '" + location + "'.  Probably not loaded from a Jar");
     }
     throw new ClassNotFoundException("Cannot find class '" + c.getName() + " using the classloader");
-  }
-
-  public static <T> List<T> scalaSeqToJavaList(Seq<T> seq) {
-    return JavaConversions$.MODULE$.seqAsJavaList(seq);
   }
 
   public static <T> List<T> arrayAsListEmptyIfNull(T[] array) {

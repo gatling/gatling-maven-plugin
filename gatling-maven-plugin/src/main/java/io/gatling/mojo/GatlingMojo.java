@@ -150,12 +150,6 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private boolean runMultipleSimulations;
 
   /**
-   * Folder where the compiled classes are written.
-   */
-  @Parameter(defaultValue = "${project.build.testOutputDirectory}", readonly = true)
-  private File compiledClassesFolder;
-
-  /**
    * Override Gatling's default JVM args, instead of replacing them.
    */
   @Parameter(defaultValue = "false")

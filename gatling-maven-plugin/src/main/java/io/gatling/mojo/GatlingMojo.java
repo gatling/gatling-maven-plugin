@@ -18,27 +18,20 @@ package io.gatling.mojo;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.*;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.repository.RepositorySystem;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.toolchain.Toolchain;
-import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,9 +44,9 @@ import static java.util.Arrays.asList;
  * Mojo to execute Gatling.
  */
 @Mojo(name = "execute",
-      defaultPhase = LifecyclePhase.INTEGRATION_TEST,
-      requiresDependencyResolution = ResolutionScope.TEST)
-public class GatlingMojo extends AbstractMojo {
+  defaultPhase = LifecyclePhase.INTEGRATION_TEST,
+  requiresDependencyResolution = ResolutionScope.TEST)
+public class GatlingMojo extends AbstractGatlingMojo {
 
   /**
    * Run simulation but does not generate reports. By default false.
@@ -66,15 +59,6 @@ public class GatlingMojo extends AbstractMojo {
    */
   @Parameter(property = "gatling.reportsOnly", alias = "ro")
   private String reportsOnly;
-
-  /**
-   * Use this folder as the configuration directory.
-   */
-  @Parameter(property = "gatling.configFolder", alias = "cd", defaultValue = "${basedir}/src/test/resources")
-  private File configFolder;
-
-  @Parameter(defaultValue = "${basedir}/src/test/resources", readonly = true)
-  private File defaultConfigFolder;
 
   /**
    * Use this folder to discover simulations that could be run.
@@ -93,12 +77,6 @@ public class GatlingMojo extends AbstractMojo {
    */
   @Parameter(property = "gatling.dataFolder", alias = "df", defaultValue = "${basedir}/src/test/resources/data")
   private File dataFolder;
-
-  /**
-   * Use this folder as the folder where request bodies are stored.
-   */
-  @Parameter(property = "gatling.bodiesFolder", alias = "bdf", defaultValue = "${basedir}/src/test/resources/bodies")
-  private File bodiesFolder;
 
   /**
    * Use this folder as the folder where results are stored.
@@ -153,30 +131,6 @@ public class GatlingMojo extends AbstractMojo {
   private boolean disableCompiler;
 
   /**
-   * The Maven Project.
-   */
-  @Parameter(defaultValue = "${project}", readonly = true)
-  private MavenProject mavenProject;
-
-  /**
-   * The Maven Session Object.
-   */
-  @Parameter(defaultValue = "${session}", readonly = true)
-  private MavenSession session;
-
-  /**
-   * The toolchain manager to use.
-   */
-  @Component
-  private ToolchainManager toolchainManager;
-
-  /**
-   * Maven's repository.
-   */
-  @Component
-  private RepositorySystem repository;
-
-  /**
    * List of list of include patterns to use for scanning. Includes all simulations by default.
    */
   @Parameter
@@ -219,9 +173,6 @@ public class GatlingMojo extends AbstractMojo {
   @Parameter(defaultValue = "${basedir}/target/gatling", readonly = true)
   private File reportsDirectory;
 
-  @Parameter(property = "gatling.useOldJenkinsJUnitSupport", defaultValue = "false")
-  private boolean useOldJenkinsJUnitSupport;
-
   /**
    * Executes Gatling simulations.
    */
@@ -247,8 +198,6 @@ public class GatlingMojo extends AbstractMojo {
         } else {
           getLog().warn("There was some errors while running your simulation, but failOnError set to false won't fail your build.");
         }
-      } finally {
-          copyJUnitReports();
       }
     } else {
       getLog().info("Skipping gatling-maven-plugin");
@@ -279,34 +228,6 @@ public class GatlingMojo extends AbstractMojo {
     }
   }
 
-  private void copyJUnitReports() throws MojoExecutionException {
-
-    try {
-      if (useOldJenkinsJUnitSupport) {
-        File[] runDirectories = reportsDirectory.listFiles(new FileFilter() {
-          @Override
-          public boolean accept(File pathname) {
-            return pathname.isDirectory();
-          }
-        });
-
-        for (File runDirectory: runDirectories) {
-          File jsDir = new File(runDirectory, "js");
-          if (jsDir.exists() && jsDir.isDirectory()) {
-            File assertionFile = new File(jsDir, "assertions.xml");
-            if (assertionFile.exists()) {
-              File newAssertionFile = new File(reportsDirectory, "assertions-" + runDirectory.getName() + ".xml");
-              Files.copy(assertionFile.toPath(), newAssertionFile.toPath(), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
-              getLog().info("Copying assertion file " + assertionFile.getAbsolutePath() + " to " + newAssertionFile.getAbsolutePath());
-            }
-          }
-        }
-      }
-    } catch (IOException e) {
-      throw new MojoExecutionException("Failed to copy JUnit reports", e);
-    }
-  }
-
   private String buildCompilerClasspath() throws Exception {
 
     List<String> compilerClasspathElements = new ArrayList<>();
@@ -322,39 +243,6 @@ public class GatlingMojo extends AbstractMojo {
     // Add plugin jar to classpath (used by MainWithArgsInFile)
     compilerClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
     return MojoUtils.toMultiPath(compilerClasspathElements);
-  }
-
-  private String buildTestClasspath(boolean includeCompiler) throws Exception {
-    List<String> testClasspathElements = new ArrayList<>();
-    if (!configFolder.getAbsolutePath().equals(defaultConfigFolder.getAbsolutePath())) {
-      // src/test/resources content is already copied into test-classes
-      testClasspathElements.add(configFolder.getAbsolutePath());
-    }
-    testClasspathElements.addAll(mavenProject.getTestClasspathElements());
-
-    if (includeCompiler) {
-      testClasspathElements.add(getCompilerJar().getAbsolutePath());
-    }
-    // Add plugin jar to classpath (used by MainWithArgsInFile)
-    testClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
-    return MojoUtils.toMultiPath(testClasspathElements);
-  }
-
-  private File getCompilerJar() throws Exception {
-    Artifact artifact = repository.createArtifact("org.scala-lang", "scala-compiler", SCALA_VERSION, Artifact.SCOPE_RUNTIME, "jar");
-
-    ArtifactResolutionRequest request = new ArtifactResolutionRequest();
-    request.setArtifact(artifact);
-
-    request.setResolveRoot(true).setResolveTransitively(false);
-    request.setServers(session.getRequest().getServers());
-    request.setMirrors(session.getRequest().getMirrors());
-    request.setProxies(session.getRequest().getProxies());
-    request.setLocalRepository(session.getLocalRepository());
-    request.setRemoteRepositories(session.getRequest().getRemoteRepositories());
-    repository.resolve(request);
-
-    return artifact.getFile();
   }
 
   private List<String> gatlingJvmArgs() {
@@ -415,13 +303,8 @@ public class GatlingMojo extends AbstractMojo {
       args.add("-nr");
     }
 
-    if (reportsOnly != null) {
-      args.addAll(asList("-ro", reportsOnly));
-    }
-
-    if (outputDirectoryBaseName != null) {
-      args.addAll(asList("-on", outputDirectoryBaseName));
-    }
+    addToArgsIfNotNull(args, reportsOnly, "ro");
+    addToArgsIfNotNull(args, outputDirectoryBaseName, "on");
 
     return args;
   }

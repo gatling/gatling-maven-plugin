@@ -15,26 +15,26 @@
  */
 package io.gatling.mojo;
 
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.*;
-import org.apache.maven.project.MavenProject;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.toolchain.Toolchain;
-import org.apache.maven.toolchain.ToolchainManager;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.gatling.mojo.MojoConstants.GATLING_JVM_ARGS;
+import static io.gatling.mojo.MojoConstants.RECORDER_MAIN_CLASS;
 import static java.util.Arrays.asList;
-import static io.gatling.mojo.MojoConstants.*;
 
 /**
  * Mojo to run Gatling Recorder.
  */
 @Mojo(name = "recorder", defaultPhase = LifecyclePhase.INTEGRATION_TEST, requiresDependencyResolution = ResolutionScope.TEST)
-public class RecorderMojo extends AbstractMojo {
+public class RecorderMojo extends AbstractGatlingMojo {
 
   /**
    * Local port used by Gatling Proxy for HTTP.
@@ -67,12 +67,6 @@ public class RecorderMojo extends AbstractMojo {
   private String outputFolder;
 
   /**
-   * Uses as the folder where request bodies are stored.
-   */
-  @Parameter(property = "gatling.recorder.bodiesFolder", alias = "bdf", defaultValue = "${basedir}/src/test/resources/bodies")
-  private String bodiesFolder;
-
-  /**
    * The name of the generated class.
    */
   @Parameter(property = "gatling.recorder.className", alias = "cn")
@@ -96,35 +90,10 @@ public class RecorderMojo extends AbstractMojo {
   @Parameter(property = "gatling.recorder.followRedirect", alias = "fr")
   private Boolean followRedirect;
 
-  /**
-   * Use this folder as the configuration directory.
-   */
-  @Parameter(property = "gatling.configFolder", alias = "cd", defaultValue = "${basedir}/src/test/resources")
-  private File configFolder;
-
-  /**
-   * The Maven Project.
-   */
-  @Parameter(defaultValue = "${project}", readonly = true)
-  private MavenProject mavenProject;
-
-  /**
-   * The Maven Session Object.
-   */
-  @Parameter(defaultValue = "${session}", readonly = true)
-  private MavenSession session;
-
-  /**
-   * The toolchain manager to use.
-   */
-  @Component
-  private ToolchainManager toolchainManager;
-
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     try {
-      String testClasspath = buildTestClasspath();
-      getLog().info(testClasspath);
+      String testClasspath = buildTestClasspath(false);
       List<String> recorderArgs = recorderArgs();
       Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
       Fork forkedRecorder = new Fork(RECORDER_MAIN_CLASS, testClasspath, GATLING_JVM_ARGS, recorderArgs, toolchain, false);
@@ -132,14 +101,6 @@ public class RecorderMojo extends AbstractMojo {
     } catch (Exception e) {
       throw new MojoExecutionException("Recorder execution failed", e);
     }
-  }
-
-  private String buildTestClasspath() throws Exception {
-    List<String> testClasspathElements = mavenProject.getTestClasspathElements();
-    testClasspathElements.add(configFolder.getPath());
-    // Add plugin jar to classpath (used by MainWithArgsInFile)
-    testClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
-    return MojoUtils.toMultiPath(testClasspathElements);
   }
 
   private List<String> recorderArgs() {
@@ -155,11 +116,5 @@ public class RecorderMojo extends AbstractMojo {
     addToArgsIfNotNull(arguments, encoding, "enc");
     addToArgsIfNotNull(arguments, followRedirect, "fr");
     return arguments;
-  }
-
-  private void addToArgsIfNotNull(List<String> args, Object value, String flag) {
-    if(value != null) {
-      args.addAll(asList("-" + flag, value.toString()));
-    }
   }
 }

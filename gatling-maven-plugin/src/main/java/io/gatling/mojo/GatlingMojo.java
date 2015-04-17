@@ -231,15 +231,14 @@ public class GatlingMojo extends AbstractMojo {
       // Create results directories
       resultsFolder.mkdirs();
       try {
-        String testClasspath = buildTestClasspath();
         Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
         if (!disableCompiler) {
-          executeCompiler(zincJvmArgs(), testClasspath, toolchain);
+          executeCompiler(zincJvmArgs(), buildTestClasspath(true), toolchain);
         }
 
         Collection<String> simulations = simulations();
         for (String simulation : simulations) {
-          executeGatling(gatlingJvmArgs(), gatlingArgs(simulation), testClasspath, toolchain);
+          executeGatling(gatlingJvmArgs(), gatlingArgs(simulation), buildTestClasspath(false), toolchain);
         }
 
       } catch (Exception e) {
@@ -325,14 +324,16 @@ public class GatlingMojo extends AbstractMojo {
     return MojoUtils.toMultiPath(compilerClasspathElements);
   }
 
-  private String buildTestClasspath() throws Exception {
-    List<String> testClasspathElements = mavenProject.getTestClasspathElements();
+  private String buildTestClasspath(boolean includeCompiler) throws Exception {
+    List<String> testClasspathElements = new ArrayList<>();
     if (!configFolder.getAbsolutePath().equals(defaultConfigFolder.getAbsolutePath())) {
       // src/test/resources content is already copied into test-classes
-      testClasspathElements.add(configFolder.getPath());
+      testClasspathElements.add(configFolder.getAbsolutePath());
     }
-    if (!disableCompiler) {
-      testClasspathElements.add(getCompilerJar().getPath());
+    testClasspathElements.addAll(mavenProject.getTestClasspathElements());
+
+    if (includeCompiler) {
+      testClasspathElements.add(getCompilerJar().getAbsolutePath());
     }
     // Add plugin jar to classpath (used by MainWithArgsInFile)
     testClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));

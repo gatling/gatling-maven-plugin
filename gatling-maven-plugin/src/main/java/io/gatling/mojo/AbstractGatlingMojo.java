@@ -46,8 +46,11 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
   @Parameter(property = "gatling.configFolder", alias = "cd", defaultValue = "${basedir}/src/test/resources")
   protected File configFolder;
 
-  @Parameter(defaultValue = "${basedir}/src/test/resources", readonly = true)
-  protected File defaultConfigFolder;
+  /**
+   * Folder where the compiled classes are written.
+   */
+  @Parameter(defaultValue = "${project.build.testOutputDirectory}", readonly = true)
+  protected File compiledClassesFolder;
 
   /**
    * The Maven Project.
@@ -76,10 +79,13 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
 
   protected String buildTestClasspath(boolean includeCompiler) throws Exception {
     List<String> testClasspathElements = new ArrayList<>();
-    if (!configFolder.getAbsolutePath().equals(defaultConfigFolder.getAbsolutePath())) {
-      // src/test/resources content is already copied into test-classes
+
+    if (!new File(compiledClassesFolder, "gatling.conf").exists()) {
+      // src/test/resources content is not already copied into test-classes when running gatling:execute
+      // it conly is when running the test phase
       testClasspathElements.add(configFolder.getAbsolutePath());
     }
+
     testClasspathElements.addAll(mavenProject.getTestClasspathElements());
 
     if (includeCompiler) {

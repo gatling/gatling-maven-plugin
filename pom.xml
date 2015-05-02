@@ -57,6 +57,7 @@
 		<scala-maven-plugin.version>3.2.0</scala-maven-plugin.version>
 
 		<maven-license-plugin.version>1.10.b1</maven-license-plugin.version>
+		<nexus-staging-maven-plugin.version>1.6.5</nexus-staging-maven-plugin.version>
 		<header.basedir>${project.basedir}</header.basedir>
 	</properties>
 
@@ -149,6 +150,16 @@
 							</goals>
 						</execution>
 					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.sonatype.plugins</groupId>
+					<artifactId>nexus-staging-maven-plugin</artifactId>
+					<version>${nexus-staging-maven-plugin.version}</version>
+					<configuration>
+						<serverId>sonatype-nexus-staging</serverId>
+						<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+						<autoReleaseAfterClose>true</autoReleaseAfterClose>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>

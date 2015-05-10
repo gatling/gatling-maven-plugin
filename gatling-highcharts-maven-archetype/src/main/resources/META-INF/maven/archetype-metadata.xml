@@ -14,7 +14,7 @@
 			<directory>src/test/resources/data</directory>
 		</fileSet>
 		<fileSet encoding="UTF-8">
-			<directory>src/test/resources/request-bodies</directory>
+			<directory>src/test/resources/bodies</directory>
 		</fileSet>
 		<fileSet encoding="UTF-8">
 			<directory>src/test/resources</directory>

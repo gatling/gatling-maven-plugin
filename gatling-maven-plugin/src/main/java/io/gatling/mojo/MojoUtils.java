@@ -16,14 +16,22 @@
 package io.gatling.mojo;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.codehaus.plexus.classworlds.UrlUtils;
 import org.codehaus.plexus.util.StringUtils;
 
 public class MojoUtils {
@@ -58,5 +66,54 @@ public class MojoUtils {
 
   public static <T> List<T> arrayAsListEmptyIfNull(T[] array) {
     return array == null ? Collections.<T> emptyList() : Arrays.asList(array);
+  }
+
+
+  /**
+   * Create a jar with just a manifest containing a Main-Class entry for BooterConfiguration and a Class-Path entry
+   * for all classpath elements.
+   *
+   * @param classPath List&lt;String> of all classpath elements.
+   * @param startClassName The classname to start (main-class)
+   * @return The file pointing to the jar
+   * @throws java.io.IOException When a file operation fails.
+   */
+  public static File createBooterJar(List<String> classPath, String startClassName) throws IOException {
+    File file = File.createTempFile("gatlingbooter", ".jar");
+    file.deleteOnExit();
+
+    FileOutputStream fos = new FileOutputStream(file);
+    JarOutputStream jos = new JarOutputStream(fos);
+    jos.setLevel(JarOutputStream.STORED);
+    JarEntry je = new JarEntry("META-INF/MANIFEST.MF");
+    jos.putNextEntry(je);
+
+    Manifest man = new Manifest();
+
+    // we can't use StringUtils.join here since we need to add a '/' to
+    // the end of directory entries - otherwise the jvm will ignore them.
+    StringBuilder cp = new StringBuilder();
+    for (String el : classPath) {
+      // NOTE: if File points to a directory, this entry MUST end in '/'.
+      cp.append(getURL(new File(el)).toExternalForm()).append(" ");
+    }
+    cp.setLength(cp.length() - 1);
+
+    man.getMainAttributes().putValue(Attributes.Name.MANIFEST_VERSION.toString(), "1.0");
+    man.getMainAttributes().putValue(Attributes.Name.CLASS_PATH.toString(), cp.toString());
+    man.getMainAttributes().putValue(Attributes.Name.MAIN_CLASS.toString(), startClassName);
+
+    man.write(jos);
+    jos.close();
+
+    return file;
+  }
+
+  public static URL getURL(File file) throws MalformedURLException {
+
+    // encode any characters that do not comply with RFC 2396
+    // this is primarily to handle Windows where the user's home directory contains spaces
+
+    return new URL(file.toURI().toASCIIString());
   }
 }

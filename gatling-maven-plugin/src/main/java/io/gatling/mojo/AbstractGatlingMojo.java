@@ -53,6 +53,13 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
   protected File compiledClassesFolder;
 
   /**
+   * If Mojo should generate a temporary jar with a MANIFEST.MF file with a Class-Path attribute instead of passing a classpath.
+   * Passing a classpath can generate a very long command line, and break on Windows
+   */
+  @Parameter(property = "gatling.useManifestJar", alias = "umj", defaultValue = "true")
+  protected boolean useManifestJar;
+
+  /**
    * The Maven Project.
    */
   @Parameter(defaultValue = "${project}", readonly = true)
@@ -77,7 +84,7 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
   private RepositorySystem repository;
 
 
-  protected String buildTestClasspath(boolean includeCompiler) throws Exception {
+  protected List<String> buildTestClasspath(boolean includeCompiler) throws Exception {
     List<String> testClasspathElements = new ArrayList<>();
 
     if (!new File(compiledClassesFolder, "gatling.conf").exists()) {
@@ -93,9 +100,9 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
     }
     // Add plugin jar to classpath (used by MainWithArgsInFile)
     testClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
-    return MojoUtils.toMultiPath(testClasspathElements);
-  }
 
+    return testClasspathElements;
+  }
 
   private File getCompilerJar() throws Exception {
     Artifact artifact = repository.createArtifact("org.scala-lang", "scala-compiler", SCALA_VERSION, Artifact.SCOPE_RUNTIME, "jar");

@@ -38,22 +38,28 @@ public class Fork {
 
   private final String javaExecutable;
   private final String mainClassName;
+  private final List<String> classpath;
+  private final boolean propagateSystemProperties;
+  private final boolean useManifestJar;
+
   private final List<String> jvmArgs = new ArrayList<String>();
   private final List<String> args = new ArrayList<String>();
 
-  public Fork(String mainClassName, String classpath,
+  public Fork(String mainClassName, List<String> classpath,
               List<String> jvmArgs, List<String> args,
-              Toolchain toolchain, boolean propagateSystemProperties) throws Exception {
+              Toolchain toolchain, boolean propagateSystemProperties,
+              boolean useManifestJar) throws Exception {
 
-    this.javaExecutable = findJavaExecutable(toolchain);
     this.mainClassName = mainClassName;
+    this.classpath = classpath;
     this.jvmArgs.addAll(jvmArgs);
     this.args.addAll(args);
+    this.javaExecutable = findJavaExecutable(toolchain);
+    this.propagateSystemProperties = propagateSystemProperties;
+    this.useManifestJar = useManifestJar;
+  }
 
-    if (StringUtils.isNotEmpty(classpath)) {
-      this.jvmArgs.add("-classpath");
-      this.jvmArgs.add(classpath);
-    }
+  public void run() throws Exception {
 
     if (propagateSystemProperties) {
       for (Entry<Object, Object> systemProp : System.getProperties().entrySet()) {
@@ -64,9 +70,19 @@ public class Fork {
         }
       }
     }
-  }
 
-  public void run() throws Exception {
+    if (useManifestJar) {
+      this.jvmArgs.add("-jar");
+      this.jvmArgs.add(MojoUtils.createBooterJar(classpath, MainWithArgsInFile.class.getName()).getAbsolutePath());
+
+    } else {
+      if (!classpath.isEmpty()) {
+        this.jvmArgs.add("-cp");
+        this.jvmArgs.add(MojoUtils.toMultiPath(classpath));
+      }
+      this.jvmArgs.add(MainWithArgsInFile.class.getName());
+    }
+
     List<String> command = buildCommand();
 
     Executor exec = new DefaultExecutor();
@@ -87,7 +103,6 @@ public class Fork {
   private List<String> buildCommand() throws IOException {
     ArrayList<String> command = new ArrayList<String>(2 + jvmArgs.size() + args.size());
     command.addAll(jvmArgs);
-    command.add(MainWithArgsInFile.class.getName());
     command.add(mainClassName);
     command.add(createArgFile(args).getCanonicalPath());
     return command;

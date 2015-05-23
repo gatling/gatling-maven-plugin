@@ -208,11 +208,11 @@ public class GatlingMojo extends AbstractGatlingMojo {
     }
   }
 
-  private void executeCompiler(List<String> zincJvmArgs, String testClasspath, Toolchain toolchain) throws Exception {
-    String compilerClasspath = buildCompilerClasspath();
+  private void executeCompiler(List<String> zincJvmArgs, List<String> testClasspath, Toolchain toolchain) throws Exception {
+    List<String> compilerClasspath = buildCompilerClasspath();
     List<String> compilerArguments = compilerArgs(testClasspath);
 
-    Fork forkedCompiler = new Fork(COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, false);
+    Fork forkedCompiler = new Fork(COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, false, useManifestJar);
     try {
       forkedCompiler.run();
     } catch (ExecuteException e) {
@@ -220,8 +220,8 @@ public class GatlingMojo extends AbstractGatlingMojo {
     }
   }
 
-  private void executeGatling(List<String> gatlingJvmArgs, List<String> gatlingArgs, String testClasspath, Toolchain toolchain) throws Exception {
-    Fork forkedGatling = new Fork(GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties);
+  private void executeGatling(List<String> gatlingJvmArgs, List<String> gatlingArgs, List<String> testClasspath, Toolchain toolchain) throws Exception {
+    Fork forkedGatling = new Fork(GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties, useManifestJar);
     try {
       forkedGatling.run();
     } catch (ExecuteException e) {
@@ -260,7 +260,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
     }
   }
 
-  private String buildCompilerClasspath() throws Exception {
+  private List<String> buildCompilerClasspath() throws Exception {
 
     List<String> compilerClasspathElements = new ArrayList<>();
     for (Artifact artifact: artifacts) {
@@ -274,7 +274,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
     // Add plugin jar to classpath (used by MainWithArgsInFile)
     compilerClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
-    return MojoUtils.toMultiPath(compilerClasspathElements);
+    return compilerClasspathElements;
   }
 
   private List<String> gatlingJvmArgs() {
@@ -341,9 +341,9 @@ public class GatlingMojo extends AbstractGatlingMojo {
     return args;
   }
 
-  private List<String> compilerArgs(String classpathElements) throws Exception {
+  private List<String> compilerArgs(List<String> classpathElements) throws Exception {
     List<String> args = new ArrayList<>();
-    args.addAll(asList("-ccp", classpathElements));
+    args.addAll(asList("-ccp", MojoUtils.toMultiPath(classpathElements)));
     args.addAll(asList("-sf", simulationsFolder.getCanonicalPath()));
     return args;
   }

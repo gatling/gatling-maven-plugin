@@ -53,13 +53,6 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
   protected File compiledClassesFolder;
 
   /**
-   * If Mojo should generate a temporary jar with a MANIFEST.MF file with a Class-Path attribute instead of passing a classpath.
-   * Passing a classpath can generate a very long command line, and break on Windows
-   */
-  @Parameter(property = "gatling.useManifestJar", alias = "umj", defaultValue = "true")
-  protected boolean useManifestJar;
-
-  /**
    * The Maven Project.
    */
   @Parameter(defaultValue = "${project}", readonly = true)

@@ -212,7 +212,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
     List<String> compilerClasspath = buildCompilerClasspath();
     List<String> compilerArguments = compilerArgs(testClasspath);
 
-    Fork forkedCompiler = new Fork(COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, false, useManifestJar);
+    Fork forkedCompiler = new Fork(COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, false);
     try {
       forkedCompiler.run();
     } catch (ExecuteException e) {
@@ -221,7 +221,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
   }
 
   private void executeGatling(List<String> gatlingJvmArgs, List<String> gatlingArgs, List<String> testClasspath, Toolchain toolchain) throws Exception {
-    Fork forkedGatling = new Fork(GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties, useManifestJar);
+    Fork forkedGatling = new Fork(GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties);
     try {
       forkedGatling.run();
     } catch (ExecuteException e) {

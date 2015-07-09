@@ -40,15 +40,13 @@ public class Fork {
   private final String mainClassName;
   private final List<String> classpath;
   private final boolean propagateSystemProperties;
-  private final boolean useManifestJar;
 
-  private final List<String> jvmArgs = new ArrayList<String>();
-  private final List<String> args = new ArrayList<String>();
+  private final List<String> jvmArgs = new ArrayList<>();
+  private final List<String> args = new ArrayList<>();
 
   public Fork(String mainClassName, List<String> classpath,
               List<String> jvmArgs, List<String> args,
-              Toolchain toolchain, boolean propagateSystemProperties,
-              boolean useManifestJar) throws Exception {
+              Toolchain toolchain, boolean propagateSystemProperties) throws Exception {
 
     this.mainClassName = mainClassName;
     this.classpath = classpath;
@@ -56,7 +54,6 @@ public class Fork {
     this.args.addAll(args);
     this.javaExecutable = findJavaExecutable(toolchain);
     this.propagateSystemProperties = propagateSystemProperties;
-    this.useManifestJar = useManifestJar;
   }
 
   public void run() throws Exception {
@@ -71,17 +68,8 @@ public class Fork {
       }
     }
 
-    if (useManifestJar) {
-      this.jvmArgs.add("-jar");
-      this.jvmArgs.add(MojoUtils.createBooterJar(classpath, MainWithArgsInFile.class.getName()).getAbsolutePath());
-
-    } else {
-      if (!classpath.isEmpty()) {
-        this.jvmArgs.add("-cp");
-        this.jvmArgs.add(MojoUtils.toMultiPath(classpath));
-      }
-      this.jvmArgs.add(MainWithArgsInFile.class.getName());
-    }
+    this.jvmArgs.add("-jar");
+    this.jvmArgs.add(MojoUtils.createBooterJar(classpath, MainWithArgsInFile.class.getName()).getAbsolutePath());
 
     List<String> command = buildCommand();
 
@@ -101,7 +89,7 @@ public class Fork {
   }
 
   private List<String> buildCommand() throws IOException {
-    ArrayList<String> command = new ArrayList<String>(2 + jvmArgs.size() + args.size());
+    ArrayList<String> command = new ArrayList<String>(jvmArgs.size() + 2);
     command.addAll(jvmArgs);
     command.add(mainClassName);
     command.add(createArgFile(args).getCanonicalPath());
@@ -140,17 +128,11 @@ public class Fork {
   private File createArgFile(List<String> args) throws IOException {
     final File argFile = File.createTempFile(ARG_FILE_PREFIX, ARG_FILE_SUFFIX);
     argFile.deleteOnExit();
-    try (final PrintWriter out = new PrintWriter(argFile)) {
+    try (PrintWriter out = new PrintWriter(argFile)) {
       for (String arg : args) {
-        out.println(escapeArgumentForScalacArgumentFile(arg));
+        out.println(arg);
       }
       return argFile;
     }
-  }
-
-  private String escapeArgumentForScalacArgumentFile(String arg) {
-    return arg.matches(".*\\s.*")
-      ? '"' + arg + '"'
-      : arg;
   }
 }

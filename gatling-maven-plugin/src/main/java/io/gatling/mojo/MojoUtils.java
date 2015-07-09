@@ -31,7 +31,6 @@ import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.codehaus.plexus.classworlds.UrlUtils;
 import org.codehaus.plexus.util.StringUtils;
 
 public class MojoUtils {

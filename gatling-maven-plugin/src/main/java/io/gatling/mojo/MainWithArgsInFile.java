@@ -58,15 +58,9 @@ public class MainWithArgsInFile {
     ) {
       String line;
       while ((line = in.readLine()) != null) {
-        args.add(unescapeArgumentForScalacArgumentFile(line));
+        args.add(line);
       }
       return args;
     }
-  }
-
-  private static String unescapeArgumentForScalacArgumentFile(String arg) {
-    return arg.charAt(0) == '"' && arg.charAt(arg.length() - 1) == '"'
-      ? arg.substring(1, arg.length() - 1)
-      : arg;
   }
 }

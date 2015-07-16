@@ -9,7 +9,7 @@
 
 	<groupId>io.gatling</groupId>
 	<artifactId>gatling-maven-parent</artifactId>
-	<version>2.1.6</version>
+	<version>2.1.7-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<inceptionYear>2011</inceptionYear>
@@ -50,12 +50,12 @@
 
 	<properties>
 		<encoding>UTF-8</encoding>
-		<gatling.version>2.1.6</gatling.version>
+		<gatling.version>2.1.7-SNAPSHOT</gatling.version>
 		<commons-exec.version>1.2</commons-exec.version>
 		<junit.version>4.11</junit.version>
 		<maven3.version>3.0</maven3.version>
 		<plexus-utils.version>3.0</plexus-utils.version>
-		<scala-maven-plugin.version>3.2.0</scala-maven-plugin.version>
+		<scala-maven-plugin.version>3.2.2</scala-maven-plugin.version>
 
 		<maven-license-plugin.version>1.10.b1</maven-license-plugin.version>
 		<header.basedir>${project.basedir}</header.basedir>

@@ -50,7 +50,7 @@
 
 	<properties>
 		<encoding>UTF-8</encoding>
-		<gatling.version>2.1.7-SNAPSHOT</gatling.version>
+		<gatling.version>2.1.7</gatling.version>
 		<commons-exec.version>1.2</commons-exec.version>
 		<junit.version>4.11</junit.version>
 		<maven3.version>3.0</maven3.version>

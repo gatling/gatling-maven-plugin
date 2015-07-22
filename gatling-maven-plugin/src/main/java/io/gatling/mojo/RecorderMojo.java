@@ -63,7 +63,7 @@ public class RecorderMojo extends AbstractGatlingMojo {
   /**
    * Uses as the folder where generated simulations will be stored.
    */
-  @Parameter(property = "gatling.recorder.outputFolder", alias = "of", defaultValue = "${basedir}/src/test/scala")
+  @Parameter(property = "gatling.recorder.outputFolder", alias = "of", defaultValue = "${project.basedir}/src/test/scala")
   private String outputFolder;
 
   /**

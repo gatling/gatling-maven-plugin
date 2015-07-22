@@ -68,7 +68,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
   /**
    * Use this folder to discover simulations that could be run.
    */
-  @Parameter(property = "gatling.simulationsFolder", alias = "sf", defaultValue = "${basedir}/src/test/scala")
+  @Parameter(property = "gatling.simulationsFolder", alias = "sf", defaultValue = "${project.basedir}/src/test/scala")
   private File simulationsFolder;
 
   /**
@@ -80,13 +80,13 @@ public class GatlingMojo extends AbstractGatlingMojo {
   /**
    * Use this folder as the folder where feeders are stored.
    */
-  @Parameter(property = "gatling.dataFolder", alias = "df", defaultValue = "${basedir}/src/test/resources/data")
+  @Parameter(property = "gatling.dataFolder", alias = "df", defaultValue = "${project.basedir}/src/test/resources/data")
   private File dataFolder;
 
   /**
    * Use this folder as the folder where results are stored.
    */
-  @Parameter(property = "gatling.resultsFolder", alias = "rf", defaultValue = "${basedir}/target/gatling/results")
+  @Parameter(property = "gatling.resultsFolder", alias = "rf", defaultValue = "${project.basedir}/target/gatling/results")
   private File resultsFolder;
 
   /**

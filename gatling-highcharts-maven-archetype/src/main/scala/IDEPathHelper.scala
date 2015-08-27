@@ -1,6 +1,6 @@
 import java.nio.file.Path
 
-import io.gatling.core.util.PathHelper._
+import io.gatling.commons.util.PathHelper._
 
 object IDEPathHelper {
 

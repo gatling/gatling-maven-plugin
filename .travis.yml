@@ -1,5 +1,6 @@
 language: java
-
+jdk:
+  - oraclejdk8
 before_script: "[[ $TRAVIS_PULL_REQUEST == \"false\" ]] && ./make_credentials.py"
 script: 
   - find $HOME/.m2 -name "_remote.repositories" | xargs rm

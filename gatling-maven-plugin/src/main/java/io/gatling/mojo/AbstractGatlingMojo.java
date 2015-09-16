@@ -83,13 +83,13 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
     if (!new File(compiledClassesFolder, "gatling.conf").exists()) {
       // src/test/resources content is not already copied into test-classes when running gatling:execute
       // it conly is when running the test phase
-      testClasspathElements.add(configFolder.getAbsolutePath());
+      testClasspathElements.add(configFolder.getCanonicalPath());
     }
 
     testClasspathElements.addAll(mavenProject.getTestClasspathElements());
 
     if (includeCompiler) {
-      testClasspathElements.add(getCompilerJar().getAbsolutePath());
+      testClasspathElements.add(getCompilerJar().getCanonicalPath());
     }
     // Add plugin jar to classpath (used by MainWithArgsInFile)
     testClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));

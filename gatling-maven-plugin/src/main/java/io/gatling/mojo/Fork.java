@@ -69,7 +69,7 @@ public class Fork {
     }
 
     this.jvmArgs.add("-jar");
-    this.jvmArgs.add(MojoUtils.createBooterJar(classpath, MainWithArgsInFile.class.getName()).getAbsolutePath());
+    this.jvmArgs.add(MojoUtils.createBooterJar(classpath, MainWithArgsInFile.class.getName()).getCanonicalPath());
 
     List<String> command = buildCommand();
 

@@ -250,7 +250,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
             if (assertionFile.exists()) {
               File newAssertionFile = new File(reportsDirectory, "assertions-" + runDirectory.getName() + ".xml");
               Files.copy(assertionFile.toPath(), newAssertionFile.toPath(), COPY_ATTRIBUTES, REPLACE_EXISTING);
-              getLog().info("Copying assertion file " + assertionFile.getAbsolutePath() + " to " + newAssertionFile.getAbsolutePath());
+              getLog().info("Copying assertion file " + assertionFile.getCanonicalPath() + " to " + newAssertionFile.getCanonicalPath());
             }
           }
         }
@@ -268,7 +268,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
       if (!groupId.startsWith("org.codehaus.plexus")
         && !groupId.startsWith("org.apache.maven")
         && !groupId.startsWith("org.sonatype")) {
-        compilerClasspathElements.add(artifact.getFile().getAbsolutePath());
+        compilerClasspathElements.add(artifact.getFile().getCanonicalPath());
       }
     }
 
@@ -405,9 +405,9 @@ public class GatlingMojo extends AbstractGatlingMojo {
     return urls;
   }
 
-  private String[] compiledClassFiles() {
+  private String[] compiledClassFiles() throws IOException {
     DirectoryScanner scanner = new DirectoryScanner();
-    scanner.setBasedir(compiledClassesFolder.getAbsolutePath());
+    scanner.setBasedir(compiledClassesFolder.getCanonicalPath());
     scanner.setIncludes(new String[]{"**/*.class"});
     scanner.scan();
     return scanner.getIncludedFiles();

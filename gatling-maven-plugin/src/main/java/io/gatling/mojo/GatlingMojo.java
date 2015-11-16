@@ -345,6 +345,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
     List<String> args = new ArrayList<>();
     args.addAll(asList("-ccp", MojoUtils.toMultiPath(classpathElements)));
     args.addAll(asList("-sf", simulationsFolder.getCanonicalPath()));
+    args.addAll(asList("-bf", compiledClassesFolder.getCanonicalPath()));
     return args;
   }
 

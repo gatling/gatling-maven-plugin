@@ -37,8 +37,7 @@ public class MojoConstants {
     // Gatling constants
     public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
     public static final List<String> GATLING_JVM_ARGS = asList(
-            "-server", "-XX:+UseThreadPriorities", "-XX:ThreadPriorityPolicy=42", "-Xms512M",
-            "-Xmx512M", "-Xmn100M", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+AggressiveOpts",
-            "-XX:+OptimizeStringConcat", "-XX:+UseFastAccessorMethods", "-XX:+UseParNewGC",
-            "-XX:+UseConcMarkSweepGC", "-XX:+CMSParallelRemarkEnabled");
+            "-server", "-Xms512M", "-Xmx512M", "-XX:+HeapDumpOnOutOfMemoryError",
+            "-XX:+AggressiveOpts", "-XX:+OptimizeStringConcat",
+            "-XX:+UseParNewGC", "-XX:+UseConcMarkSweepGC", "-XX:+CMSParallelRemarkEnabled");
 }

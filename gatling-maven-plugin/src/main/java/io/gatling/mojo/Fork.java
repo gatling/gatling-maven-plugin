@@ -63,7 +63,9 @@ public class Fork {
         String name = systemProp.getKey().toString();
         String value = systemProp.getValue().toString();
         if (isPropagatableProperty(name)) {
-          this.jvmArgs.add("-D" + name + "=" + StringUtils.escape(value));
+          String escapedValue = StringUtils.escape(value);
+          String safeValue = escapedValue.contains(" ") ? '"' + escapedValue + '"' : escapedValue;
+          this.jvmArgs.add("-D" + name + "=" + safeValue);
         }
       }
     }

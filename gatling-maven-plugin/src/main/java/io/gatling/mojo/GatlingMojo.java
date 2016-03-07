@@ -176,6 +176,12 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private boolean useOldJenkinsJUnitSupport;
 
   /**
+   * A short description of the run to include in the report.
+   */
+  @Parameter(property = "gatling.runDescription")
+  private String runDescription;
+
+  /**
    * Executes Gatling simulations.
    */
   @Override
@@ -325,11 +331,12 @@ public class GatlingMojo extends AbstractGatlingMojo {
     // Arguments
     List<String> args = new ArrayList<>();
     args.addAll(asList("-df", dataFolder.getCanonicalPath(),
-      "-rf", resultsFolder.getCanonicalPath(),
-      "-bdf", bodiesFolder.getCanonicalPath(),
-      "-sf", simulationsFolder.getCanonicalPath(),
-      "-s", simulationClass,
-      "-m"));
+                       "-rf", resultsFolder.getCanonicalPath(),
+                       "-bdf", bodiesFolder.getCanonicalPath(),
+                       "-sf", simulationsFolder.getCanonicalPath(),
+                       "-s", simulationClass,
+                       "-rd", runDescription,
+                       "-m"));
 
     if (noReports) {
       args.add("-nr");

@@ -32,7 +32,7 @@ public class MojoConstants {
     // Compiler constants
     public static final String SCALA_VERSION = "2.11.6";
     public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
-    public static final List<String> ZINC_JVM_ARGS = singletonList("-Xss10M");
+    public static final List<String> ZINC_JVM_ARGS = asList("-Xmx1G", "-Xss10M");
 
     // Gatling constants
     public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";

@@ -86,7 +86,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
   /**
    * Use this folder as the folder where results are stored.
    */
-  @Parameter(property = "gatling.resultsFolder", alias = "rf", defaultValue = "${project.basedir}/target/gatling/results")
+  @Parameter(property = "gatling.resultsFolder", alias = "rf", defaultValue = "${project.basedir}/target/results")
   private File resultsFolder;
 
   /**
@@ -195,9 +195,17 @@ public class GatlingMojo extends AbstractGatlingMojo {
           executeCompiler(zincJvmArgs(), buildTestClasspath(true), toolchain);
         }
 
-        Collection<String> simulations = simulations();
-        for (String simulation : simulations) {
-          executeGatling(gatlingJvmArgs(), gatlingArgs(simulation), buildTestClasspath(false), toolchain);
+        List<String> jvmArgs = gatlingJvmArgs();
+        List<String> testClasspath = buildTestClasspath(false);
+
+        if (reportsOnly != null) {
+          executeGatling(jvmArgs, gatlingArgs(null), testClasspath, toolchain);
+
+        } else {
+          Collection<String> simulations = simulations();
+          for (String simulation : simulations) {
+            executeGatling(jvmArgs, gatlingArgs(simulation), testClasspath, toolchain);
+          }
         }
 
       } catch (Exception e) {
@@ -309,6 +317,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
     // Solves the simulations, if no simulation file is defined
     if (simulationClass != null) {
       return Collections.singletonList(simulationClass);
+
     } else {
       List<String> simulations = resolveSimulations();
 
@@ -334,7 +343,6 @@ public class GatlingMojo extends AbstractGatlingMojo {
                        "-rf", resultsFolder.getCanonicalPath(),
                        "-bdf", bodiesFolder.getCanonicalPath(),
                        "-sf", simulationsFolder.getCanonicalPath(),
-                       "-s", simulationClass,
                        "-rd", runDescription,
                        "-m"));
 
@@ -342,6 +350,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
       args.add("-nr");
     }
 
+    addToArgsIfNotNull(args, simulationClass, "s");
     addToArgsIfNotNull(args, reportsOnly, "ro");
     addToArgsIfNotNull(args, outputDirectoryBaseName, "on");
 

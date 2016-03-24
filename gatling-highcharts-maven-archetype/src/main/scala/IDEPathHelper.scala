@@ -16,7 +16,7 @@ object IDEPathHelper {
 	val bodiesDirectory = mavenResourcesDirectory / "bodies"
 
 	val recorderOutputDirectory = mavenSourcesDirectory
-	val resultsDirectory = mavenTargetDirectory / "results"
+	val resultsDirectory = mavenTargetDirectory / "gatling"
 
 	val recorderConfigFile = mavenResourcesDirectory / "recorder.conf"
 }

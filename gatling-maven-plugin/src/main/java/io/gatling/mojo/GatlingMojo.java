@@ -86,7 +86,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
   /**
    * Use this folder as the folder where results are stored.
    */
-  @Parameter(property = "gatling.resultsFolder", alias = "rf", defaultValue = "${project.basedir}/target/results")
+  @Parameter(property = "gatling.resultsFolder", alias = "rf", defaultValue = "${project.basedir}/target/gatling")
   private File resultsFolder;
 
   /**

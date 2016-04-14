@@ -72,7 +72,7 @@ public class MojoUtils {
    * Create a jar with just a manifest containing a Main-Class entry for BooterConfiguration and a Class-Path entry
    * for all classpath elements.
    *
-   * @param classPath List&lt;String> of all classpath elements.
+   * @param classPath List of all classpath elements.
    * @param startClassName The classname to start (main-class)
    * @return The file pointing to the jar
    * @throws java.io.IOException When a file operation fails.

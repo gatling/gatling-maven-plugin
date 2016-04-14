@@ -22,7 +22,7 @@
 			<organization>Gatling Corp</organization>
 		</developer>
 		<developer>
-			<id>pdalpra@excilys.com</id>
+			<id>pdalpra@gatling.io</id>
 			<name>Pierre Dal-Pra</name>
 		</developer>
 	</developers>
@@ -51,7 +51,7 @@
 		<encoding>UTF-8</encoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<gatling.version>2.2.0-SNAPSHOT</gatling.version>
+		<gatling.version>2.2.0</gatling.version>
 		<commons-exec.version>1.2</commons-exec.version>
 		<junit.version>4.11</junit.version>
 		<maven3.version>3.0</maven3.version>

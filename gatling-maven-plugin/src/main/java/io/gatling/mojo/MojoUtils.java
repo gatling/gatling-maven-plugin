@@ -35,6 +35,8 @@ import org.codehaus.plexus.util.StringUtils;
 
 public class MojoUtils {
 
+  public static boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
+
   private MojoUtils() {
     throw new AssertionError();
   }

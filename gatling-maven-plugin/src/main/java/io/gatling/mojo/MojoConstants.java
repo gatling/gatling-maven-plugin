@@ -18,7 +18,6 @@ package io.gatling.mojo;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 
 public class MojoConstants {
 

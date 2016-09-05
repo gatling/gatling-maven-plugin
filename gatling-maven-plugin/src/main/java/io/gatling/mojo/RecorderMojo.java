@@ -96,7 +96,7 @@ public class RecorderMojo extends AbstractGatlingMojo {
       List<String> testClasspath = buildTestClasspath(false);
       List<String> recorderArgs = recorderArgs();
       Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
-      Fork forkedRecorder = new Fork(RECORDER_MAIN_CLASS, testClasspath, GATLING_JVM_ARGS, recorderArgs, toolchain, false);
+      Fork forkedRecorder = new Fork(RECORDER_MAIN_CLASS, testClasspath, GATLING_JVM_ARGS, recorderArgs, toolchain, false, getLog());
       forkedRecorder.run();
     } catch (Exception e) {
       throw new MojoExecutionException("Recorder execution failed", e);

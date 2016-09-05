@@ -28,10 +28,11 @@ import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.exec.ShutdownHookProcessDestroyer;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.toolchain.Toolchain;
 import org.codehaus.plexus.util.StringUtils;
 
-public class Fork {
+class Fork {
 
   private static final String ARG_FILE_PREFIX = "gatling-maven-plugin-";
   private static final String ARG_FILE_SUFFIX = ".args";
@@ -40,37 +41,65 @@ public class Fork {
   private final String mainClassName;
   private final List<String> classpath;
   private final boolean propagateSystemProperties;
+  private final Log log;
 
   private final List<String> jvmArgs = new ArrayList<>();
   private final List<String> args = new ArrayList<>();
 
-  public Fork(String mainClassName, List<String> classpath,
-              List<String> jvmArgs, List<String> args,
-              Toolchain toolchain, boolean propagateSystemProperties) throws Exception {
+  Fork(String mainClassName,//
+              List<String> classpath,//
+              List<String> jvmArgs,//
+              List<String> args,//
+              Toolchain toolchain,//
+              boolean propagateSystemProperties,//
+              Log log) throws Exception {
 
     this.mainClassName = mainClassName;
     this.classpath = classpath;
     this.jvmArgs.addAll(jvmArgs);
     this.args.addAll(args);
-    this.javaExecutable = findJavaExecutable(toolchain);
+    this.javaExecutable = safe(safeWindowsPath(findJavaExecutable(toolchain)));
     this.propagateSystemProperties = propagateSystemProperties;
+    this.log = log;
   }
 
-  public void run() throws Exception {
+  private String safeWindowsPath(String value) {
+    return MojoUtils.IS_WINDOWS ?
+            value
+                    .replace("Program Files (x86)", "Progra~2")
+                    .replace("Program Files", "Progra~1")
+            : value;
+  }
 
+  private String safe(String value) {
+    return value.contains(" ") ? '"' + value + '"' : value;
+  }
+
+  void run() throws Exception {
     if (propagateSystemProperties) {
       for (Entry<Object, Object> systemProp : System.getProperties().entrySet()) {
         String name = systemProp.getKey().toString();
-        String value = systemProp.getValue().toString();
+        String value = safeWindowsPath(systemProp.getValue().toString());
         if (isPropagatableProperty(name)) {
-          String escapedValue = StringUtils.escape(value);
-          String safeValue = escapedValue.contains(" ") ? '"' + escapedValue + '"' : escapedValue;
-          this.jvmArgs.add("-D" + name + "=" + safeValue);
+          if (name.contains(" ")) {
+            log.warn("System property name '" + name + "' contains a whitespace and can't be propagated");
+
+          } else if (MojoUtils.IS_WINDOWS && value.contains(" ")) {
+            log.warn("System property value '" + value + "' contains a whitespace and can't be propagated on Windows");
+
+          } else {
+            this.jvmArgs.add("-D" + name + "=" + safe(StringUtils.escape(value)));
+          }
         }
       }
     }
 
     this.jvmArgs.add("-jar");
+
+    if (log.isDebugEnabled()) {
+      log.debug(StringUtils.join(classpath.iterator(), ",\n"));
+    }
+
     this.jvmArgs.add(MojoUtils.createBooterJar(classpath, MainWithArgsInFile.class.getName()).getCanonicalPath());
 
     List<String> command = buildCommand();
@@ -84,6 +113,10 @@ public class Fork {
       cl.addArgument(arg, false);
     }
 
+    if (log.isDebugEnabled()) {
+      log.debug(cl.toString());
+    }
+
     int exitValue = exec.execute(cl);
     if (exitValue != 0) {
       throw new MojoFailureException("command line returned non-zero value:" + exitValue);
@@ -91,7 +124,7 @@ public class Fork {
   }
 
   private List<String> buildCommand() throws IOException {
-    ArrayList<String> command = new ArrayList<String>(jvmArgs.size() + 2);
+    ArrayList<String> command = new ArrayList<>(jvmArgs.size() + 2);
     command.addAll(jvmArgs);
     command.add(mainClassName);
     command.add(createArgFile(args).getCanonicalPath());
@@ -106,8 +139,12 @@ public class Fork {
       && !name.startsWith("awt.") //
       && !name.startsWith("os.") //
       && !name.startsWith("user.") //
+      && !name.startsWith("idea.") //
+      && !name.startsWith("guice.") //
       && !name.equals("line.separator") //
-      && !name.equals("path.separator");
+      && !name.equals("path.separator") //
+      && !name.equals("classworlds.conf") //
+      && !name.equals("org.slf4j.simpleLogger.defaultLogLevel");
   }
 
   private String findJavaExecutable(Toolchain toolchain) {

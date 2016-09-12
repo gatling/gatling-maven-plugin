@@ -141,6 +141,7 @@ class Fork {
       && !name.startsWith("user.") //
       && !name.startsWith("idea.") //
       && !name.startsWith("guice.") //
+      && !name.startsWith("hudson.") //
       && !name.equals("line.separator") //
       && !name.equals("path.separator") //
       && !name.equals("classworlds.conf") //

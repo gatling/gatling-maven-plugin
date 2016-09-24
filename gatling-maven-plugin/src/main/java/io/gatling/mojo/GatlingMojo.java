@@ -35,6 +35,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -409,14 +410,9 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
     URL[] urls = new URL[testClasspathElements.size()];
     for (int i = 0; i < testClasspathElements.size(); i++) {
-
-      String url = "file:" + testClasspathElements.get(i);
-      if (!url.endsWith(".jar")) {
-        // directory, has to end with a /
-        url += "/";
-      }
-
-      urls[i] = new URL(url);
+      String testClasspathElement = testClasspathElements.get(i);
+      URL url = Paths.get(testClasspathElement).toUri().toURL();
+      urls[i] = url;
     }
 
     return urls;

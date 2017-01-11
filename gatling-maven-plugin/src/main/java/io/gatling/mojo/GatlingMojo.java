@@ -404,13 +404,13 @@ public class GatlingMojo extends AbstractGatlingMojo {
         boolean isExcluded =  false;
 
         for (Pattern pattern : includes) {
-          if (pattern.matcher(className).matches()) {
+          if (pattern.matcher(className).find()) {
             isIncluded = true;
           };
         }
 
         for (Pattern pattern : excludes) {
-          if (pattern.matcher(className).matches()) {
+          if (pattern.matcher(className).find()) {
             isExcluded = true;
           }
         }

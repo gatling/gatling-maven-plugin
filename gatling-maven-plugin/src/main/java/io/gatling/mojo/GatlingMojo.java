@@ -112,6 +112,14 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private boolean failOnError;
 
   /**
+   * Continue execution of simulations despite assertion failure. If you have
+   * some stack of simulations and you want to get results from all simulations
+   * despite some assertion failures in previous one.
+   */
+  @Parameter(property = "gatling.continueOnAssertionFailure", defaultValue = "false")
+  private boolean continueOnAssertionFailure;
+
+  /**
    * Force the name of the directory generated for the results of the run.
    */
   @Parameter(property = "gatling.outputName", alias = "on")
@@ -203,23 +211,49 @@ public class GatlingMojo extends AbstractGatlingMojo {
           executeGatling(jvmArgs, gatlingArgs(null), testClasspath, toolchain);
 
         } else {
-          Collection<String> simulations = simulations();
-          for (String simulation : simulations) {
-            executeGatling(jvmArgs, gatlingArgs(simulation), testClasspath, toolchain);
-          }
+          List<String> simulations = simulations();
+          iterateBySimulations(toolchain, jvmArgs, testClasspath, simulations);
         }
 
       } catch (Exception e) {
         if (failOnError) {
           throw new MojoExecutionException("Gatling failed.", e);
         } else {
-          getLog().warn("There was some errors while running your simulation, but failOnError set to false won't fail your build.");
+          getLog().warn("There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
         }
       } finally {
           copyJUnitReports();
       }
     } else {
       getLog().info("Skipping gatling-maven-plugin");
+    }
+  }
+
+  private void iterateBySimulations(Toolchain toolchain, List<String> jvmArgs, List<String> testClasspath, List<String> simulations) throws Exception {
+    Exception exc = null;
+    int simulationsCount = simulations.size();
+    for (int i = 0; i < simulationsCount; i++) {
+      try {
+        executeGatling(jvmArgs, gatlingArgs(simulations.get(i)), testClasspath, toolchain);
+      } catch (GatlingSimulationAssertionsFailedException e) {
+        if (exc == null && i == simulationsCount - 1) {
+          throw e;
+        }
+
+        if (continueOnAssertionFailure) {
+          if (exc != null) {
+            continue;
+          }
+          exc = e;
+          continue;
+        }
+        throw e;
+      }
+    }
+
+    if (exc != null) {
+      getLog().warn("There were some errors while running your simulation, but continueOnAssertionFailure was set to true, so your simulations continue to perform.");
+      throw exc;
     }
   }
 

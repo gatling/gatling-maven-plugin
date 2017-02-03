@@ -92,4 +92,34 @@ public class WhitelistTest {
     Assert.assertTrue(result.size() == 1);
   }
 
+  @Test
+  public void testWithoutExcludesExactMatchingClassNames() throws Exception {
+    String[] classFileList = new String[]{"io.test.great.class","io.anothertest.awesome.class","io.onemoretest.cool.class"};
+
+    String[] excludesList = new String[] {"io.test.great"};
+
+    GatlingMojo spy = PowerMockito.spy(new GatlingMojo());
+
+    Whitebox.setInternalState(spy, "excludes", excludesList);
+
+
+    List<String> result = spy.resolveIncludesAndExcludes(classFileList);
+    Assert.assertTrue(result.size() == 2);
+  }
+
+  @Test
+  public void testWithoutIncludesExactMatchingClassNames() throws Exception {
+    String[] classFileList = new String[]{"io.test.great.class","io.test.great.work.class", "io.anothertest.awesome.class","io.onemoretest.cool.class"};
+
+    String[] includesList = new String[] {"io.test.great"};
+
+    GatlingMojo spy = PowerMockito.spy(new GatlingMojo());
+
+    Whitebox.setInternalState(spy, "includes", includesList);
+
+
+    List<String> result = spy.resolveIncludesAndExcludes(classFileList);
+    Assert.assertTrue(result.size() == 1);
+  }
+
 }

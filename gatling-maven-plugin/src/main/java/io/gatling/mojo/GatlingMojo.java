@@ -378,51 +378,19 @@ public class GatlingMojo extends AbstractGatlingMojo {
       ClassLoader testClassLoader = new URLClassLoader(testClassPathUrls());
 
       Class<?> simulationClass = testClassLoader.loadClass("io.gatling.core.scenario.Simulation");
-      List<Pattern> includes = new ArrayList<Pattern>();
-      List<Pattern> excludes = new ArrayList<Pattern>();
 
-      MojoUtils.arrayAsListEmptyIfNull(this.includes).forEach(patternString -> {
-        String regexString = patternString.replace(".","\\.");
-        regexString = regexString.replace("*","([a-zA-Z\\.]*)");
-        includes.add(Pattern.compile(regexString));
-      });
-      MojoUtils.arrayAsListEmptyIfNull(this.excludes).forEach(patternString -> {
-        String regexString = patternString.replace(".","\\.");
-        regexString = regexString.replace("*","([a-zA-Z\\.]*)");
-        excludes.add(Pattern.compile(regexString));
-      });
 
 
       List<String> simulationsClasses = new ArrayList<>();
 
-      for (String classFile: compiledClassFiles()) {
+      for (String classFile: resolveIncludesAndExcludes(compiledClassFiles())) {
         String className = pathToClassName(classFile);
 
-
-
-        boolean isIncluded = false;
-        boolean isExcluded =  false;
-
-        for (Pattern pattern : includes) {
-          if (pattern.matcher(className).find()) {
-            isIncluded = true;
-          };
-        }
-
-        for (Pattern pattern : excludes) {
-          if (pattern.matcher(className).find()) {
-            isExcluded = true;
-          }
-        }
-
-
-        if (isIncluded && !isExcluded) {
           // check if the class is a concrete Simulation
           Class<?> clazz = testClassLoader.loadClass(className);
           if (simulationClass.isAssignableFrom(clazz) && isConcreteClass(clazz)) {
             simulationsClasses.add(className);
           }
-        }
       }
 
       return simulationsClasses;
@@ -430,6 +398,57 @@ public class GatlingMojo extends AbstractGatlingMojo {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public ArrayList<String> resolveIncludesAndExcludes(String[] compiledClassFiles) {
+    List<Pattern> includes = new ArrayList<Pattern>();
+    List<Pattern> excludes = new ArrayList<Pattern>();
+
+    MojoUtils.arrayAsListEmptyIfNull(this.includes).forEach(patternString -> {
+      String regexString = patternString.replace(".", "\\.");
+      regexString = regexString.replace("*", "([a-zA-Z\\.]*)");
+      includes.add(Pattern.compile(regexString));
+    });
+
+    MojoUtils.arrayAsListEmptyIfNull(this.excludes).forEach(patternString -> {
+      String regexString = patternString.replace(".", "\\.");
+      regexString = regexString.replace("*", "([a-zA-Z\\.]*)");
+      excludes.add(Pattern.compile(regexString));
+    });
+
+
+    ArrayList<String> simulationsClasses = new ArrayList<>();
+
+    for (String classFile : compiledClassFiles) {
+      String className = pathToClassName(classFile);
+
+
+      boolean isIncluded = true;
+      boolean isExcluded = false;
+
+      for (Pattern pattern : includes) {
+        if (pattern.matcher(className).find()) {
+          isIncluded = true;
+          break;
+        }
+        else {
+          isIncluded = false;
+        }
+
+      }
+
+      for (Pattern pattern : excludes) {
+        if (pattern.matcher(className).find()) {
+          isExcluded = true;
+        }
+      }
+      if (isIncluded && !isExcluded) {
+        // check if the class is a concrete Simulation
+          simulationsClasses.add(className);
+      }
+
+    }
+    return simulationsClasses;
   }
 
   private URL[] testClassPathUrls() throws DependencyResolutionRequiredException, MalformedURLException {

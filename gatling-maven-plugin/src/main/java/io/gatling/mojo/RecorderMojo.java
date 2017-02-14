@@ -28,7 +28,6 @@ import java.util.List;
 
 import static io.gatling.mojo.MojoConstants.GATLING_JVM_ARGS;
 import static io.gatling.mojo.MojoConstants.RECORDER_MAIN_CLASS;
-import static java.util.Arrays.asList;
 
 /**
  * Mojo to run Gatling Recorder.

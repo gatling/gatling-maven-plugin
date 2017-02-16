@@ -17,6 +17,7 @@ package io.gatling.mojo;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Component;
@@ -29,7 +30,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.gatling.mojo.MojoConstants.SCALA_VERSION;
 import static java.util.Arrays.asList;
 
 public abstract class AbstractGatlingMojo extends AbstractMojo {
@@ -89,29 +89,39 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
     testClasspathElements.addAll(mavenProject.getTestClasspathElements());
 
     if (includeCompiler) {
-      testClasspathElements.add(getCompilerJar().getCanonicalPath());
+      String scalaVersion = getVersion("org.scala-lang", "scala-library");
+      Artifact scalaCompiler = resolve("org.scala-lang", "scala-compiler", scalaVersion, false).getArtifacts().iterator().next();
+      testClasspathElements.add(scalaCompiler.getFile().getCanonicalPath());
     }
+
     // Add plugin jar to classpath (used by MainWithArgsInFile)
     testClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
 
     return testClasspathElements;
   }
 
-  private File getCompilerJar() throws Exception {
-    Artifact artifact = repository.createArtifact("org.scala-lang", "scala-compiler", SCALA_VERSION, Artifact.SCOPE_RUNTIME, "jar");
+  protected String getVersion(String groupId, String artifactId) {
+    for (Artifact artifact : mavenProject.getArtifacts()) {
+      if (artifact.getGroupId().equals(groupId) && artifact.getArtifactId().equals(artifactId)) {
+        return artifact.getVersion();
+      }
+    }
+    throw new UnsupportedOperationException("Couldn't locate " + groupId + ":" + artifactId + " in classpath");
+  }
 
-    ArtifactResolutionRequest request = new ArtifactResolutionRequest();
-    request.setArtifact(artifact);
-
-    request.setResolveRoot(true).setResolveTransitively(false);
-    request.setServers(session.getRequest().getServers());
-    request.setMirrors(session.getRequest().getMirrors());
-    request.setProxies(session.getRequest().getProxies());
-    request.setLocalRepository(session.getLocalRepository());
-    request.setRemoteRepositories(session.getRequest().getRemoteRepositories());
-    repository.resolve(request);
-
-    return artifact.getFile();
+  protected ArtifactResolutionResult resolve(String groupId, String artifactId, String version, boolean resolveTransitively) throws Exception {
+    Artifact artifact = repository.createArtifact(groupId, artifactId, version, Artifact.SCOPE_RUNTIME, "jar");
+    ArtifactResolutionRequest request =
+            new ArtifactResolutionRequest()
+                    .setArtifact(artifact)
+                    .setResolveRoot(true)
+                    .setResolveTransitively(resolveTransitively)
+                    .setServers(session.getRequest().getServers())
+                    .setMirrors(session.getRequest().getMirrors())
+                    .setProxies(session.getRequest().getProxies())
+                    .setLocalRepository(session.getLocalRepository())
+                    .setRemoteRepositories(session.getRequest().getRemoteRepositories());
+    return repository.resolve(request);
   }
 
   protected void addToArgsIfNotNull(List<String> args, Object value, String flag) {

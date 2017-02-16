@@ -19,17 +19,15 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class MojoConstants {
+public final class MojoConstants {
 
     private MojoConstants() {
-        throw new AssertionError();
     }
 
     // Recorder constants
     public static final String RECORDER_MAIN_CLASS = "io.gatling.recorder.GatlingRecorder";
 
     // Compiler constants
-    public static final String SCALA_VERSION = "2.11.8";
     public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
     public static final List<String> ZINC_JVM_ARGS = asList("-Xmx1G", "-Xss100M");
 

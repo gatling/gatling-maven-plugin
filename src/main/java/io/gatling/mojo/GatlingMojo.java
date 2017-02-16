@@ -39,6 +39,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static io.gatling.mojo.MojoConstants.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
@@ -318,6 +319,12 @@ public class GatlingMojo extends AbstractGatlingMojo {
         && !groupId.startsWith("org.sonatype")) {
         compilerClasspathElements.add(artifact.getFile().getCanonicalPath());
       }
+    }
+
+    String gatlingVersion = getVersion("io.gatling", "gatling-core");
+    Set<Artifact> gatlingCompilerAndDeps = resolve("io.gatling", "gatling-compiler", gatlingVersion, true).getArtifacts();
+    for (Artifact artifact : gatlingCompilerAndDeps) {
+      compilerClasspathElements.add(artifact.getFile().getCanonicalPath());
     }
 
     // Add plugin jar to classpath (used by MainWithArgsInFile)

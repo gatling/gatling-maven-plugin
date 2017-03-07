@@ -28,7 +28,6 @@ import org.apache.maven.toolchain.Toolchain;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
@@ -285,12 +284,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
     try {
       if (useOldJenkinsJUnitSupport) {
-        File[] runDirectories = reportsDirectory.listFiles(new FileFilter() {
-          @Override
-          public boolean accept(File pathname) {
-            return pathname.isDirectory();
-          }
-        });
+        File[] runDirectories = reportsDirectory.listFiles(File::isDirectory);
 
         for (File runDirectory: runDirectories) {
           File jsDir = new File(runDirectory, "js");

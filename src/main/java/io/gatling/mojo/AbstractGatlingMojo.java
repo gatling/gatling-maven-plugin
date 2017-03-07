@@ -103,7 +103,7 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
   protected String getVersion(String groupId, String artifactId) {
     for (Artifact artifact : mavenProject.getArtifacts()) {
       if (artifact.getGroupId().equals(groupId) && artifact.getArtifactId().equals(artifactId)) {
-        return artifact.getVersion();
+        return artifact.getBaseVersion();
       }
     }
     throw new UnsupportedOperationException("Couldn't locate " + groupId + ":" + artifactId + " in classpath");

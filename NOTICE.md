@@ -26,20 +26,10 @@ license terms of the components that this product depends on.
 Redistributed binaries and runtime dependencies
 ===============================================
 
-This product depends on Scala, distributed by the EPFL and Lightbend, Inc.:
-
-  * License: license/LICENSE.scala.bsd3.txt (BSD 3 Clause License)
-  * Homepage: http://www.scala-lang.org/
-
 This product depends on commons-exec, distributed by Apache Foundation:
 
   * License: license/LICENSE.commons-exec.al20.txt (Apache License v2.0)
   * Homepage: https://commons.apache.org/proper/commons-exec/
-
-This product depends on JUnit, distributed by JUnit:
-
-  * License: license/LICENSE.junit.epl10.txt (Eclipse Public License v1.0)
-  * Homepage: http://junit.org/
 
 This product depends on Maven, distributed by Apache Foundation:
 

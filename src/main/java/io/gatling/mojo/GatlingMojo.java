@@ -36,7 +36,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import static io.gatling.mojo.MojoConstants.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
@@ -107,6 +111,14 @@ public class GatlingMojo extends AbstractGatlingMojo {
    */
   @Parameter(property = "gatling.failOnError", defaultValue = "true")
   private boolean failOnError;
+
+  /**
+   * Continue execution of simulations despite assertion failure. If you have
+   * some stack of simulations and you want to get results from all simulations
+   * despite some assertion failures in previous one.
+   */
+  @Parameter(property = "gatling.continueOnAssertionFailure", defaultValue = "false")
+  private boolean continueOnAssertionFailure;
 
   /**
    * Force the name of the directory generated for the results of the run.
@@ -216,13 +228,41 @@ public class GatlingMojo extends AbstractGatlingMojo {
         if (failOnError) {
           throw new MojoExecutionException("Gatling failed.", e);
         } else {
-          getLog().warn("There was some errors while running your simulation, but failOnError set to false won't fail your build.");
+          getLog().warn("There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
         }
       } finally {
           copyJUnitReports();
       }
     } else {
       getLog().info("Skipping gatling-maven-plugin");
+    }
+  }
+
+  private void iterateBySimulations(Toolchain toolchain, List<String> jvmArgs, List<String> testClasspath, List<String> simulations) throws Exception {
+    Exception exc = null;
+    int simulationsCount = simulations.size();
+    for (int i = 0; i < simulationsCount; i++) {
+      try {
+        executeGatling(jvmArgs, gatlingArgs(simulations.get(i)), testClasspath, toolchain);
+      } catch (GatlingSimulationAssertionsFailedException e) {
+        if (exc == null && i == simulationsCount - 1) {
+          throw e;
+        }
+
+        if (continueOnAssertionFailure) {
+          if (exc != null) {
+            continue;
+          }
+          exc = e;
+          continue;
+        }
+        throw e;
+      }
+    }
+
+    if (exc != null) {
+      getLog().warn("There were some errors while running your simulation, but continueOnAssertionFailure was set to true, so your simulations continue to perform.");
+      throw exc;
     }
   }
 
@@ -288,6 +328,12 @@ public class GatlingMojo extends AbstractGatlingMojo {
         && !groupId.startsWith("org.sonatype")) {
         compilerClasspathElements.add(artifact.getFile().getCanonicalPath());
       }
+    }
+
+    String gatlingVersion = getVersion("io.gatling", "gatling-core");
+    Set<Artifact> gatlingCompilerAndDeps = resolve("io.gatling", "gatling-compiler", gatlingVersion, true).getArtifacts();
+    for (Artifact artifact : gatlingCompilerAndDeps) {
+      compilerClasspathElements.add(artifact.getFile().getCanonicalPath());
     }
 
     // Add plugin jar to classpath (used by MainWithArgsInFile)

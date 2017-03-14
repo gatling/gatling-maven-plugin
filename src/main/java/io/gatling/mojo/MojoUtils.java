@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2015 GatlingCorp (http://gatling.io)
+ * Copyright 2011-2017 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,11 @@ import java.util.regex.Pattern;
 
 import org.codehaus.plexus.util.StringUtils;
 
-public class MojoUtils {
+public final class MojoUtils {
 
   public static boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
 
   private MojoUtils() {
-    throw new AssertionError();
   }
 
   public static String toMultiPath(List<String> paths) {

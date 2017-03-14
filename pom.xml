@@ -8,9 +8,11 @@
 	</parent>
 
 	<groupId>io.gatling</groupId>
-	<artifactId>gatling-maven-parent</artifactId>
-	<version>2.2.2-SNAPSHOT</version>
-	<packaging>pom</packaging>
+	<artifactId>gatling-maven-plugin</artifactId>
+	<version>2.2.5-SNAPSHOT</version>
+	<name>gatling-maven-plugin</name>
+	<description>gatling-maven-plugin</description>
+	<packaging>maven-plugin</packaging>
 
 	<inceptionYear>2011</inceptionYear>
 	<url>http://gatling.io</url>
@@ -21,16 +23,12 @@
 			<name>Stephane Landelle</name>
 			<organization>Gatling Corp</organization>
 		</developer>
-		<developer>
-			<id>pdalpra@gatling.io</id>
-			<name>Pierre Dal-Pra</name>
-		</developer>
 	</developers>
 
 	<scm>
-		<connection>scm:git:git:@github.com:gatling/gatling-maven.git</connection>
-		<developerConnection>scm:git:git:@github.com:gatling/gatling-maven.git</developerConnection>
-		<url>https://github.com/gatling/gatling-maven</url>
+		<connection>scm:git:git:@github.com:gatling/gatling-maven-plugin.git</connection>
+		<developerConnection>scm:git:git:@github.com:gatling/gatling-maven-plugin.git</developerConnection>
+		<url>https://github.com/gatling/gatling-maven-plugin</url>
 		<tag>HEAD</tag>
 	</scm>
 
@@ -42,59 +40,25 @@
 		</license>
 	</licenses>
 
-	<modules>
-		<module>gatling-maven-plugin</module>
-		<module>gatling-highcharts-maven-archetype</module>
-	</modules>
-
 	<properties>
 		<encoding>UTF-8</encoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<gatling.version>2.2.2</gatling.version>
 		<commons-exec.version>1.2</commons-exec.version>
-		<junit.version>4.11</junit.version>
 		<maven3.version>3.0</maven3.version>
 		<plexus-utils.version>3.0</plexus-utils.version>
-		<scala-maven-plugin.version>3.2.2</scala-maven-plugin.version>
-
 		<maven-license-plugin.version>1.10.b1</maven-license-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.5</nexus-staging-maven-plugin.version>
 		<header.basedir>${project.basedir}</header.basedir>
+		<maven-plugin-plugin.version>3.4</maven-plugin-plugin.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>io.gatling.highcharts</groupId>
-				<artifactId>gatling-charts-highcharts</artifactId>
-				<version>${gatling.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.gatling</groupId>
-				<artifactId>gatling-app</artifactId>
-				<version>${gatling.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.gatling</groupId>
-				<artifactId>gatling-recorder</artifactId>
-				<version>${gatling.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.gatling</groupId>
-				<artifactId>gatling-compiler</artifactId>
-				<version>${gatling.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-exec</artifactId>
 				<version>${commons-exec.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit.version}</version>
-				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>
@@ -118,13 +82,31 @@
 				<artifactId>plexus-utils</artifactId>
 				<version>${plexus-utils.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>net.alchim31.maven</groupId>
-				<artifactId>scala-maven-plugin</artifactId>
-				<version>${scala-maven-plugin.version}</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-exec</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-plugin-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.plugin-tools</groupId>
+			<artifactId>maven-plugin-annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.plexus</groupId>
+			<artifactId>plexus-utils</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-compat</artifactId>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<pluginManagement>
@@ -163,7 +145,52 @@
 						<autoReleaseAfterClose>true</autoReleaseAfterClose>
 					</configuration>
 				</plugin>
+				<plugin>
+					<groupId>com.mycila.maven-license-plugin</groupId>
+					<artifactId>maven-license-plugin</artifactId>
+					<configuration>
+						<excludes>
+							<exclude>src/main/resources/*</exclude>
+							<exclude>**/LICENSE</exclude>
+							<exclude>**/*.md</exclude>
+							<exclude>.gitignore</exclude>
+							<exclude>make_credentials.py</exclude>
+						</excludes>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-plugin-plugin</artifactId>
+				<version>${maven-plugin-plugin.version}</version>
+				<configuration>
+					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+				</configuration>
+				<executions>
+					<execution>
+						<id>mojo-descriptor</id>
+						<goals>
+							<goal>descriptor</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>help-goal</id>
+						<goals>
+							<goal>helpmojo</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila.maven-license-plugin</groupId>
+				<artifactId>maven-license-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
 	</build>
 </project>

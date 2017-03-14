@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2015 GatlingCorp (http://gatling.io)
+ * Copyright 2011-2017 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
-@Mojo(name = "test",
-        defaultPhase = LifecyclePhase.TEST,
+@Mojo(name = "integration-test",
+        defaultPhase = LifecyclePhase.INTEGRATION_TEST,
         requiresDependencyResolution = ResolutionScope.TEST)
-public class GatlingTestMojo extends GatlingMojo {
+public class GatlingIntegrationMojo extends GatlingMojo {
 }

@@ -28,7 +28,6 @@ import org.apache.maven.toolchain.Toolchain;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
@@ -38,12 +37,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import static io.gatling.mojo.MojoConstants.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
+
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.Arrays.asList;
 
@@ -218,7 +217,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
           executeGatling(jvmArgs, gatlingArgs(null), testClasspath, toolchain);
 
         } else {
-          Collection<String> simulations = simulations();
+          List<String> simulations = simulations();
           for (String simulation : simulations) {
             executeGatling(jvmArgs, gatlingArgs(simulation), testClasspath, toolchain);
           }

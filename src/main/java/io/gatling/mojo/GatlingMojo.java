@@ -146,13 +146,13 @@ public class GatlingMojo extends AbstractGatlingMojo {
   /**
    * List of list of include patterns to use for scanning. Includes all simulations by default.
    */
-  @Parameter
+  @Parameter(property = "gatling.includes", defaultValue = "false")
   private String[] includes;
 
   /**
    * List of list of exclude patterns to use for scanning. By default empty.
    */
-  @Parameter
+  @Parameter(property = "gatling.excludes", defaultValue = "false")
   private String[] excludes;
 
   /**

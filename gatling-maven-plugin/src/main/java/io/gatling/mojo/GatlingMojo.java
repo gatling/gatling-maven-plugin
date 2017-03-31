@@ -378,9 +378,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
       ClassLoader testClassLoader = new URLClassLoader(testClassPathUrls());
 
       Class<?> simulationClass = testClassLoader.loadClass("io.gatling.core.scenario.Simulation");
-
-
-
+      
       List<String> simulationsClasses = new ArrayList<>();
 
       for (String classFile: resolveIncludesAndExcludes(compiledClassFiles())) {

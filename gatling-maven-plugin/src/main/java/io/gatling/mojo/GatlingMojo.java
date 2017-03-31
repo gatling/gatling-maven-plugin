@@ -480,4 +480,20 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private boolean isConcreteClass(Class<?> clazz) {
     return !clazz.isInterface() && !Modifier.isAbstract(clazz.getModifiers());
   }
+
+  public String[] getIncludes() {
+    return includes;
+  }
+
+  public void setIncludes(String[] includes) {
+    this.includes = includes;
+  }
+
+  public String[] getExcludes() {
+    return excludes;
+  }
+
+  public void setExcludes(String[] excludes) {
+    this.excludes = excludes;
+  }
 }

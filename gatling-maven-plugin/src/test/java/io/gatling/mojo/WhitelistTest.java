@@ -3,24 +3,17 @@ package io.gatling.mojo;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
-import org.powermock.reflect.internal.WhiteboxImpl;
+import org.junit.runners.JUnit4;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
-import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.support.membermodification.MemberMatcher.method;
 
 /**
  *
  */
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(GatlingMojo.class)
+@RunWith(JUnit4.class)
 public class WhitelistTest {
 
   @Test
@@ -38,12 +31,12 @@ public class WhitelistTest {
     String[] classFileList = new String[]{"io.test.great.class"};
 
     String[] includesList = new String[] {"io.notcool.*"};
-    GatlingMojo spy = PowerMockito.spy(new GatlingMojo());
+    GatlingMojo mojo = new GatlingMojo();
 
-    Whitebox.setInternalState(spy, "includes", includesList);
+    mojo.setIncludes(includesList);
 
 
-    List<String> result = spy.resolveIncludesAndExcludes(classFileList);
+    List<String> result = mojo.resolveIncludesAndExcludes(classFileList);
     Assert.assertTrue(result.size() == 0);
   }
 
@@ -52,12 +45,12 @@ public class WhitelistTest {
     String[] classFileList = new String[]{"io.test.great.class"};
 
     String[] includesList = new String[] {"io.test.*"};
-    GatlingMojo spy = PowerMockito.spy(new GatlingMojo());
+    GatlingMojo mojo = new GatlingMojo();
 
-    Whitebox.setInternalState(spy, "includes", includesList);
+    mojo.setIncludes(includesList);
 
 
-    List<String> result = spy.resolveIncludesAndExcludes(classFileList);
+    List<String> result = mojo.resolveIncludesAndExcludes(classFileList);
     Assert.assertTrue(result.size() == 1);
   }
 
@@ -66,12 +59,12 @@ public class WhitelistTest {
     String[] classFileList = new String[]{"io.test.great.class"};
 
     String[] excludesList = new String[] {"io.test.*"};
-    GatlingMojo spy = PowerMockito.spy(new GatlingMojo());
+    GatlingMojo mojo = new GatlingMojo();
 
-    Whitebox.setInternalState(spy, "excludes", excludesList);
+    mojo.setExcludes(excludesList);
 
 
-    List<String> result = spy.resolveIncludesAndExcludes(classFileList);
+    List<String> result = mojo.resolveIncludesAndExcludes(classFileList);
     Assert.assertTrue(result.size() == 0);
   }
 
@@ -82,13 +75,13 @@ public class WhitelistTest {
     String[] excludesList = new String[] {"io.test.*"};
     String[] includesList = new String[] {"io.onemoretest.*"};
 
-    GatlingMojo spy = PowerMockito.spy(new GatlingMojo());
+    GatlingMojo mojo = new GatlingMojo();
 
-    Whitebox.setInternalState(spy, "excludes", excludesList);
-    Whitebox.setInternalState(spy, "includes", includesList);
+    mojo.setExcludes(excludesList);
+    mojo.setIncludes(includesList);
 
 
-    List<String> result = spy.resolveIncludesAndExcludes(classFileList);
+    List<String> result = mojo.resolveIncludesAndExcludes(classFileList);
     Assert.assertTrue(result.size() == 1);
   }
 
@@ -98,12 +91,12 @@ public class WhitelistTest {
 
     String[] excludesList = new String[] {"io.test.great"};
 
-    GatlingMojo spy = PowerMockito.spy(new GatlingMojo());
+    GatlingMojo mojo = new GatlingMojo();
 
-    Whitebox.setInternalState(spy, "excludes", excludesList);
+    mojo.setExcludes(excludesList);
 
 
-    List<String> result = spy.resolveIncludesAndExcludes(classFileList);
+    List<String> result = mojo.resolveIncludesAndExcludes(classFileList);
     Assert.assertTrue(result.size() == 2);
   }
 
@@ -113,12 +106,12 @@ public class WhitelistTest {
 
     String[] includesList = new String[] {"io.test.great"};
 
-    GatlingMojo spy = PowerMockito.spy(new GatlingMojo());
+    GatlingMojo mojo = new GatlingMojo();
 
-    Whitebox.setInternalState(spy, "includes", includesList);
+    mojo.setIncludes(includesList);
 
 
-    List<String> result = spy.resolveIncludesAndExcludes(classFileList);
+    List<String> result = mojo.resolveIncludesAndExcludes(classFileList);
     Assert.assertTrue(result.size() == 1);
   }
 

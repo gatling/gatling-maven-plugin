@@ -378,8 +378,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
                        "-rf", resultsFolder.getCanonicalPath(),
                        "-bdf", bodiesFolder.getCanonicalPath(),
                        "-sf", simulationsFolder.getCanonicalPath(),
-                       "-rd", runDescription,
-                       "-m"));
+                       "-rd", runDescription));
 
     if (noReports) {
       args.add("-nr");

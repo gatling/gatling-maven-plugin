@@ -42,6 +42,7 @@ import java.util.Set;
 
 import static io.gatling.mojo.MojoConstants.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
+
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.Arrays.asList;
 
@@ -72,7 +73,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private File simulationsFolder;
 
   /**
-   * A name of a Simulation class to run.
+   * Either name of a Simulation class or list of classes (comma separated) to run
    */
   @Parameter(property = "gatling.simulationClass", alias = "sc")
   private String simulationClass;
@@ -190,6 +191,12 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private String runDescription;
 
   /**
+   * A package name from which tests should be executed
+   */
+  @Parameter(property = "package.name")
+  private String packageName;
+
+  /**
    * Executes Gatling simulations.
    */
   @Override
@@ -211,7 +218,9 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
         } else {
           List<String> simulations = simulations();
-          iterateBySimulations(toolchain, jvmArgs, testClasspath, simulations);
+          for (String simulation : simulations) {
+            executeGatling(jvmArgs, gatlingArgs(simulation), testClasspath, toolchain);
+          }
         }
 
       } catch (Exception e) {
@@ -351,10 +360,11 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private List<String> simulations() throws MojoFailureException {
     // Solves the simulations, if no simulation file is defined
     if (simulationClass != null) {
-      return Collections.singletonList(simulationClass);
-
+      List<String> simulations = new ArrayList<>();
+      Collections.addAll(simulations, simulationClass.split(","));
+      return simulations;
     } else {
-      List<String> simulations = resolveSimulations();
+      List<String> simulations = resolveSimulations(packageName);
 
       if (simulations.isEmpty()) {
         getLog().error("No simulations to run");
@@ -404,7 +414,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
    *
    * @return a comma separated String of simulation class names.
    */
-  private List<String> resolveSimulations() {
+  private List<String> resolveSimulations(String packageName) {
 
     try {
       ClassLoader testClassLoader = new URLClassLoader(testClassPathUrls());
@@ -417,6 +427,8 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
       for (String classFile: compiledClassFiles()) {
         String className = pathToClassName(classFile);
+        if(packageName != null && !className.contains(packageName))
+          continue;
 
         boolean isIncluded = includes.isEmpty() || includes.contains(className);
         boolean isExcluded =  excludes.contains(className);

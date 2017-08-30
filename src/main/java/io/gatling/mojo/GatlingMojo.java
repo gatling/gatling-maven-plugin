@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2011-2017 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,6 +39,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static io.gatling.mojo.MojoConstants.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
@@ -190,6 +193,42 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private String runDescription;
 
   /**
+   * Name of product that is being tested.
+   */
+  @Parameter(property = "gatling.productName", alias = "pn", defaultValue = "ANONYMOUS_PRODUCT")
+  private String productName;
+
+  /**
+   * Name of performance dashboard for this test.
+   */
+  @Parameter(property = "gatling.dashboardName", alias = "dn", defaultValue = "ANONYMOUS_DASHBOARD")
+  private String dashboardName;
+
+  /**
+   * Test run id.
+   */
+  @Parameter(property = "gatling.testRunId", alias = "tid", defaultValue = "ANONYMOUS_TEST_ID")
+  private String testRunId;
+
+  /**
+   * Build results url to post the results of this load test.
+   */
+  @Parameter(property = "gatling.buildResultsUrl", alias = "url", defaultValue = "http://localhost")
+  private String buildResultsUrl;
+
+  /**
+   * Build results url to post the results of this load test.
+   */
+  @Parameter(property = "gatling.targetsIoUrl", alias = "iourl", defaultValue = "http://localhost:8123")
+  private String targetsIoUrl;
+
+  /**
+   * The release number of the product.
+   */
+  @Parameter(property = "gatling.productRelease", alias = "pr", defaultValue = "1.0.0-SNAPSHOT")
+  private String productRelease;
+
+  /**
    * Executes Gatling simulations.
    */
   @Override
@@ -269,6 +308,11 @@ public class GatlingMojo extends AbstractGatlingMojo {
   }
 
   private void executeGatling(List<String> gatlingJvmArgs, List<String> gatlingArgs, List<String> testClasspath, Toolchain toolchain) throws Exception {
+
+    ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+    exec.scheduleAtFixedRate(new KeepAlive(productName, dashboardName, testRunId, buildResultsUrl, productRelease, targetsIoUrl
+    ), 0, 3, TimeUnit.SECONDS);
+
     Fork forkedGatling = new Fork(GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties, getLog());
     try {
       forkedGatling.run();
@@ -277,6 +321,10 @@ public class GatlingMojo extends AbstractGatlingMojo {
         throw new GatlingSimulationAssertionsFailedException(e);
       else
         throw e; /* issue 1482*/
+    }
+    finally {
+      System.out.println("Shut down keep alive executor.");
+      exec.shutdown();
     }
   }
 

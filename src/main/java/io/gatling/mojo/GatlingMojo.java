@@ -193,77 +193,173 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private String runDescription;
 
   /**
-   * Name of product that is being tested.
+   * TargetsIO: Name of product that is being tested.
    */
   @Parameter(property = "gatling.productName", alias = "pn", defaultValue = "ANONYMOUS_PRODUCT")
   private String productName;
 
   /**
-   * Name of performance dashboard for this test.
+   * TargetsIO: Name of performance dashboard for this test.
    */
   @Parameter(property = "gatling.dashboardName", alias = "dn", defaultValue = "ANONYMOUS_DASHBOARD")
   private String dashboardName;
 
   /**
-   * Test run id.
+   * TargetsIO: Test run id.
    */
   @Parameter(property = "gatling.testRunId", alias = "tid", defaultValue = "ANONYMOUS_TEST_ID")
   private String testRunId;
 
   /**
-   * Build results url to post the results of this load test.
+   * TargetsIO: Build results url to post the results of this load test.
    */
   @Parameter(property = "gatling.buildResultsUrl", alias = "url", defaultValue = "http://localhost")
   private String buildResultsUrl;
 
   /**
-   * Build results url to post the results of this load test.
+   * TargetsIO: Build results url to post the results of this load test.
    */
   @Parameter(property = "gatling.targetsIoUrl", alias = "iourl", defaultValue = "http://localhost:8123")
   private String targetsIoUrl;
 
   /**
-   * The release number of the product.
+   * TargetsIO: the release number of the product.
    */
   @Parameter(property = "gatling.productRelease", alias = "pr", defaultValue = "1.0.0-SNAPSHOT")
   private String productRelease;
+
+  /**
+   * TargetsIO: test type such as STRESS, NIGHTLY, ... Needed to fetch asserts from TargetsIO.
+   */
+  @Parameter(property = "gatling.testType", alias = "tie", defaultValue = "NIGHTLY")
+  private String testType;
+
+  /**
+   * TargetsIO: Rampup time in seconds.
+   */
+  @Parameter(property = "gatling.rampupTimeInSeconds", alias = "rt", defaultValue = "30")
+  private String rampupTimeInSeconds;
+
+  /**
+   * TargetsIO: Parse the target.io test asserts and fail build it not ok.
+   */
+  @Parameter(property = "gatling.assertResultsEnabled", alias = "ar", defaultValue = "false")
+  private boolean assertResultsEnabled;
+
+  /**
+   * TargetsIO: Enable calls to TargetsIO.
+   */
+  @Parameter(property = "gatling.targetsIoEnabled", alias = "tie", defaultValue = "false")
+  private boolean targetsIoEnabled;
+
 
   /**
    * Executes Gatling simulations.
    */
   @Override
   public void execute() throws MojoExecutionException {
-    if (!skip) {
-      // Create results directories
-      resultsFolder.mkdirs();
-      try {
-        Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
-        if (!disableCompiler) {
-          executeCompiler(zincJvmArgs(), buildTestClasspath(true), toolchain);
-        }
-
-        List<String> jvmArgs = gatlingJvmArgs();
-        List<String> testClasspath = buildTestClasspath(false);
-
-        if (reportsOnly != null) {
-          executeGatling(jvmArgs, gatlingArgs(null), testClasspath, toolchain);
-
-        } else {
-          List<String> simulations = simulations();
-          iterateBySimulations(toolchain, jvmArgs, testClasspath, simulations);
-        }
-
-      } catch (Exception e) {
-        if (failOnError) {
-          throw new MojoExecutionException("Gatling failed.", e);
-        } else {
-          getLog().warn("There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
-        }
-      } finally {
-          copyJUnitReports();
-      }
-    } else {
+    if (skip) {
       getLog().info("Skipping gatling-maven-plugin");
+      return;
+    }
+    final ScheduledExecutorService exec;
+    final TargetsIoClient targetsIoClient = targetsIoEnabled
+            ? createTargetsIoClient()
+            : null;
+
+    if (targetsIoEnabled) {
+      final TargetsIoClient.KeepAliveRunner keepAliveRunner = new TargetsIoClient.KeepAliveRunner(targetsIoClient);
+      exec = Executors.newSingleThreadScheduledExecutor();
+      exec.scheduleAtFixedRate(keepAliveRunner, 0, 5, TimeUnit.SECONDS);
+    }
+    else {
+      exec = null;
+    }
+
+    // Create results directories
+    resultsFolder.mkdirs();
+    try {
+      Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
+      if (!disableCompiler) {
+        executeCompiler(zincJvmArgs(), buildTestClasspath(true), toolchain);
+      }
+
+      List<String> jvmArgs = gatlingJvmArgs();
+      List<String> testClasspath = buildTestClasspath(false);
+
+      if (reportsOnly != null) {
+        executeGatling(jvmArgs, gatlingArgs(null), testClasspath, toolchain);
+
+      } else {
+        List<String> simulations = simulations();
+        iterateBySimulations(toolchain, jvmArgs, testClasspath, simulations);
+      }
+
+    } catch (Exception e) {
+      if (failOnError) {
+        throw new MojoExecutionException("Gatling failed.", e);
+      } else {
+        getLog().warn("There were some errors while running your simulation, but failOnError was set to false won't fail your build.", e);
+      }
+    } finally {
+        copyJUnitReports();
+        if (exec != null) {
+          getLog().info("Shut down keep alive executor.");
+          exec.shutdown();
+        }
+    }
+    if (targetsIoEnabled) {
+      targetsIoClient.callTargetsIoFor(TargetsIoClient.Action.End);
+      if (assertResultsEnabled) {
+        try {
+          assertResultsTargetIO(targetsIoClient);
+        } catch (IOException e) {
+          throw new MojoExecutionException("TargetsIO assertions check failed. " + e.getMessage(), e);
+        }
+      }
+      else {
+        getLog().info("TargetsIO assertions disabled.");
+      }
+    }
+  }
+
+  private TargetsIoClient createTargetsIoClient() {
+    TargetsIoClient client = new TargetsIoClient(productName, dashboardName, testType, testRunId, buildResultsUrl, productRelease, rampupTimeInSeconds, targetsIoUrl);
+    client.injectLogger(new TargetsIoClient.Logger() {
+      @Override
+      public void info(String message) {
+        getLog().info(message);
+      }
+
+      @Override
+      public void warn(String message) {
+        getLog().warn(message);
+      }
+
+      @Override
+      public void error(String message) {
+        getLog().error(message);
+      }
+    });
+    return client;
+  }
+
+  /**
+   * Call the target io assertions and let build fail when not OK
+   * @throws MojoExecutionException when the assertion check fails or
+   * a technical issue occurs
+   * @param targetsIoClient call this client
+   */
+  private void assertResultsTargetIO(TargetsIoClient targetsIoClient) throws MojoExecutionException, IOException {
+    final String assertions = targetsIoClient.callCheckAsserts();
+    if (assertions == null) {
+      throw new MojoExecutionException("TargetsIO assertions could not be checked, received null");
+    }
+    if (assertions.contains("false")) {
+      throw new MojoExecutionException("One of TargetsIO assertions is false: " + assertions);
+    }
+    else {
+      getLog().info("TargetsIO assertions are OK: " + assertions);
     }
   }
 
@@ -309,10 +405,6 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
   private void executeGatling(List<String> gatlingJvmArgs, List<String> gatlingArgs, List<String> testClasspath, Toolchain toolchain) throws Exception {
 
-    ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
-    exec.scheduleAtFixedRate(new KeepAlive(productName, dashboardName, testRunId, buildResultsUrl, productRelease, targetsIoUrl
-    ), 0, 3, TimeUnit.SECONDS);
-
     Fork forkedGatling = new Fork(GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties, getLog());
     try {
       forkedGatling.run();
@@ -321,10 +413,6 @@ public class GatlingMojo extends AbstractGatlingMojo {
         throw new GatlingSimulationAssertionsFailedException(e);
       else
         throw e; /* issue 1482*/
-    }
-    finally {
-      System.out.println("Shut down keep alive executor.");
-      exec.shutdown();
     }
   }
 

@@ -229,12 +229,6 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private String productRelease;
 
   /**
-   * TargetsIO: test type such as STRESS, NIGHTLY, ... Needed to fetch asserts from TargetsIO.
-   */
-  @Parameter(property = "gatling.testType", alias = "tie", defaultValue = "NIGHTLY")
-  private String testType;
-
-  /**
    * TargetsIO: Rampup time in seconds.
    */
   @Parameter(property = "gatling.rampupTimeInSeconds", alias = "rt", defaultValue = "30")
@@ -324,7 +318,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
   }
 
   private TargetsIoClient createTargetsIoClient() {
-    TargetsIoClient client = new TargetsIoClient(productName, dashboardName, testType, testRunId, buildResultsUrl, productRelease, rampupTimeInSeconds, targetsIoUrl);
+    TargetsIoClient client = new TargetsIoClient(productName, dashboardName, testRunId, buildResultsUrl, productRelease, rampupTimeInSeconds, targetsIoUrl);
     client.injectLogger(new TargetsIoClient.Logger() {
       @Override
       public void info(String message) {

@@ -16,17 +16,15 @@ public class TargetsIoClient {
 
     private final String productName;
     private final String dashboardName;
-    private final String testType;
     private final String testRunId;
     private final String buildResultsUrl;
     private final String productRelease;
     private final String targetsIoUrl;
     private final String rampupTimeSeconds;
 
-    public TargetsIoClient(String productName, String dashboardName, String testType, String testRunId, String buildResultsUrl, String productRelease, String rampupTimeInSeconds, String targetsIoUrl) {
+    public TargetsIoClient(String productName, String dashboardName, String testRunId, String buildResultsUrl, String productRelease, String rampupTimeInSeconds, String targetsIoUrl) {
         this.productName = productName;
         this.dashboardName = dashboardName;
-        this.testType = testType;
         this.testRunId = testRunId;
         this.buildResultsUrl = buildResultsUrl;
         this.productRelease = productRelease;
@@ -72,7 +70,7 @@ public class TargetsIoClient {
      */
     public String callCheckAsserts() throws IOException, MojoExecutionException {
         // example: https://targets-io.com/benchmarks/DASHBOARD/NIGHTLY/TEST-RUN-831
-        String url = String.join("/",targetsIoUrl, "benchmarks", dashboardName, testType, testRunId);
+        String url = String.join("/",targetsIoUrl, "benchmarks", dashboardName, testRunId);
         Request request = new Request.Builder()
                 .url(url)
                 .get()

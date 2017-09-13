@@ -77,7 +77,7 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
   private RepositorySystem repository;
 
 
-  protected List<String> buildTestClasspath(boolean includeCompiler) throws Exception {
+  protected List<String> buildTestClasspath() throws Exception {
     List<String> testClasspathElements = new ArrayList<>();
 
     if (!new File(compiledClassesFolder, "gatling.conf").exists()) {
@@ -87,12 +87,6 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
     }
 
     testClasspathElements.addAll(mavenProject.getTestClasspathElements());
-
-    if (includeCompiler) {
-      String scalaVersion = getVersion("org.scala-lang", "scala-library");
-      Artifact scalaCompiler = resolve("org.scala-lang", "scala-compiler", scalaVersion, false).getArtifacts().iterator().next();
-      testClasspathElements.add(scalaCompiler.getFile().getCanonicalPath());
-    }
 
     // Add plugin jar to classpath (used by MainWithArgsInFile)
     testClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
@@ -120,7 +114,7 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
                     .setMirrors(session.getRequest().getMirrors())
                     .setProxies(session.getRequest().getProxies())
                     .setLocalRepository(session.getLocalRepository())
-                    .setRemoteRepositories(session.getCurrentProject().getRemoteArtifactRepositories());
+                    .setRemoteRepositories(session.getRequest().getRemoteRepositories());
     return repository.resolve(request);
   }
 

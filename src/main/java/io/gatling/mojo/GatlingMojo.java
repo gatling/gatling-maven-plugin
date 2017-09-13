@@ -198,13 +198,14 @@ public class GatlingMojo extends AbstractGatlingMojo {
       // Create results directories
       resultsFolder.mkdirs();
       try {
+        List<String> testClasspath = buildTestClasspath();
+
         Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
         if (!disableCompiler) {
-          executeCompiler(zincJvmArgs(), buildTestClasspath(true), toolchain);
+          executeCompiler(zincJvmArgs(), testClasspath, toolchain);
         }
 
         List<String> jvmArgs = gatlingJvmArgs();
-        List<String> testClasspath = buildTestClasspath(false);
 
         if (reportsOnly != null) {
           executeGatling(jvmArgs, gatlingArgs(null), testClasspath, toolchain);
@@ -258,7 +259,8 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
   private void executeCompiler(List<String> zincJvmArgs, List<String> testClasspath, Toolchain toolchain) throws Exception {
     List<String> compilerClasspath = buildCompilerClasspath();
-    List<String> compilerArguments = compilerArgs(testClasspath);
+    compilerClasspath.addAll(testClasspath);
+    List<String> compilerArguments = compilerArgs();
 
     Fork forkedCompiler = new Fork(COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, false, getLog());
     try {
@@ -391,9 +393,8 @@ public class GatlingMojo extends AbstractGatlingMojo {
     return args;
   }
 
-  private List<String> compilerArgs(List<String> classpathElements) throws Exception {
+  private List<String> compilerArgs() throws Exception {
     List<String> args = new ArrayList<>();
-    args.addAll(asList("-ccp", MojoUtils.toMultiPath(classpathElements)));
     args.addAll(asList("-sf", simulationsFolder.getCanonicalPath()));
     args.addAll(asList("-bf", compiledClassesFolder.getCanonicalPath()));
     return args;

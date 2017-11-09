@@ -114,7 +114,7 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
                     .setMirrors(session.getRequest().getMirrors())
                     .setProxies(session.getRequest().getProxies())
                     .setLocalRepository(session.getLocalRepository())
-                    .setRemoteRepositories(session.getRequest().getRemoteRepositories());
+                    .setRemoteRepositories(session.getCurrentProject().getRemoteArtifactRepositories());
     return repository.resolve(request);
   }
 

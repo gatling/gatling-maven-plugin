@@ -23,6 +23,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.toolchain.Toolchain;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,8 +63,14 @@ public class RecorderMojo extends AbstractGatlingMojo {
   /**
    * Uses as the folder where generated simulations will be stored.
    */
-  @Parameter(property = "gatling.recorder.outputFolder", alias = "of", defaultValue = "${project.basedir}/src/test/scala")
-  private String outputFolder;
+  @Parameter(property = "gatling.recorder.simulationsFolder", alias = "sf", defaultValue = "${project.basedir}/src/test/scala")
+  private File simulationsFolder;
+
+  /**
+   * Use this folder as the folder where feeders are stored.
+   */
+  @Parameter(property = "gatling.recorder.resourcesFolder", alias = "rsf", defaultValue = "${project.basedir}/src/test/resources")
+  private File resourcesFolder;
 
   /**
    * The name of the generated class.
@@ -90,7 +97,7 @@ public class RecorderMojo extends AbstractGatlingMojo {
   private Boolean followRedirect;
 
   @Override
-  public void execute() throws MojoExecutionException, MojoFailureException {
+  public void execute() throws MojoExecutionException {
     try {
       List<String> testClasspath = buildTestClasspath();
       List<String> recorderArgs = recorderArgs();
@@ -102,14 +109,14 @@ public class RecorderMojo extends AbstractGatlingMojo {
     }
   }
 
-  private List<String> recorderArgs() {
+  private List<String> recorderArgs() throws Exception {
     List<String> arguments = new ArrayList<>();
-    addToArgsIfNotNull(arguments, outputFolder, "of");
-    addToArgsIfNotNull(arguments, bodiesFolder, "bdf");
     addToArgsIfNotNull(arguments, localPort, "lp");
     addToArgsIfNotNull(arguments, proxyHost, "ph");
     addToArgsIfNotNull(arguments, proxyPort, "pp");
     addToArgsIfNotNull(arguments, proxySSLPort, "pps");
+    addToArgsIfNotNull(arguments, simulationsFolder.getCanonicalPath(), "sf");
+    addToArgsIfNotNull(arguments, resourcesFolder.getCanonicalPath(), "rsf");
     addToArgsIfNotNull(arguments, className, "cn");
     addToArgsIfNotNull(arguments, packageName, "pkg");
     addToArgsIfNotNull(arguments, encoding, "enc");

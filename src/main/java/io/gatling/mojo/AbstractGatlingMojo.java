@@ -35,12 +35,6 @@ import static java.util.Arrays.asList;
 public abstract class AbstractGatlingMojo extends AbstractMojo {
 
   /**
-   * Use this folder as the folder where request bodies are stored.
-   */
-  @Parameter(property = "gatling.bodiesFolder", alias = "bdf", defaultValue = "${project.basedir}/src/test/resources/bodies")
-  protected File bodiesFolder;
-
-  /**
    * Use this folder as the configuration directory.
    */
   @Parameter(property = "gatling.configFolder", alias = "cd", defaultValue = "${project.basedir}/src/test/resources")

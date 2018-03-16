@@ -80,8 +80,8 @@ public class GatlingMojo extends AbstractGatlingMojo {
   /**
    * Use this folder as the folder where feeders are stored.
    */
-  @Parameter(property = "gatling.dataFolder", alias = "df", defaultValue = "${project.basedir}/src/test/resources/data")
-  private File dataFolder;
+  @Parameter(property = "gatling.resourcesFolder", alias = "rsf", defaultValue = "${project.basedir}/src/test/resources")
+  private File resourcesFolder;
 
   /**
    * Use this folder as the folder where results are stored.
@@ -376,9 +376,8 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private List<String> gatlingArgs(String simulationClass) throws Exception {
     // Arguments
     List<String> args = new ArrayList<>();
-    args.addAll(asList("-df", dataFolder.getCanonicalPath(),
+    args.addAll(asList("-rsf", resourcesFolder.getCanonicalPath(),
                        "-rf", resultsFolder.getCanonicalPath(),
-                       "-bdf", bodiesFolder.getCanonicalPath(),
                        "-sf", simulationsFolder.getCanonicalPath(),
                        "-rd", runDescription));
 

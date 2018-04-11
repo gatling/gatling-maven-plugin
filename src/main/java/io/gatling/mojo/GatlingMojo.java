@@ -56,37 +56,37 @@ public class GatlingMojo extends AbstractGatlingMojo {
   /**
    * Run simulation but does not generate reports. By default false.
    */
-  @Parameter(property = "gatling.noReports", alias = "nr", defaultValue = "false")
+  @Parameter(property = "gatling.noReports", defaultValue = "false")
   private boolean noReports;
 
   /**
    * Generate the reports for the simulation in this folder.
    */
-  @Parameter(property = "gatling.reportsOnly", alias = "ro")
+  @Parameter(property = "gatling.reportsOnly")
   private String reportsOnly;
 
   /**
    * Use this folder to discover simulations that could be run.
    */
-  @Parameter(property = "gatling.simulationsFolder", alias = "sf", defaultValue = "${project.basedir}/src/test/scala")
+  @Parameter(property = "gatling.simulationsFolder", defaultValue = "${project.basedir}/src/test/scala")
   private File simulationsFolder;
 
   /**
    * A name of a Simulation class to run.
    */
-  @Parameter(property = "gatling.simulationClass", alias = "sc")
+  @Parameter(property = "gatling.simulationClass")
   private String simulationClass;
 
   /**
    * Use this folder as the folder where feeders are stored.
    */
-  @Parameter(property = "gatling.resourcesFolder", alias = "rsf", defaultValue = "${project.basedir}/src/test/resources")
+  @Parameter(property = "gatling.resourcesFolder", defaultValue = "${project.basedir}/src/test/resources")
   private File resourcesFolder;
 
   /**
    * Use this folder as the folder where results are stored.
    */
-  @Parameter(property = "gatling.resultsFolder", alias = "rf", defaultValue = "${project.basedir}/target/gatling")
+  @Parameter(property = "gatling.resultsFolder", defaultValue = "${project.basedir}/target/gatling")
   private File resultsFolder;
 
   /**
@@ -121,7 +121,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
   /**
    * Force the name of the directory generated for the results of the run.
    */
-  @Parameter(property = "gatling.outputName", alias = "on")
+  @Parameter(property = "gatling.outputName")
   private String outputDirectoryBaseName;
 
   /**

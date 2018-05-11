@@ -52,23 +52,39 @@ class Fork {
               List<String> args,//
               Toolchain toolchain,//
               boolean propagateSystemProperties,//
-              Log log) throws Exception {
+              Log log) {
 
     this.mainClassName = mainClassName;
     this.classpath = classpath;
     this.jvmArgs.addAll(jvmArgs);
     this.args.addAll(args);
-    this.javaExecutable = safe(safeWindowsPath(findJavaExecutable(toolchain)));
+    this.javaExecutable = safe(toWindowsShortName(findJavaExecutable(toolchain)));
     this.propagateSystemProperties = propagateSystemProperties;
     this.log = log;
   }
 
-  private String safeWindowsPath(String value) {
-    return MojoUtils.IS_WINDOWS ?
-            value
-                    .replace("Program Files (x86)", "Progra~2")
-                    .replace("Program Files", "Progra~1")
-            : value;
+  private String toWindowsShortName(String value) {
+    if (MojoUtils.IS_WINDOWS) {
+      int programFilesIndex = value.indexOf("Program Files");
+      if (programFilesIndex >= 0) {
+        // Could be "Program Files" or "Program Files (x86)"
+        int firstSeparatorAfterProgramFiles = value.indexOf(File.separator, programFilesIndex + "Program Files".length());
+        File longNameDir =
+          firstSeparatorAfterProgramFiles < 0 ?
+            new File(value) : // C:\\Program Files with trailing separator
+            new File(value.substring(0, firstSeparatorAfterProgramFiles)); // chop child
+        // Some other sibling dir could be PrograXXX and might shift short name index
+        // so we can't be sure "Program Files" is "Progra~1" and "Program Files (x86)" is "Progra~2"
+        for (int i = 0; i < 10; i++) {
+          File shortNameDir = new File(longNameDir.getParent(), "Progra~" + i);
+          if (shortNameDir.equals(longNameDir)) {
+            return shortNameDir.toString();
+          }
+        }
+      }
+    }
+
+    return value;
   }
 
   private String safe(String value) {
@@ -79,7 +95,7 @@ class Fork {
     if (propagateSystemProperties) {
       for (Entry<Object, Object> systemProp : System.getProperties().entrySet()) {
         String name = systemProp.getKey().toString();
-        String value = safeWindowsPath(systemProp.getValue().toString());
+        String value = toWindowsShortName(systemProp.getValue().toString());
         if (isPropagatableProperty(name)) {
           if (name.contains(" ")) {
             log.warn("System property name '" + name + "' contains a whitespace and can't be propagated");

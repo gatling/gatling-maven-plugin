@@ -26,6 +26,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.toolchain.Toolchain;
 import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.SelectorUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -144,13 +145,13 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private boolean disableCompiler;
 
   /**
-   * List of list of include patterns to use for scanning. Includes all simulations by default.
+   * List of include patterns to use for scanning. Includes all simulations by default.
    */
   @Parameter(property = "gatling.includes")
   private String[] includes;
 
   /**
-   * List of list of exclude patterns to use for scanning. By default empty.
+   * List of exclude patterns to use for scanning. Excludes none by default.
    */
   @Parameter(property = "gatling.excludes")
   private String[] excludes;
@@ -418,8 +419,8 @@ public class GatlingMojo extends AbstractGatlingMojo {
       for (String classFile: compiledClassFiles()) {
         String className = pathToClassName(classFile);
 
-        boolean isIncluded = includes.isEmpty() || includes.contains(className);
-        boolean isExcluded =  excludes.contains(className);
+        boolean isIncluded = includes.isEmpty() || match(includes, className);
+        boolean isExcluded =  match(excludes, className);
 
         if (isIncluded && !isExcluded) {
           // check if the class is a concrete Simulation
@@ -435,6 +436,15 @@ public class GatlingMojo extends AbstractGatlingMojo {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private static boolean match(List<String> patterns, String string) {
+    for (String pattern : patterns) {
+      if (SelectorUtils.match(pattern, string)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private URL[] testClassPathUrls() throws DependencyResolutionRequiredException, MalformedURLException {

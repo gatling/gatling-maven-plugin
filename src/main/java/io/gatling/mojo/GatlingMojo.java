@@ -341,14 +341,17 @@ public class GatlingMojo extends AbstractGatlingMojo {
   }
 
   private List<String> zincJvmArgs() {
-    List<String> completeZincJvmArgs = new ArrayList<>();
-    if(zincJvmArgs != null) {
-      completeZincJvmArgs.addAll(zincJvmArgs);
-    }
-    if (overrideZincJvmArgs) {
+    if(zincJvmArgs.isEmpty()) {
+      return ZINC_JVM_ARGS;
+
+    } else if (overrideZincJvmArgs) {
+      List<String> completeZincJvmArgs = new ArrayList<>(zincJvmArgs);
       completeZincJvmArgs.addAll(ZINC_JVM_ARGS);
+      return completeZincJvmArgs;
+
+    } else {
+      return zincJvmArgs;
     }
-    return completeZincJvmArgs;
   }
 
   private List<String> simulations() throws MojoFailureException {

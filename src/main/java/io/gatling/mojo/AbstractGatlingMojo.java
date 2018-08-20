@@ -97,7 +97,7 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
     throw new UnsupportedOperationException("Couldn't locate " + groupId + ":" + artifactId + " in classpath");
   }
 
-  protected ArtifactResolutionResult resolve(String groupId, String artifactId, String version, boolean resolveTransitively) throws Exception {
+  protected ArtifactResolutionResult resolve(String groupId, String artifactId, String version, boolean resolveTransitively) {
     Artifact artifact = repository.createArtifact(groupId, artifactId, version, Artifact.SCOPE_RUNTIME, "jar");
     ArtifactResolutionRequest request =
             new ArtifactResolutionRequest()

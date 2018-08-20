@@ -31,17 +31,11 @@ import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.codehaus.plexus.util.StringUtils;
-
 public final class MojoUtils {
 
   public static boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
 
   private MojoUtils() {
-  }
-
-  public static String toMultiPath(List<String> paths) {
-    return StringUtils.join(paths.iterator(), File.pathSeparator);
   }
 
   public static String locateJar(Class<?> c) throws Exception {
@@ -65,7 +59,7 @@ public final class MojoUtils {
   }
 
   public static <T> List<T> arrayAsListEmptyIfNull(T[] array) {
-    return array == null ? Collections.<T> emptyList() : Arrays.asList(array);
+    return array == null ? Collections.emptyList() : Arrays.asList(array);
   }
 
 
@@ -82,29 +76,28 @@ public final class MojoUtils {
     File file = File.createTempFile("gatlingbooter", ".jar");
     file.deleteOnExit();
 
-    FileOutputStream fos = new FileOutputStream(file);
-    JarOutputStream jos = new JarOutputStream(fos);
-    jos.setLevel(JarOutputStream.STORED);
-    JarEntry je = new JarEntry("META-INF/MANIFEST.MF");
-    jos.putNextEntry(je);
+    try (JarOutputStream jos = new JarOutputStream(new FileOutputStream(file))) {
+      jos.setLevel(JarOutputStream.STORED);
+      JarEntry je = new JarEntry("META-INF/MANIFEST.MF");
+      jos.putNextEntry(je);
 
-    Manifest man = new Manifest();
+      Manifest manifest = new Manifest();
 
-    // we can't use StringUtils.join here since we need to add a '/' to
-    // the end of directory entries - otherwise the jvm will ignore them.
-    StringBuilder cp = new StringBuilder();
-    for (String el : classPath) {
-      // NOTE: if File points to a directory, this entry MUST end in '/'.
-      cp.append(getURL(new File(el)).toExternalForm()).append(" ");
+      // we can't use StringUtils.join here since we need to add a '/' to
+      // the end of directory entries - otherwise the jvm will ignore them.
+      StringBuilder cp = new StringBuilder();
+      for (String el : classPath) {
+        // NOTE: if File points to a directory, this entry MUST end in '/'.
+        cp.append(getURL(new File(el)).toExternalForm()).append(" ");
+      }
+      cp.setLength(cp.length() - 1);
+
+      manifest.getMainAttributes().putValue(Attributes.Name.MANIFEST_VERSION.toString(), "1.0");
+      manifest.getMainAttributes().putValue(Attributes.Name.CLASS_PATH.toString(), cp.toString());
+      manifest.getMainAttributes().putValue(Attributes.Name.MAIN_CLASS.toString(), startClassName);
+
+      manifest.write(jos);
     }
-    cp.setLength(cp.length() - 1);
-
-    man.getMainAttributes().putValue(Attributes.Name.MANIFEST_VERSION.toString(), "1.0");
-    man.getMainAttributes().putValue(Attributes.Name.CLASS_PATH.toString(), cp.toString());
-    man.getMainAttributes().putValue(Attributes.Name.MAIN_CLASS.toString(), startClassName);
-
-    man.write(jos);
-    jos.close();
 
     return file;
   }

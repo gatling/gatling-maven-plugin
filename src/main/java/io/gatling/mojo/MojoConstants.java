@@ -29,7 +29,7 @@ public final class MojoConstants {
 
     // Compiler constants
     public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
-    public static final List<String> ZINC_JVM_ARGS = asList("-Xmx1G", "-Xss100M");
+    public static final List<String> COMPILER_JVM_ARGS = asList("-Xmx1G", "-Xss100M");
 
     // Gatling constants
     public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";

@@ -27,6 +27,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.toolchain.Toolchain;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.SelectorUtils;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -149,6 +150,12 @@ public class GatlingMojo extends AbstractGatlingMojo {
    */
   @Parameter(property = "gatling.overrideCompilerJvmArgs", defaultValue = "false")
   private boolean overrideCompilerJvmArgs;
+
+  /**
+   * Extra options to be passed to scalac when compiling the Scala code
+   */
+  @Parameter(property = "gatling.extraScalacOptions")
+  private List<String> extraScalacOptions;
 
   /**
    * Disable the Scala compiler, if scala-maven-plugin is already in charge
@@ -382,6 +389,11 @@ public class GatlingMojo extends AbstractGatlingMojo {
     List<String> args = new ArrayList<>();
     args.addAll(asList("-sf", simulationsFolder.getCanonicalPath()));
     args.addAll(asList("-bf", compiledClassesFolder.getCanonicalPath()));
+
+    if (!extraScalacOptions.isEmpty()) {
+      addToArgsIfNotNull(args, StringUtils.join(extraScalacOptions.iterator(), ",") , "eso");
+    }
+
     return args;
   }
 

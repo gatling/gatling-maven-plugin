@@ -55,6 +55,32 @@ import static java.util.Arrays.asList;
 public class GatlingMojo extends AbstractGatlingMojo {
 
   /**
+   * A name of a Simulation class to run.
+   */
+  @Parameter(property = "gatling.simulationClass")
+  private String simulationClass;
+
+  /**
+   * Extra JVM arguments to pass when running Gatling.
+   */
+  @Parameter(property = "gatling.jvmArgs")
+  private List<String> jvmArgs;
+
+  /**
+   * Extra JVM arguments to pass when running Zinc.
+   */
+  @Parameter(property = "gatling.zincJvmArgs")
+  private List<String> zincJvmArgs;
+
+
+
+
+
+
+
+
+
+  /**
    * Run simulation but does not generate reports. By default false.
    */
   @Parameter(property = "gatling.noReports", defaultValue = "false")
@@ -73,12 +99,6 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private File simulationsFolder;
 
   /**
-   * A name of a Simulation class to run.
-   */
-  @Parameter(property = "gatling.simulationClass")
-  private String simulationClass;
-
-  /**
    * Use this folder as the folder where feeders are stored.
    */
   @Parameter(property = "gatling.resourcesFolder", defaultValue = "${project.basedir}/src/test/resources")
@@ -89,18 +109,6 @@ public class GatlingMojo extends AbstractGatlingMojo {
    */
   @Parameter(property = "gatling.resultsFolder", defaultValue = "${project.basedir}/target/gatling")
   private File resultsFolder;
-
-  /**
-   * Extra JVM arguments to pass when running Gatling.
-   */
-  @Parameter(property = "gatling.jvmArgs")
-  private List<String> jvmArgs;
-
-  /**
-   * Extra JVM arguments to pass when running Zinc.
-   */
-  @Parameter(property = "gatling.zincJvmArgs")
-  private List<String> zincJvmArgs;
 
   /**
    * Will cause the project build to look successful, rather than fail, even
@@ -119,11 +127,6 @@ public class GatlingMojo extends AbstractGatlingMojo {
   @Parameter(property = "gatling.continueOnAssertionFailure", defaultValue = "false")
   private boolean continueOnAssertionFailure;
 
-  /**
-   * Force the name of the directory generated for the results of the run.
-   */
-  @Parameter(property = "gatling.outputName")
-  private String outputDirectoryBaseName;
 
   /**
    * Propagate System properties to forked processes.
@@ -391,7 +394,6 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
     addToArgsIfNotNull(args, simulationClass, "s");
     addToArgsIfNotNull(args, reportsOnly, "ro");
-    addToArgsIfNotNull(args, outputDirectoryBaseName, "on");
 
     return args;
   }

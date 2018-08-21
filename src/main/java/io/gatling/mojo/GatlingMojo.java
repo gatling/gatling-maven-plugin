@@ -61,24 +61,23 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private String simulationClass;
 
   /**
-   * Extra JVM arguments to pass when running Gatling.
+   * Iterate over multiple simulations if more than one simulation file is found. By default false.
+   * If multiple simulations are found but {@literal runMultipleSimulations} is false the execution will fail.
    */
-  @Parameter(property = "gatling.jvmArgs")
-  private List<String> jvmArgs;
+  @Parameter(property = "gatling.runMultipleSimulations", defaultValue = "false")
+  private boolean runMultipleSimulations;
 
   /**
-   * Extra JVM arguments to pass when running Zinc.
+   * List of include patterns to use for scanning. Includes all simulations by default.
    */
-  @Parameter(property = "gatling.zincJvmArgs")
-  private List<String> zincJvmArgs;
+  @Parameter(property = "gatling.includes")
+  private String[] includes;
 
-
-
-
-
-
-
-
+  /**
+   * List of exclude patterns to use for scanning. Excludes none by default.
+   */
+  @Parameter(property = "gatling.excludes")
+  private String[] excludes;
 
   /**
    * Run simulation but does not generate reports. By default false.
@@ -91,6 +90,75 @@ public class GatlingMojo extends AbstractGatlingMojo {
    */
   @Parameter(property = "gatling.reportsOnly")
   private String reportsOnly;
+
+  /**
+   * A short description of the run to include in the report.
+   */
+  @Parameter(property = "gatling.runDescription")
+  private String runDescription;
+
+  /**
+   * Disable the plugin.
+   */
+  @Parameter(property = "gatling.skip", defaultValue = "false")
+  private boolean skip;
+
+  /**
+   * Will cause the project build to look successful, rather than fail, even
+   * if there are Gatling test failures. This can be useful on a continuous
+   * integration server, if your only option to be able to collect output
+   * files, is if the project builds successfully.
+   */
+  @Parameter(property = "gatling.failOnError", defaultValue = "true")
+  private boolean failOnError;
+
+  /**
+   * Continue execution of simulations despite assertion failure. If you have
+   * some stack of simulations and you want to get results from all simulations
+   * despite some assertion failures in previous one.
+   */
+  @Parameter(property = "gatling.continueOnAssertionFailure", defaultValue = "false")
+  private boolean continueOnAssertionFailure;
+
+  @Parameter(property = "gatling.useOldJenkinsJUnitSupport", defaultValue = "false")
+  private boolean useOldJenkinsJUnitSupport;
+
+  /**
+   * Extra JVM arguments to pass when running Gatling.
+   */
+  @Parameter(property = "gatling.jvmArgs")
+  private List<String> jvmArgs;
+
+  /**
+   * Override Gatling's default JVM args, instead of replacing them.
+   */
+  @Parameter(property = "gatling.overrideJvmArgs", defaultValue = "false")
+  private boolean overrideJvmArgs;
+
+  /**
+   * Propagate System properties to forked processes.
+   */
+  @Parameter(property = "gatling.propagateSystemProperties", defaultValue = "true")
+  private boolean propagateSystemProperties;
+
+  /**
+   * Extra JVM arguments to pass when running Zinc.
+   */
+  @Parameter(property = "gatling.compilerJvmArgs")
+  private List<String> compilerJvmArgs;
+
+  /**
+   * Override Zinc's default JVM args, instead of replacing them.
+   */
+  @Parameter(property = "gatling.overrideCompilerJvmArgs", defaultValue = "false")
+  private boolean overrideCompilerJvmArgs;
+
+  /**
+   * Disable the Scala compiler, if scala-maven-plugin is already in charge
+   * of compiling the simulations.
+   */
+  @Parameter(property = "gatling.disableCompiler", defaultValue = "false")
+  private boolean disableCompiler;
 
   /**
    * Use this folder to discover simulations that could be run.
@@ -110,88 +178,8 @@ public class GatlingMojo extends AbstractGatlingMojo {
   @Parameter(property = "gatling.resultsFolder", defaultValue = "${project.basedir}/target/gatling")
   private File resultsFolder;
 
-  /**
-   * Will cause the project build to look successful, rather than fail, even
-   * if there are Gatling test failures. This can be useful on a continuous
-   * integration server, if your only option to be able to collect output
-   * files, is if the project builds successfully.
-   */
-  @Parameter(property = "gatling.failOnError", defaultValue = "true")
-  private boolean failOnError;
-
-  /**
-   * Continue execution of simulations despite assertion failure. If you have
-   * some stack of simulations and you want to get results from all simulations
-   * despite some assertion failures in previous one.
-   */
-  @Parameter(property = "gatling.continueOnAssertionFailure", defaultValue = "false")
-  private boolean continueOnAssertionFailure;
-
-
-  /**
-   * Propagate System properties to forked processes.
-   */
-  @Parameter(property = "gatling.propagateSystemProperties", defaultValue = "true")
-  private boolean propagateSystemProperties;
-
-  /**
-   * Disable the plugin.
-   */
-  @Parameter(property = "gatling.skip", defaultValue = "false")
-  private boolean skip;
-
-  /**
-   * Disable the Scala compiler, if scala-maven-plugin is already in charge
-   * of compiling the simulations.
-   */
-  @Parameter(property = "gatling.disableCompiler", defaultValue = "false")
-  private boolean disableCompiler;
-
-  /**
-   * List of include patterns to use for scanning. Includes all simulations by default.
-   */
-  @Parameter(property = "gatling.includes")
-  private String[] includes;
-
-  /**
-   * List of exclude patterns to use for scanning. Excludes none by default.
-   */
-  @Parameter(property = "gatling.excludes")
-  private String[] excludes;
-
-  /**
-   * Iterate over multiple simulations if more than one simulation file is found. By default false.
-   * If multiple simulations are found but {@literal runMultipleSimulations} is false the execution will fail.
-   */
-  @Parameter(defaultValue = "false")
-  private boolean runMultipleSimulations;
-
-  /**
-   * Override Gatling's default JVM args, instead of replacing them.
-   */
-  @Parameter(defaultValue = "false")
-  private boolean overrideGatlingJvmArgs;
-
-  /**
-   * Override Zinc's default JVM args, instead of replacing them.
-   */
-  @Parameter(defaultValue = "false")
-  private boolean overrideZincJvmArgs;
-
   @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> artifacts;
-
-  @Parameter(defaultValue = "${basedir}/target/gatling", readonly = true)
-  private File reportsDirectory;
-
-  @Parameter(property = "gatling.useOldJenkinsJUnitSupport", defaultValue = "false")
-  private boolean useOldJenkinsJUnitSupport;
-
-  /**
-   * A short description of the run to include in the report.
-   */
-  @Parameter(property = "gatling.runDescription")
-  private String runDescription;
 
   /**
    * Executes Gatling simulations.
@@ -206,7 +194,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
         Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
         if (!disableCompiler) {
-          executeCompiler(zincJvmArgs(), testClasspath, toolchain);
+          executeCompiler(compilerJvmArgs(), testClasspath, toolchain);
         }
 
         List<String> jvmArgs = gatlingJvmArgs();
@@ -290,14 +278,14 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
     try {
       if (useOldJenkinsJUnitSupport) {
-        File[] runDirectories = reportsDirectory.listFiles(File::isDirectory);
+        File[] runDirectories = resultsFolder.listFiles(File::isDirectory);
 
         for (File runDirectory: runDirectories) {
           File jsDir = new File(runDirectory, "js");
           if (jsDir.exists() && jsDir.isDirectory()) {
             File assertionFile = new File(jsDir, "assertions.xml");
             if (assertionFile.exists()) {
-              File newAssertionFile = new File(reportsDirectory, "assertions-" + runDirectory.getName() + ".xml");
+              File newAssertionFile = new File(resultsFolder, "assertions-" + runDirectory.getName() + ".xml");
               Files.copy(assertionFile.toPath(), newAssertionFile.toPath(), COPY_ATTRIBUTES, REPLACE_EXISTING);
               getLog().info("Copying assertion file " + assertionFile.getCanonicalPath() + " to " + newAssertionFile.getCanonicalPath());
             }
@@ -337,23 +325,23 @@ public class GatlingMojo extends AbstractGatlingMojo {
     if(jvmArgs != null) {
       completeGatlingJvmArgs.addAll(jvmArgs);
     }
-    if (overrideGatlingJvmArgs) {
+    if (overrideJvmArgs) {
       completeGatlingJvmArgs.addAll(GATLING_JVM_ARGS);
     }
     return completeGatlingJvmArgs;
   }
 
-  private List<String> zincJvmArgs() {
-    if(zincJvmArgs.isEmpty()) {
+  private List<String> compilerJvmArgs() {
+    if(compilerJvmArgs.isEmpty()) {
       return ZINC_JVM_ARGS;
 
-    } else if (overrideZincJvmArgs) {
-      List<String> completeZincJvmArgs = new ArrayList<>(zincJvmArgs);
+    } else if (overrideCompilerJvmArgs) {
+      List<String> completeZincJvmArgs = new ArrayList<>(compilerJvmArgs);
       completeZincJvmArgs.addAll(ZINC_JVM_ARGS);
       return completeZincJvmArgs;
 
     } else {
-      return zincJvmArgs;
+      return compilerJvmArgs;
     }
   }
 

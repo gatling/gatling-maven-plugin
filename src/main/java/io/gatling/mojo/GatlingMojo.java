@@ -36,10 +36,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static io.gatling.mojo.MojoConstants.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
@@ -459,7 +456,9 @@ public class GatlingMojo extends AbstractGatlingMojo {
     scanner.setBasedir(compiledClassesFolder.getCanonicalPath());
     scanner.setIncludes(new String[]{"**/*.class"});
     scanner.scan();
-    return scanner.getIncludedFiles();
+    String[] files = scanner.getIncludedFiles();
+    Arrays.sort(files);
+    return files;
   }
 
   private String pathToClassName(String path) {

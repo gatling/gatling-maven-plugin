@@ -190,38 +190,39 @@ public class GatlingMojo extends AbstractGatlingMojo {
    */
   @Override
   public void execute() throws MojoExecutionException {
-    if (!skip) {
-      // Create results directories
-      resultsFolder.mkdirs();
-      try {
-        List<String> testClasspath = buildTestClasspath();
-
-        Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
-        if (!disableCompiler) {
-          executeCompiler(compilerJvmArgs(), testClasspath, toolchain);
-        }
-
-        List<String> jvmArgs = gatlingJvmArgs();
-
-        if (reportsOnly != null) {
-          executeGatling(jvmArgs, gatlingArgs(null), testClasspath, toolchain);
-
-        } else {
-          List<String> simulations = simulations();
-          iterateBySimulations(toolchain, jvmArgs, testClasspath, simulations);
-        }
-
-      } catch (Exception e) {
-        if (failOnError) {
-          throw new MojoExecutionException("Gatling failed.", e);
-        } else {
-          getLog().warn("There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
-        }
-      } finally {
-          copyJUnitReports();
-      }
-    } else {
+    if (skip) {
       getLog().info("Skipping gatling-maven-plugin");
+      return;
+    }
+
+    // Create results directories
+    resultsFolder.mkdirs();
+    try {
+      List<String> testClasspath = buildTestClasspath();
+
+      Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
+      if (!disableCompiler) {
+        executeCompiler(compilerJvmArgs(), testClasspath, toolchain);
+      }
+
+      List<String> jvmArgs = gatlingJvmArgs();
+
+      if (reportsOnly != null) {
+        executeGatling(jvmArgs, gatlingArgs(null), testClasspath, toolchain);
+
+      } else {
+        List<String> simulations = simulations();
+        iterateBySimulations(toolchain, jvmArgs, testClasspath, simulations);
+      }
+
+    } catch (Exception e) {
+      if (failOnError) {
+        throw new MojoExecutionException("Gatling failed.", e);
+      } else {
+        getLog().warn("There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
+      }
+    } finally {
+        copyJUnitReports();
     }
   }
 

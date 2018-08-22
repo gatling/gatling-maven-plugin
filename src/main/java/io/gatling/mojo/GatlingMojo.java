@@ -47,7 +47,7 @@ import static java.util.Arrays.asList;
 /**
  * Mojo to execute Gatling.
  */
-@Mojo(name = "execute",
+@Mojo(name = "test",
   defaultPhase = LifecyclePhase.INTEGRATION_TEST,
   requiresDependencyResolution = ResolutionScope.TEST)
 public class GatlingMojo extends AbstractGatlingMojo {

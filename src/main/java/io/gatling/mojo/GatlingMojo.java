@@ -189,7 +189,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
    * Executes Gatling simulations.
    */
   @Override
-  public void execute() throws MojoExecutionException {
+  public void execute() throws MojoExecutionException, MojoFailureException {
     if (skip) {
       getLog().info("Skipping gatling-maven-plugin");
       return;
@@ -217,7 +217,15 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
     } catch (Exception e) {
       if (failOnError) {
-        throw new MojoExecutionException("Gatling failed.", e);
+        if (e instanceof GatlingSimulationAssertionsFailedException) {
+          throw new MojoFailureException(e.getMessage(), e);
+        } else if (e instanceof MojoFailureException) {
+          throw (MojoFailureException) e;
+        } else if (e instanceof MojoExecutionException) {
+          throw (MojoExecutionException) e;
+        } else {
+          throw new MojoExecutionException("Gatling failed.", e);
+        }
       } else {
         getLog().warn("There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
       }

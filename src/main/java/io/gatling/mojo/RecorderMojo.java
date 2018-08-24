@@ -97,13 +97,15 @@ public class RecorderMojo extends AbstractGatlingMojo {
   private Boolean followRedirect;
 
   @Override
-  public void execute() throws MojoExecutionException {
+  public void execute() throws MojoExecutionException, MojoFailureException {
     try {
       List<String> testClasspath = buildTestClasspath();
       List<String> recorderArgs = recorderArgs();
       Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
       Fork forkedRecorder = new Fork(RECORDER_MAIN_CLASS, testClasspath, GATLING_JVM_ARGS, recorderArgs, toolchain, false, getLog());
       forkedRecorder.run();
+    } catch (MojoExecutionException | MojoFailureException e) {
+      throw e;
     } catch (Exception e) {
       throw new MojoExecutionException("Recorder execution failed", e);
     }
@@ -111,16 +113,16 @@ public class RecorderMojo extends AbstractGatlingMojo {
 
   private List<String> recorderArgs() throws Exception {
     List<String> arguments = new ArrayList<>();
-    addToArgsIfNotNull(arguments, localPort, "lp");
-    addToArgsIfNotNull(arguments, proxyHost, "ph");
-    addToArgsIfNotNull(arguments, proxyPort, "pp");
-    addToArgsIfNotNull(arguments, proxySSLPort, "pps");
-    addToArgsIfNotNull(arguments, simulationsFolder.getCanonicalPath(), "sf");
-    addToArgsIfNotNull(arguments, resourcesFolder.getCanonicalPath(), "rsf");
-    addToArgsIfNotNull(arguments, className, "cn");
-    addToArgsIfNotNull(arguments, packageName, "pkg");
-    addToArgsIfNotNull(arguments, encoding, "enc");
-    addToArgsIfNotNull(arguments, followRedirect, "fr");
+    addArg(arguments, "lp", localPort);
+    addArg(arguments, "ph", proxyHost);
+    addArg(arguments, "pp", proxyPort);
+    addArg(arguments, "pps", proxySSLPort);
+    addArg(arguments, "sf", simulationsFolder.getCanonicalPath());
+    addArg(arguments, "rsf", resourcesFolder.getCanonicalPath());
+    addArg(arguments, "cn", className);
+    addArg(arguments, "pkg", packageName);
+    addArg(arguments, "enc", encoding);
+    addArg(arguments, "fr", followRedirect);
     return arguments;
   }
 }

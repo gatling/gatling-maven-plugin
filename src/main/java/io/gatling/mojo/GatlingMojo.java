@@ -379,28 +379,29 @@ public class GatlingMojo extends AbstractGatlingMojo {
   private List<String> gatlingArgs(String simulationClass) throws Exception {
     // Arguments
     List<String> args = new ArrayList<>();
-    args.addAll(asList("-rsf", resourcesFolder.getCanonicalPath(),
-                       "-rf", resultsFolder.getCanonicalPath(),
-                       "-sf", simulationsFolder.getCanonicalPath(),
-                       "-rd", runDescription));
+    addArg(args, "rsf", resourcesFolder.getCanonicalPath());
+    addArg(args, "rf", resultsFolder.getCanonicalPath());
+    addArg(args, "sf", simulationsFolder.getCanonicalPath());
+
+    addArg(args, "rd", runDescription);
 
     if (noReports) {
       args.add("-nr");
     }
 
-    addToArgsIfNotNull(args, simulationClass, "s");
-    addToArgsIfNotNull(args, reportsOnly, "ro");
+    addArg(args, "s", simulationClass);
+    addArg(args, "ro", reportsOnly);
 
     return args;
   }
 
   private List<String> compilerArgs() throws Exception {
     List<String> args = new ArrayList<>();
-    args.addAll(asList("-sf", simulationsFolder.getCanonicalPath()));
-    args.addAll(asList("-bf", compiledClassesFolder.getCanonicalPath()));
+    addArg(args, "sf", simulationsFolder.getCanonicalPath());
+    addArg(args, "bf", compiledClassesFolder.getCanonicalPath());
 
     if (!extraScalacOptions.isEmpty()) {
-      addToArgsIfNotNull(args, StringUtils.join(extraScalacOptions.iterator(), ",") , "eso");
+      addArg(args, "eso", StringUtils.join(extraScalacOptions.iterator(), ","));
     }
 
     return args;

@@ -9,7 +9,7 @@
 
 	<groupId>io.gatling</groupId>
 	<artifactId>gatling-maven-plugin</artifactId>
-	<version>3.0.1</version>
+	<version>3.0.2-SNAPSHOT</version>
 	<name>gatling-maven-plugin</name>
 	<description>gatling-maven-plugin</description>
 	<packaging>maven-plugin</packaging>

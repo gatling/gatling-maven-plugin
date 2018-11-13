@@ -350,7 +350,11 @@ public class GatlingMojo extends AbstractGatlingMojo {
       merged.addAll(defaults);
       return merged;
     }
-    return custom;
+
+    List<String> result = new ArrayList<>(custom);
+    // force disable disableClassPathURLCheck because Debian messed up and takes forever to fix, see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911925
+    result.add("-Djdk.net.URLClassPath.disableClassPathURLCheck=true");
+    return result;
   }
 
   private List<String> simulations() throws MojoFailureException {

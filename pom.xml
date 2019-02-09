@@ -51,6 +51,8 @@
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<header.basedir>${project.basedir}</header.basedir>
 		<maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
+		<maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
+		<junit.version>5.4.0</junit.version>
 	</properties>
 
 	<dependencyManagement>
@@ -82,6 +84,11 @@
 				<artifactId>plexus-utils</artifactId>
 				<version>${plexus-utils.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter</artifactId>
+				<version>${junit.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -105,6 +112,11 @@
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-compat</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -157,6 +169,10 @@
 							<exclude>make_credentials.py</exclude>
 						</excludes>
 					</configuration>
+				</plugin>
+				<plugin>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${maven-surefire-plugin.version}</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>

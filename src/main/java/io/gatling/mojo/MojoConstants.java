@@ -29,7 +29,7 @@ public final class MojoConstants {
 
     // Compiler constants
     public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
-    public static final List<String> COMPILER_JVM_ARGS = asList("-Xmx1G", "-Xss100M");
+    public static final List<String> COMPILER_JVM_ARGS = asList("-Xmx1G", "-Xss100M", "-Djdk.net.URLClassPath.disableClassPathURLCheck=true");
 
     // Gatling constants
     public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
@@ -39,6 +39,6 @@ public final class MojoConstants {
             "-XX:+ParallelRefProcEnabled", "-XX:+PerfDisableSharedMem",
             "-XX:+AggressiveOpts", "-XX:+OptimizeStringConcat",
             "-XX:+HeapDumpOnOutOfMemoryError",
-            "-Djava.net.preferIPv4Stack=true", "-Djava.net.preferIPv6Addresses=false"
+            "-Djava.net.preferIPv4Stack=true", "-Djava.net.preferIPv6Addresses=false", "-Djdk.net.URLClassPath.disableClassPathURLCheck=true"
     );
 }

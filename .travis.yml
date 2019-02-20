@@ -3,7 +3,6 @@ jdk:
   - oraclejdk8
 script:
   - find $HOME/.m2 -name "_remote.repositories" | xargs rm
-  - find $HOME/.m2 -name "resolver-status.properties" | xargs rm
   - mvn verify
 
 sudo: false

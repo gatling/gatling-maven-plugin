@@ -42,7 +42,6 @@ import java.util.*;
 import static io.gatling.mojo.MojoConstants.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.util.Arrays.asList;
 
 /**
  * Mojo to execute Gatling.
@@ -341,7 +340,7 @@ public class GatlingMojo extends AbstractGatlingMojo {
     return computeArgs(compilerJvmArgs, COMPILER_JVM_ARGS, overrideCompilerJvmArgs);
   }
 
-  private List<String> computeArgs(List<String> custom, List<String> defaults, boolean override) {
+  private List<String> computeArgs0(List<String> custom, List<String> defaults, boolean override) {
     if (custom.isEmpty()) {
       return defaults;
     }
@@ -350,8 +349,11 @@ public class GatlingMojo extends AbstractGatlingMojo {
       merged.addAll(defaults);
       return merged;
     }
+    return custom;
+  }
 
-    List<String> result = new ArrayList<>(custom);
+  private List<String> computeArgs(List<String> custom, List<String> defaults, boolean override) {
+    List<String> result = new ArrayList<>(computeArgs0(custom, defaults, override));
     // force disable disableClassPathURLCheck because Debian messed up and takes forever to fix, see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911925
     result.add("-Djdk.net.URLClassPath.disableClassPathURLCheck=true");
     return result;

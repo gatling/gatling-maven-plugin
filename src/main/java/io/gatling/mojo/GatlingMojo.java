@@ -29,6 +29,7 @@ import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.SelectorUtils;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
@@ -36,6 +37,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -50,6 +52,8 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
   defaultPhase = LifecyclePhase.INTEGRATION_TEST,
   requiresDependencyResolution = ResolutionScope.TEST)
 public class GatlingMojo extends AbstractGatlingMojo {
+
+  static final String LAST_RUN_FILE = "lastRun.txt";
 
   /**
    * A name of a Simulation class to run.
@@ -184,6 +188,8 @@ public class GatlingMojo extends AbstractGatlingMojo {
   @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> artifacts;
 
+  private Set<File> existingDirectories;
+
   /**
    * Executes Gatling simulations.
    */
@@ -196,6 +202,8 @@ public class GatlingMojo extends AbstractGatlingMojo {
 
     // Create results directories
     resultsFolder.mkdirs();
+    existingDirectories = directoriesInResultsFolder();
+
     try {
       List<String> testClasspath = buildTestClasspath();
 
@@ -229,8 +237,15 @@ public class GatlingMojo extends AbstractGatlingMojo {
         getLog().warn("There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
       }
     } finally {
-        copyJUnitReports();
+      recordSimulationResults();
     }
+  }
+
+  private Set<File> directoriesInResultsFolder() {
+    File[] directories = resultsFolder.listFiles(File::isDirectory);
+    return (directories == null)
+            ? Collections.emptySet()
+            : new HashSet<>(Arrays.asList(directories));
   }
 
   private void iterateBySimulations(Toolchain toolchain, List<String> jvmArgs, List<String> testClasspath, List<String> simulations) throws Exception {
@@ -286,18 +301,41 @@ public class GatlingMojo extends AbstractGatlingMojo {
     }
   }
 
+  private void recordSimulationResults() throws MojoExecutionException {
+    try {
+      saveListOfNewRunDirectories();
+      copyJUnitReports();
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not record simulation results.", e);
+    }
+  }
+
+  private void saveListOfNewRunDirectories() throws IOException {
+    Path resultsFile = resultsFolder.toPath().resolve(LAST_RUN_FILE);
+
+    try (BufferedWriter writer = Files.newBufferedWriter(resultsFile)) {
+      for (File directory : directoriesInResultsFolder()) {
+        if (isNewDirectory(directory)) {
+          writer.write(directory.getName() + System.lineSeparator());
+        }
+      }
+    }
+  }
+
+  private boolean isNewDirectory(File directory) {
+    return !existingDirectories.contains(directory);
+  }
+
   private void copyJUnitReports() throws MojoExecutionException {
 
     try {
       if (useOldJenkinsJUnitSupport) {
-        File[] runDirectories = resultsFolder.listFiles(File::isDirectory);
-
-        for (File runDirectory: runDirectories) {
-          File jsDir = new File(runDirectory, "js");
+        for (File directory: directoriesInResultsFolder()) {
+          File jsDir = new File(directory, "js");
           if (jsDir.exists() && jsDir.isDirectory()) {
             File assertionFile = new File(jsDir, "assertions.xml");
             if (assertionFile.exists()) {
-              File newAssertionFile = new File(resultsFolder, "assertions-" + runDirectory.getName() + ".xml");
+              File newAssertionFile = new File(resultsFolder, "assertions-" + directory.getName() + ".xml");
               Files.copy(assertionFile.toPath(), newAssertionFile.toPath(), COPY_ATTRIBUTES, REPLACE_EXISTING);
               getLog().info("Copying assertion file " + assertionFile.getCanonicalPath() + " to " + newAssertionFile.getCanonicalPath());
             }

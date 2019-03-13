@@ -22,16 +22,14 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static io.gatling.mojo.GatlingMojo.LAST_RUN_FILE;
 
 /**
  * Mojo to verify Gatling simulation results.
- * <p>
- * Note: For this goal to function property, the results folder may
- * not contain gatling reports from earlier maven runs.
- * If your results folder resides inside the target directory
- * (which is the default), issuing 'mvn clean' will remove all
- * colliding reports.
- * </p>
  */
 @Mojo(name = "verify", defaultPhase = LifecyclePhase.VERIFY)
 public class VerifyMojo extends AbstractGatlingMojo {
@@ -44,11 +42,20 @@ public class VerifyMojo extends AbstractGatlingMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        File[] runDirectories = resultsFolder.listFiles(File::isDirectory);
+        try {
+            verifyLastRun();
+        } catch (IOException e) {
+            throw new MojoExecutionException("Could not read result files.", e);
+        }
+    }
 
-        if (runDirectories != null) {
-            for (File runDirectory: runDirectories) {
-                searchForAssertionFailures(runDirectory);
+    private void verifyLastRun() throws IOException, MojoFailureException, MojoExecutionException {
+        Path results = resultsFolder.toPath().resolve(LAST_RUN_FILE);
+
+        if (results.toFile().exists()) {
+            for (String line : Files.readAllLines(results)) {
+                File directory = new File(resultsFolder, line);
+                searchForAssertionFailures(directory);
             }
         }
     }

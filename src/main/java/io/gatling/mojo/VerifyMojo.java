@@ -77,6 +77,8 @@ public class VerifyMojo extends AbstractGatlingExecutionMojo {
             throw new MojoExecutionException("Failed to parse " + assertionFile.toString(), e);
         }
         if (summary.hasFailures()) {
+            getLog().error("Gatling simulation assertions failed.");
+            getLog().error("See the reports in " + resultsFolder.getPath() + " for details.");
             throw new MojoFailureException("Gatling simulation assertions failed!");
         }
     }

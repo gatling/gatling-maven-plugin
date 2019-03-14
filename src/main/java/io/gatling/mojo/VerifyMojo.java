@@ -40,8 +40,22 @@ public class VerifyMojo extends AbstractGatlingMojo {
     @Parameter(property = "gatling.resultsFolder", defaultValue = "${project.build.directory}/gatling")
     private File resultsFolder;
 
+    /**
+     * Disable the plugin.
+     */
+    @Parameter(property = "gatling.skip", defaultValue = "false")
+    private boolean skip;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (skip) {
+            getLog().info("Skipping gatling-maven-plugin");
+        } else {
+            executePlugin();
+        }
+    }
+
+    private void executePlugin() throws MojoFailureException, MojoExecutionException {
         try {
             verifyLastRun();
         } catch (IOException e) {

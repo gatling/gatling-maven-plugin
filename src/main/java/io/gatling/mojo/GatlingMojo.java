@@ -51,9 +51,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 @Mojo(name = "test",
   defaultPhase = LifecyclePhase.INTEGRATION_TEST,
   requiresDependencyResolution = ResolutionScope.TEST)
-public class GatlingMojo extends AbstractGatlingMojo {
-
-  static final String LAST_RUN_FILE = "lastRun.txt";
+public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   /**
    * A name of a Simulation class to run.
@@ -97,12 +95,6 @@ public class GatlingMojo extends AbstractGatlingMojo {
    */
   @Parameter(property = "gatling.runDescription")
   private String runDescription;
-
-  /**
-   * Disable the plugin.
-   */
-  @Parameter(property = "gatling.skip", defaultValue = "false")
-  private boolean skip;
 
   /**
    * Will cause the project build to look successful, rather than fail, even
@@ -178,12 +170,6 @@ public class GatlingMojo extends AbstractGatlingMojo {
    */
   @Parameter(property = "gatling.resourcesFolder", defaultValue = "${project.basedir}/src/test/resources")
   private File resourcesFolder;
-
-  /**
-   * Use this folder as the folder where results are stored.
-   */
-  @Parameter(property = "gatling.resultsFolder", defaultValue = "${project.build.directory}/gatling")
-  private File resultsFolder;
 
   @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> artifacts;

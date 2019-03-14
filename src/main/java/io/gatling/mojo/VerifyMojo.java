@@ -19,29 +19,28 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static io.gatling.mojo.GatlingMojo.LAST_RUN_FILE;
-
 /**
  * Mojo to verify Gatling simulation results.
  */
 @Mojo(name = "verify", defaultPhase = LifecyclePhase.VERIFY)
-public class VerifyMojo extends AbstractGatlingMojo {
-
-    /**
-     * Use this folder as the folder where results are stored.
-     */
-    @Parameter(property = "gatling.resultsFolder", defaultValue = "${project.build.directory}/gatling")
-    private File resultsFolder;
+public class VerifyMojo extends AbstractGatlingExecutionMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (skip) {
+            getLog().info("Skipping gatling-maven-plugin");
+        } else {
+            executePlugin();
+        }
+    }
+
+    private void executePlugin() throws MojoFailureException, MojoExecutionException {
         try {
             verifyLastRun();
         } catch (IOException e) {
@@ -78,6 +77,8 @@ public class VerifyMojo extends AbstractGatlingMojo {
             throw new MojoExecutionException("Failed to parse " + assertionFile.toString(), e);
         }
         if (summary.hasFailures()) {
+            getLog().error("Gatling simulation assertions failed.");
+            getLog().error("See the reports in " + resultsFolder.getPath() + " for details.");
             throw new MojoFailureException("Gatling simulation assertions failed!");
         }
     }

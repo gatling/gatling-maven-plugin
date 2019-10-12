@@ -1,6 +1,6 @@
 language: java
 jdk:
-  - oraclejdk8
+  - openjdk8
 script:
   - find $HOME/.m2 -name "_remote.repositories" | xargs rm
   - mvn verify

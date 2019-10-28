@@ -42,9 +42,21 @@ class Fork {
   private final List<String> classpath;
   private final boolean propagateSystemProperties;
   private final Log log;
+  private final File workingDirectory;
 
   private final List<String> jvmArgs = new ArrayList<>();
   private final List<String> args = new ArrayList<>();
+
+  Fork(String mainClassName,//
+       List<String> classpath,//
+       List<String> jvmArgs,//
+       List<String> args,//
+       Toolchain toolchain,//
+       boolean propagateSystemProperties,//
+       Log log) {
+
+    this(mainClassName, classpath, jvmArgs, args, toolchain, propagateSystemProperties, log, null);
+  }
 
   Fork(String mainClassName,//
               List<String> classpath,//
@@ -52,7 +64,8 @@ class Fork {
               List<String> args,//
               Toolchain toolchain,//
               boolean propagateSystemProperties,//
-              Log log) {
+              Log log,
+              File workingDirectory) {
 
     this.mainClassName = mainClassName;
     this.classpath = classpath;
@@ -61,6 +74,7 @@ class Fork {
     this.javaExecutable = safe(toWindowsShortName(findJavaExecutable(toolchain)));
     this.propagateSystemProperties = propagateSystemProperties;
     this.log = log;
+    this.workingDirectory = workingDirectory;
   }
 
   private String toWindowsShortName(String value) {
@@ -123,6 +137,9 @@ class Fork {
     Executor exec = new DefaultExecutor();
     exec.setStreamHandler(new PumpStreamHandler(System.out, System.err, System.in));
     exec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
+    if (null != workingDirectory) {
+      exec.setWorkingDirectory(workingDirectory);
+    }
 
     CommandLine cl = new CommandLine(javaExecutable);
     for (String arg : command) {

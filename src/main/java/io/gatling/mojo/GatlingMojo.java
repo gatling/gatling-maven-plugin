@@ -174,6 +174,12 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
   @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> artifacts;
 
+  /**
+   * Specify a different working directory.
+   */
+  @Parameter(property = "gatling.workingDirectory")
+  private File workingDirectory;
+
   private Set<File> existingDirectories;
 
   /**
@@ -267,7 +273,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     compilerClasspath.addAll(testClasspath);
     List<String> compilerArguments = compilerArgs();
 
-    Fork forkedCompiler = new Fork(COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, false, getLog());
+    Fork forkedCompiler = new Fork(COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, false, getLog(), workingDirectory);
     try {
       forkedCompiler.run();
     } catch (ExecuteException e) {
@@ -276,7 +282,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
   }
 
   private void executeGatling(List<String> gatlingJvmArgs, List<String> gatlingArgs, List<String> testClasspath, Toolchain toolchain) throws Exception {
-    Fork forkedGatling = new Fork(GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties, getLog());
+    Fork forkedGatling = new Fork(GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties, getLog(), workingDirectory);
     try {
       forkedGatling.run();
     } catch (ExecuteException e) {

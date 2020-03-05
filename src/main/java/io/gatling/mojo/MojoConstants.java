@@ -35,9 +35,10 @@ public final class MojoConstants {
     public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
     public static final List<String> GATLING_JVM_ARGS = asList(
             "-server", "-Xmx1G",
-            "-XX:+UseG1GC", "-XX:MaxGCPauseMillis=30", "-XX:G1HeapRegionSize=16m", "-XX:InitiatingHeapOccupancyPercent=75",
-            "-XX:+ParallelRefProcEnabled", "-XX:+PerfDisableSharedMem",
-            "-XX:+OptimizeStringConcat", "-XX:+HeapDumpOnOutOfMemoryError",
+            "-XX:+UseG1GC",
+            "-XX:+ParallelRefProcEnabled",
+            "-XX:+HeapDumpOnOutOfMemoryError",
+            "-XX:MaxInlineLevel=20", "-XX:MaxTrivialSize=12",
             "-Djava.net.preferIPv4Stack=true", "-Djava.net.preferIPv6Addresses=false"
     );
 }

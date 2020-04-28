@@ -463,7 +463,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
         String className = pathToClassName(classFile);
 
         boolean isIncluded = includes.isEmpty() || match(includes, className);
-        boolean isExcluded =  match(excludes, className);
+        boolean isExcluded =  !excludes.isEmpty() && match(excludes, className);
 
         if (isIncluded && !isExcluded) {
           // check if the class is a concrete Simulation
@@ -483,7 +483,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   private static boolean match(List<String> patterns, String string) {
     for (String pattern : patterns) {
-      if (SelectorUtils.match(pattern, string)) {
+      if (pattern != null && SelectorUtils.match(pattern, string)) {
         return true;
       }
     }

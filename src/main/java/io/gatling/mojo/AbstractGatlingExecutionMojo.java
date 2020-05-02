@@ -22,6 +22,7 @@ import java.io.File;
 public abstract class AbstractGatlingExecutionMojo extends AbstractGatlingMojo {
 
     static final String LAST_RUN_FILE = "lastRun.txt";
+    static final String LAST_RUN_FILE_ERROR_LINE = "ExecutionError";
 
     /**
      * Use this folder as the folder where results are stored.

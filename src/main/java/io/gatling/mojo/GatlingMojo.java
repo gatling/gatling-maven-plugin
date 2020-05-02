@@ -195,6 +195,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     // Create results directories
     resultsFolder.mkdirs();
     existingDirectories = directoriesInResultsFolder();
+    Exception ex = null;
 
     try {
       List<String> testClasspath = buildTestClasspath();
@@ -228,8 +229,9 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
       } else {
         getLog().warn("There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
       }
+      ex = e instanceof GatlingSimulationAssertionsFailedException ? null : e;
     } finally {
-      recordSimulationResults();
+      recordSimulationResults(ex);
     }
   }
 
@@ -293,16 +295,16 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     }
   }
 
-  private void recordSimulationResults() throws MojoExecutionException {
+  private void recordSimulationResults(Exception exception) throws MojoExecutionException {
     try {
-      saveListOfNewRunDirectories();
+      saveListOfNewRunDirectories(exception);
       copyJUnitReports();
     } catch (IOException e) {
       throw new MojoExecutionException("Could not record simulation results.", e);
     }
   }
 
-  private void saveListOfNewRunDirectories() throws IOException {
+  private void saveListOfNewRunDirectories(Exception exception) throws IOException {
     Path resultsFile = resultsFolder.toPath().resolve(LAST_RUN_FILE);
 
     try (BufferedWriter writer = Files.newBufferedWriter(resultsFile)) {
@@ -311,6 +313,13 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
           writer.write(directory.getName() + System.lineSeparator());
         }
       }
+      writeExceptionIfExists(writer, exception);
+    }
+  }
+
+  private void writeExceptionIfExists(BufferedWriter writer, Exception exception) throws IOException {
+    if (exception != null) {
+      writer.write(LAST_RUN_FILE_ERROR_LINE + " : " + exception.getClass() + " : " + exception.getMessage() + System.lineSeparator());
     }
   }
 

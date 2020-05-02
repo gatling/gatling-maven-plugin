@@ -1,0 +1,1 @@
+ExecutionError : class io.gatling.mojo.CompilationException : Simulations compilation failed.

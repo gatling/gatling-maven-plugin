@@ -63,8 +63,7 @@ public class VerifyMojo extends AbstractGatlingExecutionMojo {
 
     private void checkError(String line) throws MojoFailureException {
         if (StringUtils.contains(line, LAST_RUN_FILE_ERROR_LINE)) {
-            throwFailureException(line.
-                    replaceFirst(LAST_RUN_FILE_ERROR_LINE, ""));
+            throwFailureException(line.substring(LAST_RUN_FILE_ERROR_LINE.length()));
         }
     }
 

@@ -47,6 +47,7 @@ import static io.gatling.mojo.MojoConstants.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.Arrays.stream;
+import static org.codehaus.plexus.util.StringUtils.isBlank;
 
 /**
  * Mojo to execute Gatling.
@@ -322,15 +323,18 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   private void writeExceptionIfExists(BufferedWriter writer, Exception exception) throws IOException {
     if (exception != null) {
-      writer.write(LAST_RUN_FILE_ERROR_LINE + exception.getClass() + getRecursiveCauses(exception) + System.lineSeparator());
+      writer.write(LAST_RUN_FILE_ERROR_LINE + getRecursiveCauses(exception) + System.lineSeparator());
     }
   }
 
   private String getRecursiveCauses(Throwable e) {
     return stream(ExceptionUtils.getThrowables(e))
-            .filter(ex -> ex.getMessage() != null)
-            .map(ex -> " | " + ex.getMessage())
-            .collect(Collectors.joining());
+            .map(ex -> joinNullable(ex.getClass().getName(), ex.getMessage()))
+            .collect(Collectors.joining(" | "));
+  }
+
+  private String joinNullable(String s, String sNullable) {
+    return isBlank(sNullable) ? s : s + ": " + sNullable;
   }
 
   private boolean isNewDirectory(File directory) {

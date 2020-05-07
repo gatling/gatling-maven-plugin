@@ -1,1 +1,1 @@
-ExecutionError : class io.gatling.mojo.CompilationException : Simulations compilation failed.
+ExecutionError: class io.gatling.mojo.CompilationException | Simulations compilation failed. | Process exited with an error: 1 (Exit value: 1)

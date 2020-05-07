@@ -26,6 +26,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.toolchain.Toolchain;
 import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.codehaus.plexus.util.SelectorUtils;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -40,10 +41,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.gatling.mojo.MojoConstants.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.util.Arrays.stream;
 
 /**
  * Mojo to execute Gatling.
@@ -319,8 +322,15 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   private void writeExceptionIfExists(BufferedWriter writer, Exception exception) throws IOException {
     if (exception != null) {
-      writer.write(LAST_RUN_FILE_ERROR_LINE + " : " + exception.getClass() + " : " + exception.getMessage() + System.lineSeparator());
+      writer.write(LAST_RUN_FILE_ERROR_LINE + exception.getClass() + getRecursiveCauses(exception) + System.lineSeparator());
     }
+  }
+
+  private String getRecursiveCauses(Throwable e) {
+    return stream(ExceptionUtils.getThrowables(e))
+            .filter(ex -> ex.getMessage() != null)
+            .map(ex -> " | " + ex.getMessage())
+            .collect(Collectors.joining());
   }
 
   private boolean isNewDirectory(File directory) {

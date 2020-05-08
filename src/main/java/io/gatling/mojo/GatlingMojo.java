@@ -301,24 +301,28 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   private void recordSimulationResults(Exception exception) throws MojoExecutionException {
     try {
-      saveListOfNewRunDirectories(exception);
+      saveSimulationResultToFile(exception);
       copyJUnitReports();
     } catch (IOException e) {
       throw new MojoExecutionException("Could not record simulation results.", e);
     }
   }
 
-  private void saveListOfNewRunDirectories(Exception exception) throws IOException {
+  private void saveSimulationResultToFile(Exception exception) throws IOException {
     Path resultsFile = resultsFolder.toPath().resolve(LAST_RUN_FILE);
 
     try (BufferedWriter writer = Files.newBufferedWriter(resultsFile)) {
+      saveListOfNewRunDirectories(writer);
+      writeExceptionIfExists(writer, exception);
+    }
+  }
+
+  private void saveListOfNewRunDirectories(BufferedWriter writer) throws IOException {
       for (File directory : directoriesInResultsFolder()) {
         if (isNewDirectory(directory)) {
           writer.write(directory.getName() + System.lineSeparator());
         }
       }
-      writeExceptionIfExists(writer, exception);
-    }
   }
 
   private void writeExceptionIfExists(BufferedWriter writer, Exception exception) throws IOException {

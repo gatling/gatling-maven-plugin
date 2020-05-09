@@ -15,9 +15,6 @@
  */
 package io.gatling.mojo;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
-import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Component;
@@ -68,7 +65,7 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
    * Maven's repository.
    */
   @Component
-  private RepositorySystem repository;
+  protected RepositorySystem repository;
 
 
   protected List<String> buildTestClasspath() throws Exception {
@@ -86,30 +83,6 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
     testClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
 
     return testClasspathElements;
-  }
-
-  protected String getVersion(String groupId, String artifactId) {
-    for (Artifact artifact : mavenProject.getArtifacts()) {
-      if (artifact.getGroupId().equals(groupId) && artifact.getArtifactId().equals(artifactId)) {
-        return artifact.getBaseVersion();
-      }
-    }
-    throw new UnsupportedOperationException("Couldn't locate " + groupId + ":" + artifactId + " in classpath");
-  }
-
-  protected ArtifactResolutionResult resolve(String groupId, String artifactId, String version, boolean resolveTransitively) {
-    Artifact artifact = repository.createArtifact(groupId, artifactId, version, Artifact.SCOPE_RUNTIME, "jar");
-    ArtifactResolutionRequest request =
-            new ArtifactResolutionRequest()
-                    .setArtifact(artifact)
-                    .setResolveRoot(true)
-                    .setResolveTransitively(resolveTransitively)
-                    .setServers(session.getRequest().getServers())
-                    .setMirrors(session.getRequest().getMirrors())
-                    .setProxies(session.getRequest().getProxies())
-                    .setLocalRepository(session.getLocalRepository())
-                    .setRemoteRepositories(session.getCurrentProject().getRemoteArtifactRepositories());
-    return repository.resolve(request);
   }
 
   protected void addArg(List<String> args, String flag, Object value) {

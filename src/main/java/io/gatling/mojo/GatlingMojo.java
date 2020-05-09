@@ -18,6 +18,8 @@ package io.gatling.mojo;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -378,8 +380,8 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
       }
     }
 
-    String gatlingVersion = getVersion("io.gatling", "gatling-core");
-    Set<Artifact> gatlingCompilerAndDeps = resolve("io.gatling", "gatling-compiler", gatlingVersion, true).getArtifacts();
+    String gatlingVersion = getGatlingVersion();
+    Set<Artifact> gatlingCompilerAndDeps = resolveCompilerAndDeps(gatlingVersion).getArtifacts();
     for (Artifact artifact : gatlingCompilerAndDeps) {
       compilerClasspathElements.add(artifact.getFile().getCanonicalPath());
     }
@@ -387,6 +389,30 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     // Add plugin jar to classpath (used by MainWithArgsInFile)
     compilerClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
     return compilerClasspathElements;
+  }
+
+  private String getGatlingVersion() {
+    for (Artifact artifact : mavenProject.getArtifacts()) {
+      if (artifact.getGroupId().equals("io.gatling") && artifact.getArtifactId().equals("gatling-core")) {
+        return artifact.getBaseVersion();
+      }
+    }
+    throw new UnsupportedOperationException("Couldn't locate io.gatling:gatling-core in classpath");
+  }
+
+  private ArtifactResolutionResult resolveCompilerAndDeps(String gatlingVersion) {
+    Artifact artifact = repository.createArtifact("io.gatling", "gatling-compiler", gatlingVersion, Artifact.SCOPE_RUNTIME, "jar");
+    ArtifactResolutionRequest request =
+      new ArtifactResolutionRequest()
+        .setArtifact(artifact)
+        .setResolveRoot(true)
+        .setResolveTransitively(true)
+        .setServers(session.getRequest().getServers())
+        .setMirrors(session.getRequest().getMirrors())
+        .setProxies(session.getRequest().getProxies())
+        .setLocalRepository(session.getLocalRepository())
+        .setRemoteRepositories(session.getCurrentProject().getRemoteArtifactRepositories());
+    return repository.resolve(request);
   }
 
   private List<String> gatlingJvmArgs() {

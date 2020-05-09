@@ -51,7 +51,7 @@ public class MainWithArgsInFile {
   }
 
   private static List<String> readArgFile(File argFile) throws IOException {
-    ArrayList<String> args = new ArrayList<String>();
+    ArrayList<String> args = new ArrayList<>();
     try (
       final FileReader fr = new FileReader(argFile);
       final BufferedReader in = new BufferedReader(fr)

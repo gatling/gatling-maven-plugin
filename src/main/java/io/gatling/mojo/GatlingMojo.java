@@ -199,7 +199,9 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     }
 
     // Create results directories
-    resultsFolder.mkdirs();
+    if (!resultsFolder.exists() && !resultsFolder.mkdirs()) {
+      throw new MojoExecutionException("Could not create resultsFolder " + resultsFolder.getAbsolutePath());
+    }
     existingDirectories = directoriesInResultsFolder();
     Exception ex = null;
 

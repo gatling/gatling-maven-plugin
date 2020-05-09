@@ -46,7 +46,7 @@ public class MainWithArgsInFile {
       throw new NoSuchMethodException("main");
     }
 
-    String[] argsArray = args.toArray(new String[args.size()]);
+    String[] argsArray = args.toArray(new String[0]);
     mainMethod.invoke(null, new Object[]{argsArray});
   }
 

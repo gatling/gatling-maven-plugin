@@ -1,0 +1,1 @@
+ExecutionError: io.gatling.mojo.CompilationException: Simulations compilation failed. | org.apache.commons.exec.ExecuteException: Process exited with an error: 1 (Exit value: 1)

@@ -19,6 +19,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,9 +54,16 @@ public class VerifyMojo extends AbstractGatlingExecutionMojo {
 
         if (results.toFile().exists()) {
             for (String line : Files.readAllLines(results)) {
+                checkError(line);
                 File directory = new File(resultsFolder, line);
                 searchForAssertionFailures(directory);
             }
+        }
+    }
+
+    private void checkError(String line) throws MojoFailureException {
+        if (StringUtils.contains(line, LAST_RUN_FILE_ERROR_LINE)) {
+            throwFailureException(line.substring(LAST_RUN_FILE_ERROR_LINE.length()));
         }
     }
 
@@ -77,9 +85,13 @@ public class VerifyMojo extends AbstractGatlingExecutionMojo {
             throw new MojoExecutionException("Failed to parse " + assertionFile.toString(), e);
         }
         if (summary.hasFailures()) {
-            getLog().error("Gatling simulation assertions failed.");
-            getLog().error("See the reports in " + resultsFolder.getPath() + " for details.");
-            throw new MojoFailureException("Gatling simulation assertions failed!");
+            throwFailureException("Gatling simulation assertions failed!");
         }
+    }
+
+    private void throwFailureException(String message) throws MojoFailureException {
+        getLog().error(message);
+        getLog().error("See the reports in " + resultsFolder.getPath() + " for details.");
+        throw new MojoFailureException(message);
     }
 }

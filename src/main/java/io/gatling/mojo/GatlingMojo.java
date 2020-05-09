@@ -26,6 +26,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.toolchain.Toolchain;
 import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.codehaus.plexus.util.SelectorUtils;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -40,10 +41,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.gatling.mojo.MojoConstants.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.util.Arrays.stream;
+import static org.codehaus.plexus.util.StringUtils.isBlank;
 
 /**
  * Mojo to execute Gatling.
@@ -195,6 +199,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     // Create results directories
     resultsFolder.mkdirs();
     existingDirectories = directoriesInResultsFolder();
+    Exception ex = null;
 
     try {
       List<String> testClasspath = buildTestClasspath();
@@ -228,8 +233,9 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
       } else {
         getLog().warn("There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
       }
+      ex = e instanceof GatlingSimulationAssertionsFailedException ? null : e;
     } finally {
-      recordSimulationResults();
+      recordSimulationResults(ex);
     }
   }
 
@@ -293,25 +299,46 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     }
   }
 
-  private void recordSimulationResults() throws MojoExecutionException {
+  private void recordSimulationResults(Exception exception) throws MojoExecutionException {
     try {
-      saveListOfNewRunDirectories();
+      saveSimulationResultToFile(exception);
       copyJUnitReports();
     } catch (IOException e) {
       throw new MojoExecutionException("Could not record simulation results.", e);
     }
   }
 
-  private void saveListOfNewRunDirectories() throws IOException {
+  private void saveSimulationResultToFile(Exception exception) throws IOException {
     Path resultsFile = resultsFolder.toPath().resolve(LAST_RUN_FILE);
 
     try (BufferedWriter writer = Files.newBufferedWriter(resultsFile)) {
+      saveListOfNewRunDirectories(writer);
+      writeExceptionIfExists(writer, exception);
+    }
+  }
+
+  private void saveListOfNewRunDirectories(BufferedWriter writer) throws IOException {
       for (File directory : directoriesInResultsFolder()) {
         if (isNewDirectory(directory)) {
           writer.write(directory.getName() + System.lineSeparator());
         }
       }
+  }
+
+  private void writeExceptionIfExists(BufferedWriter writer, Exception exception) throws IOException {
+    if (exception != null) {
+      writer.write(LAST_RUN_FILE_ERROR_LINE + getRecursiveCauses(exception) + System.lineSeparator());
     }
+  }
+
+  private String getRecursiveCauses(Throwable e) {
+    return stream(ExceptionUtils.getThrowables(e))
+            .map(ex -> joinNullable(ex.getClass().getName(), ex.getMessage()))
+            .collect(Collectors.joining(" | "));
+  }
+
+  private String joinNullable(String s, String sNullable) {
+    return isBlank(sNullable) ? s : s + ": " + sNullable;
   }
 
   private boolean isNewDirectory(File directory) {

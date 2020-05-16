@@ -187,9 +187,9 @@ class Fork {
       return fromToolchain;
     } else {
       String javaHome;
-      javaHome = System.getProperty("java.home");
+      javaHome = System.getenv("JAVA_HOME");
       if (javaHome == null) {
-        javaHome = System.getenv("JAVA_HOME");
+        javaHome = System.getProperty("java.home");
         if (javaHome == null) {
           throw new IllegalStateException("Couldn't locate java, try setting JAVA_HOME environment variable.");
         }

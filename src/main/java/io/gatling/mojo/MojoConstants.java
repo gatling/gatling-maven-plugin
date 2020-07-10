@@ -38,7 +38,7 @@ public final class MojoConstants {
             "-XX:+UseG1GC",
             "-XX:+ParallelRefProcEnabled",
             "-XX:+HeapDumpOnOutOfMemoryError",
-            "-XX:MaxInlineLevel=20", "-XX:MaxTrivialSize=12",
+            "-XX:MaxInlineLevel=20", "-XX:MaxTrivialSize=12", "-XX:-UseBiasedLocking",
             "-Djava.net.preferIPv4Stack=true", "-Djava.net.preferIPv6Addresses=false"
     );
 }

@@ -1,11 +1,12 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+
+/*
+ * Copyright 2011-2020 GatlingCorp (https://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * 		http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,32 +16,31 @@
  */
 package io.gatling.mojo;
 
-import java.util.List;
-
 import static java.util.Arrays.asList;
+
+import java.util.List;
 
 public final class MojoConstants {
 
-    private MojoConstants() {
-    }
+  private MojoConstants() {}
 
-    // Recorder constants
-    public static final String RECORDER_MAIN_CLASS = "io.gatling.recorder.GatlingRecorder";
+  // Recorder constants
+  public static final String RECORDER_MAIN_CLASS = "io.gatling.recorder.GatlingRecorder";
 
-    // Compiler constants
-    public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
-    public static final List<String> COMPILER_JVM_ARGS = asList("-Xmx1G", "-Xss100M");
+  // Compiler constants
+  public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
+  public static final List<String> COMPILER_JVM_ARGS = asList("-Xmx1G", "-Xss100M");
 
-    // Gatling constants
-    public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
-    public static final List<String> GATLING_JVM_ARGS = asList(
-            "-server",
-            "-Xmx1G",
-            "-XX:+UseG1GC",
-            "-XX:+ParallelRefProcEnabled",
-            "-XX:+HeapDumpOnOutOfMemoryError",
-            "-XX:MaxInlineLevel=20",
-            "-XX:MaxTrivialSize=12",
-            "-XX:-UseBiasedLocking"
-    );
+  // Gatling constants
+  public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
+  public static final List<String> GATLING_JVM_ARGS =
+      asList(
+          "-server",
+          "-Xmx1G",
+          "-XX:+UseG1GC",
+          "-XX:+ParallelRefProcEnabled",
+          "-XX:+HeapDumpOnOutOfMemoryError",
+          "-XX:MaxInlineLevel=20",
+          "-XX:MaxTrivialSize=12",
+          "-XX:-UseBiasedLocking");
 }

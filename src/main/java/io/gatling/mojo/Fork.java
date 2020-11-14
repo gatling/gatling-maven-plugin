@@ -1,11 +1,12 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+
+/*
+ * Copyright 2011-2020 GatlingCorp (https://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * 		http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +22,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.Executor;
@@ -47,25 +47,27 @@ class Fork {
   private final List<String> jvmArgs = new ArrayList<>();
   private final List<String> args = new ArrayList<>();
 
-  Fork(String mainClassName,//
-       List<String> classpath,//
-       List<String> jvmArgs,//
-       List<String> args,//
-       Toolchain toolchain,//
-       boolean propagateSystemProperties,//
-       Log log) {
+  Fork(
+      String mainClassName, //
+      List<String> classpath, //
+      List<String> jvmArgs, //
+      List<String> args, //
+      Toolchain toolchain, //
+      boolean propagateSystemProperties, //
+      Log log) {
 
     this(mainClassName, classpath, jvmArgs, args, toolchain, propagateSystemProperties, log, null);
   }
 
-  Fork(String mainClassName,//
-              List<String> classpath,//
-              List<String> jvmArgs,//
-              List<String> args,//
-              Toolchain toolchain,//
-              boolean propagateSystemProperties,//
-              Log log,
-              File workingDirectory) {
+  Fork(
+      String mainClassName, //
+      List<String> classpath, //
+      List<String> jvmArgs, //
+      List<String> args, //
+      Toolchain toolchain, //
+      boolean propagateSystemProperties, //
+      Log log,
+      File workingDirectory) {
 
     this.mainClassName = mainClassName;
     this.classpath = classpath;
@@ -82,13 +84,17 @@ class Fork {
       int programFilesIndex = value.indexOf("Program Files");
       if (programFilesIndex >= 0) {
         // Could be "Program Files" or "Program Files (x86)"
-        int firstSeparatorAfterProgramFiles = value.indexOf(File.separator, programFilesIndex + "Program Files".length());
+        int firstSeparatorAfterProgramFiles =
+            value.indexOf(File.separator, programFilesIndex + "Program Files".length());
         File longNameDir =
-          firstSeparatorAfterProgramFiles < 0 ?
-            new File(value) : // C:\\Program Files with trailing separator
-            new File(value.substring(0, firstSeparatorAfterProgramFiles)); // chop child
+            firstSeparatorAfterProgramFiles < 0
+                ? new File(value)
+                : // C:\\Program Files with
+                // trailing separator
+                new File(value.substring(0, firstSeparatorAfterProgramFiles)); // chop child
         // Some other sibling dir could be PrograXXX and might shift short name index
-        // so we can't be sure "Program Files" is "Progra~1" and "Program Files (x86)" is "Progra~2"
+        // so we can't be sure "Program Files" is "Progra~1" and "Program Files (x86)"
+        // is "Progra~2"
         for (int i = 0; i < 10; i++) {
           File shortNameDir = new File(longNameDir.getParent(), "Progra~" + i);
           if (shortNameDir.equals(longNameDir)) {
@@ -112,10 +118,16 @@ class Fork {
         String value = toWindowsShortName(systemProp.getValue().toString());
         if (isPropagatableProperty(name)) {
           if (name.contains(" ")) {
-            log.warn("System property name '" + name + "' contains a whitespace and can't be propagated");
+            log.warn(
+                "System property name '"
+                    + name
+                    + "' contains a whitespace and can't be propagated");
 
           } else if (MojoUtils.IS_WINDOWS && value.contains(" ")) {
-            log.warn("System property value '" + value + "' contains a whitespace and can't be propagated on Windows");
+            log.warn(
+                "System property value '"
+                    + value
+                    + "' contains a whitespace and can't be propagated on Windows");
 
           } else {
             this.jvmArgs.add("-D" + name + "=" + safe(StringUtils.escape(value)));
@@ -130,7 +142,9 @@ class Fork {
       log.debug(StringUtils.join(classpath.iterator(), ",\n"));
     }
 
-    this.jvmArgs.add(MojoUtils.createBooterJar(classpath, MainWithArgsInFile.class.getName()).getCanonicalPath());
+    this.jvmArgs.add(
+        MojoUtils.createBooterJar(classpath, MainWithArgsInFile.class.getName())
+            .getCanonicalPath());
 
     List<String> command = buildCommand();
 
@@ -166,19 +180,19 @@ class Fork {
 
   private boolean isPropagatableProperty(String name) {
     return !name.startsWith("java.") //
-      && !name.startsWith("sun.") //
-      && !name.startsWith("maven.") //
-      && !name.startsWith("file.") //
-      && !name.startsWith("awt.") //
-      && !name.startsWith("os.") //
-      && !name.startsWith("user.") //
-      && !name.startsWith("idea.") //
-      && !name.startsWith("guice.") //
-      && !name.startsWith("hudson.") //
-      && !name.equals("line.separator") //
-      && !name.equals("path.separator") //
-      && !name.equals("classworlds.conf") //
-      && !name.equals("org.slf4j.simpleLogger.defaultLogLevel");
+        && !name.startsWith("sun.") //
+        && !name.startsWith("maven.") //
+        && !name.startsWith("file.") //
+        && !name.startsWith("awt.") //
+        && !name.startsWith("os.") //
+        && !name.startsWith("user.") //
+        && !name.startsWith("idea.") //
+        && !name.startsWith("guice.") //
+        && !name.startsWith("hudson.") //
+        && !name.equals("line.separator") //
+        && !name.equals("path.separator") //
+        && !name.equals("classworlds.conf") //
+        && !name.equals("org.slf4j.simpleLogger.defaultLogLevel");
   }
 
   private String findJavaExecutable(Toolchain toolchain) {
@@ -191,7 +205,8 @@ class Fork {
       if (javaHome == null) {
         javaHome = System.getProperty("java.home");
         if (javaHome == null) {
-          throw new IllegalStateException("Couldn't locate java, try setting JAVA_HOME environment variable.");
+          throw new IllegalStateException(
+              "Couldn't locate java, try setting JAVA_HOME environment variable.");
         }
       }
       return javaHome + File.separator + "bin" + File.separator + "java";

@@ -1,11 +1,12 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+
+/*
+ * Copyright 2011-2020 GatlingCorp (https://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * 		http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,20 +43,20 @@ public class MainWithArgsInFile {
     Class<?> mainClass = cl.loadClass(mainClassName);
     Method mainMethod = mainClass.getMethod("main", String[].class);
     int mods = mainMethod.getModifiers();
-    if (mainMethod.getReturnType() != void.class || !Modifier.isStatic(mods) || !Modifier.isPublic(mods)) {
+    if (mainMethod.getReturnType() != void.class
+        || !Modifier.isStatic(mods)
+        || !Modifier.isPublic(mods)) {
       throw new NoSuchMethodException("main");
     }
 
     String[] argsArray = args.toArray(new String[0]);
-    mainMethod.invoke(null, new Object[]{argsArray});
+    mainMethod.invoke(null, new Object[] {argsArray});
   }
 
   private static List<String> readArgFile(File argFile) throws IOException {
     ArrayList<String> args = new ArrayList<>();
-    try (
-      final FileReader fr = new FileReader(argFile);
-      final BufferedReader in = new BufferedReader(fr)
-    ) {
+    try (final FileReader fr = new FileReader(argFile);
+        final BufferedReader in = new BufferedReader(fr)) {
       String line;
       while ((line = in.readLine()) != null) {
         args.add(line);

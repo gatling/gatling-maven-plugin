@@ -1,11 +1,12 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+
+/*
+ * Copyright 2011-2020 GatlingCorp (https://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * 		http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,47 +16,47 @@
  */
 package io.gatling.mojo;
 
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
+import static java.lang.Integer.parseInt;
 
+import java.io.File;
+import java.io.FileInputStream;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.FileInputStream;
-
-import static java.lang.Integer.parseInt;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 
 class AssertionsSummary {
-    private final int errors;
-    private final int failures;
+  private final int errors;
+  private final int failures;
 
-    AssertionsSummary(int errors, int failures) {
-        this.errors = errors;
-        this.failures = failures;
+  AssertionsSummary(int errors, int failures) {
+    this.errors = errors;
+    this.failures = failures;
+  }
+
+  static AssertionsSummary fromAssertionsFile(File assertionsFile) throws Exception {
+    XPathFactory xpathFactory = XPathFactory.newInstance();
+    XPath xpath = xpathFactory.newXPath();
+
+    try (FileInputStream is = new FileInputStream(assertionsFile)) {
+      Node testsuite =
+          (Node) xpath.evaluate("/testsuite", new InputSource(is), XPathConstants.NODE);
+      String errors = xpath.evaluate("@errors", testsuite);
+      String failures = xpath.evaluate("@failures", testsuite);
+      return new AssertionsSummary(parseInt(errors), parseInt(failures));
     }
+  }
 
-    static AssertionsSummary fromAssertionsFile(File assertionsFile) throws Exception {
-        XPathFactory xpathFactory = XPathFactory.newInstance();
-        XPath xpath = xpathFactory.newXPath();
+  int getErrors() {
+    return errors;
+  }
 
-        try (FileInputStream is = new FileInputStream(assertionsFile)) {
-            Node testsuite = (Node) xpath.evaluate("/testsuite", new InputSource(is), XPathConstants.NODE);
-            String errors = xpath.evaluate("@errors", testsuite);
-            String failures = xpath.evaluate("@failures", testsuite);
-            return new AssertionsSummary(parseInt(errors), parseInt(failures));
-        }
-    }
+  int getFailures() {
+    return failures;
+  }
 
-    int getErrors() {
-        return errors;
-    }
-
-    int getFailures() {
-        return failures;
-    }
-
-    boolean hasFailures() {
-        return errors + failures > 0;
-    }
+  boolean hasFailures() {
+    return errors + failures > 0;
+  }
 }

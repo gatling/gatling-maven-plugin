@@ -1,11 +1,12 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+
+/*
+ * Copyright 2011-2020 GatlingCorp (https://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * 		http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +16,24 @@
  */
 package io.gatling.mojo;
 
+import static io.gatling.mojo.MojoConstants.*;
+import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.util.Arrays.stream;
+import static org.codehaus.plexus.util.StringUtils.isBlank;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Modifier;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -32,89 +51,57 @@ import org.codehaus.plexus.util.ExceptionUtils;
 import org.codehaus.plexus.util.SelectorUtils;
 import org.codehaus.plexus.util.StringUtils;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Modifier;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static io.gatling.mojo.MojoConstants.*;
-import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.util.Arrays.stream;
-import static org.codehaus.plexus.util.StringUtils.isBlank;
-
-/**
- * Mojo to execute Gatling.
- */
-@Mojo(name = "test",
-  defaultPhase = LifecyclePhase.INTEGRATION_TEST,
-  requiresDependencyResolution = ResolutionScope.TEST)
+/** Mojo to execute Gatling. */
+@Mojo(
+    name = "test",
+    defaultPhase = LifecyclePhase.INTEGRATION_TEST,
+    requiresDependencyResolution = ResolutionScope.TEST)
 public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
-  /**
-   * A name of a Simulation class to run.
-   */
+  /** A name of a Simulation class to run. */
   @Parameter(property = "gatling.simulationClass")
   private String simulationClass;
 
   /**
    * Iterate over multiple simulations if more than one simulation file is found. By default false.
-   * If multiple simulations are found but {@literal runMultipleSimulations} is false the execution will fail.
+   * If multiple simulations are found but {@literal runMultipleSimulations} is false the execution
+   * will fail.
    */
   @Parameter(property = "gatling.runMultipleSimulations", defaultValue = "false")
   private boolean runMultipleSimulations;
 
-  /**
-   * List of include patterns to use for scanning. Includes all simulations by default.
-   */
+  /** List of include patterns to use for scanning. Includes all simulations by default. */
   @Parameter(property = "gatling.includes")
   private String[] includes;
 
-  /**
-   * List of exclude patterns to use for scanning. Excludes none by default.
-   */
+  /** List of exclude patterns to use for scanning. Excludes none by default. */
   @Parameter(property = "gatling.excludes")
   private String[] excludes;
 
-  /**
-   * Run simulation but does not generate reports. By default false.
-   */
+  /** Run simulation but does not generate reports. By default false. */
   @Parameter(property = "gatling.noReports", defaultValue = "false")
   private boolean noReports;
 
-  /**
-   * Generate the reports for the simulation in this folder.
-   */
+  /** Generate the reports for the simulation in this folder. */
   @Parameter(property = "gatling.reportsOnly")
   private String reportsOnly;
 
-  /**
-   * A short description of the run to include in the report.
-   */
+  /** A short description of the run to include in the report. */
   @Parameter(property = "gatling.runDescription")
   private String runDescription;
 
   /**
-   * Will cause the project build to look successful, rather than fail, even
-   * if there are Gatling test failures. This can be useful on a continuous
-   * integration server, if your only option to be able to collect output
-   * files, is if the project builds successfully.
+   * Will cause the project build to look successful, rather than fail, even if there are Gatling
+   * test failures. This can be useful on a continuous integration server, if your only option to be
+   * able to collect output files, is if the project builds successfully.
    */
   @Parameter(property = "gatling.failOnError", defaultValue = "true")
   private boolean failOnError;
 
   /**
-   * Continue execution of simulations despite assertion failure. If you have
-   * some stack of simulations and you want to get results from all simulations
-   * despite some assertion failures in previous one.
+   * Continue execution of simulations despite assertion failure. If you have some stack of
+   * simulations and you want to get results from all simulations despite some assertion failures in
+   * previous one.
    */
   @Parameter(property = "gatling.continueOnAssertionFailure", defaultValue = "false")
   private boolean continueOnAssertionFailure;
@@ -122,75 +109,59 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
   @Parameter(property = "gatling.useOldJenkinsJUnitSupport", defaultValue = "false")
   private boolean useOldJenkinsJUnitSupport;
 
-  /**
-   * Extra JVM arguments to pass when running Gatling.
-   */
+  /** Extra JVM arguments to pass when running Gatling. */
   @Parameter(property = "gatling.jvmArgs")
   private List<String> jvmArgs;
 
-  /**
-   * Override Gatling's default JVM args, instead of replacing them.
-   */
+  /** Override Gatling's default JVM args, instead of replacing them. */
   @Parameter(property = "gatling.overrideJvmArgs", defaultValue = "false")
   private boolean overrideJvmArgs;
 
-  /**
-   * Propagate System properties to forked processes.
-   */
+  /** Propagate System properties to forked processes. */
   @Parameter(property = "gatling.propagateSystemProperties", defaultValue = "true")
   private boolean propagateSystemProperties;
 
-  /**
-   * Extra JVM arguments to pass when running Zinc.
-   */
+  /** Extra JVM arguments to pass when running Zinc. */
   @Parameter(property = "gatling.compilerJvmArgs")
   private List<String> compilerJvmArgs;
 
-  /**
-   * Override Zinc's default JVM args, instead of replacing them.
-   */
+  /** Override Zinc's default JVM args, instead of replacing them. */
   @Parameter(property = "gatling.overrideCompilerJvmArgs", defaultValue = "false")
   private boolean overrideCompilerJvmArgs;
 
-  /**
-   * Extra options to be passed to scalac when compiling the Scala code
-   */
+  /** Extra options to be passed to scalac when compiling the Scala code */
   @Parameter(property = "gatling.extraScalacOptions")
   private List<String> extraScalacOptions;
 
   /**
-   * Disable the Scala compiler, if scala-maven-plugin is already in charge
-   * of compiling the simulations.
+   * Disable the Scala compiler, if scala-maven-plugin is already in charge of compiling the
+   * simulations.
    */
   @Parameter(property = "gatling.disableCompiler", defaultValue = "false")
   private boolean disableCompiler;
 
-  /**
-   * Use this folder to discover simulations that could be run.
-   */
-  @Parameter(property = "gatling.simulationsFolder", defaultValue = "${project.basedir}/src/test/scala")
+  /** Use this folder to discover simulations that could be run. */
+  @Parameter(
+      property = "gatling.simulationsFolder",
+      defaultValue = "${project.basedir}/src/test/scala")
   private File simulationsFolder;
 
-  /**
-   * Use this folder as the folder where feeders are stored.
-   */
-  @Parameter(property = "gatling.resourcesFolder", defaultValue = "${project.basedir}/src/test/resources")
+  /** Use this folder as the folder where feeders are stored. */
+  @Parameter(
+      property = "gatling.resourcesFolder",
+      defaultValue = "${project.basedir}/src/test/resources")
   private File resourcesFolder;
 
   @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> artifacts;
 
-  /**
-   * Specify a different working directory.
-   */
+  /** Specify a different working directory. */
   @Parameter(property = "gatling.workingDirectory")
   private File workingDirectory;
 
   private Set<File> existingDirectories;
 
-  /**
-   * Executes Gatling simulations.
-   */
+  /** Executes Gatling simulations. */
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (skip) {
@@ -200,7 +171,8 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
     // Create results directories
     if (!resultsFolder.exists() && !resultsFolder.mkdirs()) {
-      throw new MojoExecutionException("Could not create resultsFolder " + resultsFolder.getAbsolutePath());
+      throw new MojoExecutionException(
+          "Could not create resultsFolder " + resultsFolder.getAbsolutePath());
     }
     existingDirectories = directoriesInResultsFolder();
     Exception ex = null;
@@ -235,7 +207,9 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
           throw new MojoExecutionException("Gatling failed.", e);
         }
       } else {
-        getLog().warn("There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
+        getLog()
+            .warn(
+                "There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
       }
       ex = e instanceof GatlingSimulationAssertionsFailedException ? null : e;
     } finally {
@@ -246,11 +220,16 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
   private Set<File> directoriesInResultsFolder() {
     File[] directories = resultsFolder.listFiles(File::isDirectory);
     return (directories == null)
-            ? Collections.emptySet()
-            : new HashSet<>(Arrays.asList(directories));
+        ? Collections.emptySet()
+        : new HashSet<>(Arrays.asList(directories));
   }
 
-  private void iterateBySimulations(Toolchain toolchain, List<String> jvmArgs, List<String> testClasspath, List<String> simulations) throws Exception {
+  private void iterateBySimulations(
+      Toolchain toolchain,
+      List<String> jvmArgs,
+      List<String> testClasspath,
+      List<String> simulations)
+      throws Exception {
     Exception exc = null;
     int simulationsCount = simulations.size();
     for (int i = 0; i < simulationsCount; i++) {
@@ -273,17 +252,29 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     }
 
     if (exc != null) {
-      getLog().warn("There were some errors while running your simulation, but continueOnAssertionFailure was set to true, so your simulations continue to perform.");
+      getLog()
+          .warn(
+              "There were some errors while running your simulation, but continueOnAssertionFailure was set to true, so your simulations continue to perform.");
       throw exc;
     }
   }
 
-  private void executeCompiler(List<String> zincJvmArgs, List<String> testClasspath, Toolchain toolchain) throws Exception {
+  private void executeCompiler(
+      List<String> zincJvmArgs, List<String> testClasspath, Toolchain toolchain) throws Exception {
     List<String> compilerClasspath = buildCompilerClasspath();
     compilerClasspath.addAll(testClasspath);
     List<String> compilerArguments = compilerArgs();
 
-    Fork forkedCompiler = new Fork(COMPILER_MAIN_CLASS, compilerClasspath, zincJvmArgs, compilerArguments, toolchain, false, getLog(), workingDirectory);
+    Fork forkedCompiler =
+        new Fork(
+            COMPILER_MAIN_CLASS,
+            compilerClasspath,
+            zincJvmArgs,
+            compilerArguments,
+            toolchain,
+            false,
+            getLog(),
+            workingDirectory);
     try {
       forkedCompiler.run();
     } catch (ExecuteException e) {
@@ -291,15 +282,27 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     }
   }
 
-  private void executeGatling(List<String> gatlingJvmArgs, List<String> gatlingArgs, List<String> testClasspath, Toolchain toolchain) throws Exception {
-    Fork forkedGatling = new Fork(GATLING_MAIN_CLASS, testClasspath, gatlingJvmArgs, gatlingArgs, toolchain, propagateSystemProperties, getLog(), workingDirectory);
+  private void executeGatling(
+      List<String> gatlingJvmArgs,
+      List<String> gatlingArgs,
+      List<String> testClasspath,
+      Toolchain toolchain)
+      throws Exception {
+    Fork forkedGatling =
+        new Fork(
+            GATLING_MAIN_CLASS,
+            testClasspath,
+            gatlingJvmArgs,
+            gatlingArgs,
+            toolchain,
+            propagateSystemProperties,
+            getLog(),
+            workingDirectory);
     try {
       forkedGatling.run();
     } catch (ExecuteException e) {
-      if (e.getExitValue() == 2)
-        throw new GatlingSimulationAssertionsFailedException(e);
-      else
-        throw e; /* issue 1482*/
+      if (e.getExitValue() == 2) throw new GatlingSimulationAssertionsFailedException(e);
+      else throw e; /* issue 1482 */
     }
   }
 
@@ -322,23 +325,25 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
   }
 
   private void saveListOfNewRunDirectories(BufferedWriter writer) throws IOException {
-      for (File directory : directoriesInResultsFolder()) {
-        if (isNewDirectory(directory)) {
-          writer.write(directory.getName() + System.lineSeparator());
-        }
+    for (File directory : directoriesInResultsFolder()) {
+      if (isNewDirectory(directory)) {
+        writer.write(directory.getName() + System.lineSeparator());
       }
+    }
   }
 
-  private void writeExceptionIfExists(BufferedWriter writer, Exception exception) throws IOException {
+  private void writeExceptionIfExists(BufferedWriter writer, Exception exception)
+      throws IOException {
     if (exception != null) {
-      writer.write(LAST_RUN_FILE_ERROR_LINE + getRecursiveCauses(exception) + System.lineSeparator());
+      writer.write(
+          LAST_RUN_FILE_ERROR_LINE + getRecursiveCauses(exception) + System.lineSeparator());
     }
   }
 
   private String getRecursiveCauses(Throwable e) {
     return stream(ExceptionUtils.getThrowables(e))
-            .map(ex -> joinNullable(ex.getClass().getName(), ex.getMessage()))
-            .collect(Collectors.joining(" | "));
+        .map(ex -> joinNullable(ex.getClass().getName(), ex.getMessage()))
+        .collect(Collectors.joining(" | "));
   }
 
   private String joinNullable(String s, String sNullable) {
@@ -353,14 +358,24 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
     try {
       if (useOldJenkinsJUnitSupport) {
-        for (File directory: directoriesInResultsFolder()) {
+        for (File directory : directoriesInResultsFolder()) {
           File jsDir = new File(directory, "js");
           if (jsDir.exists() && jsDir.isDirectory()) {
             File assertionFile = new File(jsDir, "assertions.xml");
             if (assertionFile.exists()) {
-              File newAssertionFile = new File(resultsFolder, "assertions-" + directory.getName() + ".xml");
-              Files.copy(assertionFile.toPath(), newAssertionFile.toPath(), COPY_ATTRIBUTES, REPLACE_EXISTING);
-              getLog().info("Copying assertion file " + assertionFile.getCanonicalPath() + " to " + newAssertionFile.getCanonicalPath());
+              File newAssertionFile =
+                  new File(resultsFolder, "assertions-" + directory.getName() + ".xml");
+              Files.copy(
+                  assertionFile.toPath(),
+                  newAssertionFile.toPath(),
+                  COPY_ATTRIBUTES,
+                  REPLACE_EXISTING);
+              getLog()
+                  .info(
+                      "Copying assertion file "
+                          + assertionFile.getCanonicalPath()
+                          + " to "
+                          + newAssertionFile.getCanonicalPath());
             }
           }
         }
@@ -373,11 +388,11 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
   private List<String> buildCompilerClasspath() throws Exception {
 
     List<String> compilerClasspathElements = new ArrayList<>();
-    for (Artifact artifact: artifacts) {
+    for (Artifact artifact : artifacts) {
       String groupId = artifact.getGroupId();
       if (!groupId.startsWith("org.codehaus.plexus")
-        && !groupId.startsWith("org.apache.maven")
-        && !groupId.startsWith("org.sonatype")) {
+          && !groupId.startsWith("org.apache.maven")
+          && !groupId.startsWith("org.sonatype")) {
         compilerClasspathElements.add(artifact.getFile().getCanonicalPath());
       }
     }
@@ -395,7 +410,8 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   private String getGatlingVersion() {
     for (Artifact artifact : mavenProject.getArtifacts()) {
-      if (artifact.getGroupId().equals("io.gatling") && artifact.getArtifactId().equals("gatling-core")) {
+      if (artifact.getGroupId().equals("io.gatling")
+          && artifact.getArtifactId().equals("gatling-core")) {
         return artifact.getBaseVersion();
       }
     }
@@ -403,17 +419,19 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
   }
 
   private ArtifactResolutionResult resolveCompilerAndDeps(String gatlingVersion) {
-    Artifact artifact = repository.createArtifact("io.gatling", "gatling-compiler", gatlingVersion, Artifact.SCOPE_RUNTIME, "jar");
+    Artifact artifact =
+        repository.createArtifact(
+            "io.gatling", "gatling-compiler", gatlingVersion, Artifact.SCOPE_RUNTIME, "jar");
     ArtifactResolutionRequest request =
-      new ArtifactResolutionRequest()
-        .setArtifact(artifact)
-        .setResolveRoot(true)
-        .setResolveTransitively(true)
-        .setServers(session.getRequest().getServers())
-        .setMirrors(session.getRequest().getMirrors())
-        .setProxies(session.getRequest().getProxies())
-        .setLocalRepository(session.getLocalRepository())
-        .setRemoteRepositories(session.getCurrentProject().getRemoteArtifactRepositories());
+        new ArtifactResolutionRequest()
+            .setArtifact(artifact)
+            .setResolveRoot(true)
+            .setResolveTransitively(true)
+            .setServers(session.getRequest().getServers())
+            .setMirrors(session.getRequest().getMirrors())
+            .setProxies(session.getRequest().getProxies())
+            .setLocalRepository(session.getLocalRepository())
+            .setRemoteRepositories(session.getCurrentProject().getRemoteArtifactRepositories());
     return repository.resolve(request);
   }
 
@@ -439,7 +457,8 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   private List<String> computeArgs(List<String> custom, List<String> defaults, boolean override) {
     List<String> result = new ArrayList<>(computeArgs0(custom, defaults, override));
-    // force disable disableClassPathURLCheck because Debian messed up and takes forever to fix, see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911925
+    // force disable disableClassPathURLCheck because Debian messed up and takes
+    // forever to fix, see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911925
     result.add("-Djdk.net.URLClassPath.disableClassPathURLCheck=true");
     return result;
   }
@@ -458,7 +477,8 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
       }
 
       if (simulations.size() > 1 && !runMultipleSimulations) {
-        String message = "More than 1 simulation to run, need to specify one, or enable runMultipleSimulations";
+        String message =
+            "More than 1 simulation to run, need to specify one, or enable runMultipleSimulations";
         getLog().error(message);
         throw new MojoFailureException(message);
       }
@@ -514,11 +534,11 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
       List<String> simulationsClasses = new ArrayList<>();
 
-      for (String classFile: compiledClassFiles()) {
+      for (String classFile : compiledClassFiles()) {
         String className = pathToClassName(classFile);
 
         boolean isIncluded = includes.isEmpty() || match(includes, className);
-        boolean isExcluded =  !excludes.isEmpty() && match(excludes, className);
+        boolean isExcluded = !excludes.isEmpty() && match(excludes, className);
 
         if (isIncluded && !isExcluded) {
           // check if the class is a concrete Simulation
@@ -545,7 +565,8 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     return false;
   }
 
-  private URL[] testClassPathUrls() throws DependencyResolutionRequiredException, MalformedURLException {
+  private URL[] testClassPathUrls()
+      throws DependencyResolutionRequiredException, MalformedURLException {
 
     List<String> testClasspathElements = mavenProject.getTestClasspathElements();
 
@@ -562,7 +583,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
   private String[] compiledClassFiles() throws IOException {
     DirectoryScanner scanner = new DirectoryScanner();
     scanner.setBasedir(compiledClassesFolder.getCanonicalPath());
-    scanner.setIncludes(new String[]{"**/*.class"});
+    scanner.setIncludes(new String[] {"**/*.class"});
     scanner.scan();
     String[] files = scanner.getIncludedFiles();
     Arrays.sort(files);

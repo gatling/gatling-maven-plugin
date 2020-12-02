@@ -48,12 +48,14 @@
         <commons-exec.version>1.3</commons-exec.version>
         <maven3.version>3.0</maven3.version>
         <plexus-utils.version>3.1.0</plexus-utils.version>
-        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <header.basedir>${project.basedir}</header.basedir>
-        <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
-        <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
-        <spotless-maven-plugin.version>2.6.0</spotless-maven-plugin.version>
         <junit.version>5.4.0</junit.version>
+
+        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
+        <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+        <spotless-maven-plugin.version>2.6.1</spotless-maven-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -126,6 +128,7 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-release-plugin</artifactId>
+                    <version>${maven-release-plugin.version}</version>
                     <configuration>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <tagNameFormat>@{project.version}</tagNameFormat>
@@ -162,13 +165,16 @@
                         </java>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>${maven-plugin-plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
         <plugins>
             <plugin>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>${maven-plugin-plugin.version}</version>
                 <configuration>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                 </configuration>

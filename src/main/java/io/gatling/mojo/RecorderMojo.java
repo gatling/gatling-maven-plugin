@@ -99,7 +99,7 @@ public class RecorderMojo extends AbstractGatlingMojo {
               GATLING_JVM_ARGS,
               recorderArgs,
               toolchain,
-              false,
+              true,
               getLog());
       forkedRecorder.run();
     } catch (MojoExecutionException | MojoFailureException e) {

@@ -272,7 +272,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
             zincJvmArgs,
             compilerArguments,
             toolchain,
-            false,
+            propagateSystemProperties,
             getLog(),
             workingDirectory);
     try {

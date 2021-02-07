@@ -33,3 +33,5 @@ jobs:
           maven-
     - name: Build
       run: mvn --no-transfer-progress -B clean verify
+    - name: Clean before caching
+      run: find ~/.m2 -name "_remote.repositories" | xargs rm

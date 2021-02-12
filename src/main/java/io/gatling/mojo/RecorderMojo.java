@@ -116,7 +116,7 @@ public class RecorderMojo extends AbstractGatlingMojo {
     addArg(arguments, "pp", proxyPort);
     addArg(arguments, "pps", proxySSLPort);
     addArg(arguments, "sf", simulationsFolder.getCanonicalPath());
-    addArg(arguments, "rsf", resourcesFolder.getCanonicalPath());
+    addArg(arguments, "rf", resourcesFolder.getCanonicalPath());
     addArg(arguments, "cn", className);
     addArg(arguments, "pkg", packageName);
     addArg(arguments, "enc", encoding);

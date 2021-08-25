@@ -1,0 +1,17 @@
+<component-set>
+    <components>
+        <component>
+            <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+            <role-hint>gatling</role-hint>
+            <implementation>
+                org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
+            </implementation>
+            <configuration>
+                <phases>
+                    <integration-test>io.gatling:gatling-maven-plugin:test</integration-test>
+                    <package>io.gatling:gatling-maven-plugin:enterprisePackage</package>
+                </phases>
+            </configuration>
+        </component>
+    </components>
+</component-set>

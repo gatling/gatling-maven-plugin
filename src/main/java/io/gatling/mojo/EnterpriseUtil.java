@@ -22,6 +22,26 @@ import org.apache.maven.project.MavenProject;
 
 public class EnterpriseUtil {
 
+  private static final String FRONTLINE_MAVEN_PLUGIN_GROUP_ID = "io.gatling.frontline";
+  private static final String FRONTLINE_MAVEN_PLUGIN_ARTIFACT_ID = "frontline-maven-plugin";
+
+  protected static void failOnLegacyFrontLinePlugin(MavenProject project)
+      throws MojoFailureException {
+    final boolean exist =
+        project.getPluginArtifacts().stream()
+            .anyMatch(
+                artifact ->
+                    artifact.getGroupId().equals(FRONTLINE_MAVEN_PLUGIN_GROUP_ID)
+                        && artifact.getArtifactId().equals(FRONTLINE_MAVEN_PLUGIN_ARTIFACT_ID));
+    if (exist) {
+      throw new MojoFailureException(
+          "Plugin `frontline-maven-plugin` is no longer needed, its functionality is now included in `gatling-maven-plugin`.\n"
+              + "Please remove `frontline-maven-plugin` from your pom.xml plugins configuration.\n"
+              + "Please use gatling:enterprisePackage instead of configuring it on package phase.\n"
+              + "See https://gatling.io/docs/gatling/reference/current/extensions/maven_plugin/ for more information ");
+    }
+  }
+
   protected static File shadedArtifactFile(
       MavenProject project, File targetPath, String classifier) {
     String name = project.getArtifactId() + "-" + project.getVersion() + "-" + classifier + ".jar";

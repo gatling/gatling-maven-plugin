@@ -17,6 +17,7 @@
 package io.gatling.mojo;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -29,7 +30,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 public class DeprecatedFrontLineMojo extends EnterprisePackageMojo {
 
   @Override
-  public void execute() throws MojoExecutionException {
+  public void execute() throws MojoExecutionException, MojoFailureException {
     getLog()
         .warn(
             "Deprecated configuration. Use 'mvn gatling:enterprisePackage' instead.\n"

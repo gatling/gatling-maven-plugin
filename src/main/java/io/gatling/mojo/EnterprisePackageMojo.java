@@ -98,36 +98,14 @@ public class EnterprisePackageMojo extends AbstractMojo {
         .collect(Collectors.toSet());
   }
 
-  private File shadedArtifactFile() {
-    String name =
-        project.getArtifactId() + "-" + project.getVersion() + "-" + shadedClassifier + ".jar";
-    return new File(targetPath.getAbsolutePath(), name);
-  }
-
-  private static final String FRONTLINE_MAVEN_PLUGIN_GROUP_ID = "io.gatling.frontline";
-  private static final String FRONTLINE_MAVEN_PLUGIN_ARTIFACT_ID = "frontline-maven-plugin";
-
-  private void deprecatedFrontLineMavenPluginWarning() {
-    final boolean exist =
-        project.getPluginArtifacts().stream()
-            .anyMatch(
-                artifact ->
-                    artifact.getGroupId().equals(FRONTLINE_MAVEN_PLUGIN_GROUP_ID)
-                        && artifact.getArtifactId().equals(FRONTLINE_MAVEN_PLUGIN_ARTIFACT_ID));
-    if (exist) {
-      getLog()
-          .warn(
-              FRONTLINE_MAVEN_PLUGIN_ARTIFACT_ID
-                  + " is deprecated and should be removed, as this plugin is now self-sufficient");
-    }
-  }
+  private void deprecatedFrontLineMavenPluginWarning() throws MojoFailureException {}
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     Set<Artifact> allDeps = project.getArtifacts();
 
-    deprecatedFrontLineMavenPluginWarning();
+    EnterpriseUtil.failOnLegacyFrontLinePlugin(project);
 
     Artifact gatlingApp = findByGroupIdAndArtifactId(allDeps, GATLING_GROUP_ID, "gatling-app");
     Artifact gatlingChartsHighcharts =

@@ -45,6 +45,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.Toolchain;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.ExceptionUtils;
@@ -161,9 +162,15 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   private Set<File> existingDirectories;
 
+  @Parameter(defaultValue = "${project}", readonly = true)
+  private MavenProject project;
+
   /** Executes Gatling simulations. */
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+
+    EnterpriseUtil.failOnLegacyFrontLinePlugin(project);
+
     if (skip) {
       getLog().info("Skipping gatling-maven-plugin");
       return;

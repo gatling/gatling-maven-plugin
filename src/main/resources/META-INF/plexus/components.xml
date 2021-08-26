@@ -10,6 +10,7 @@
                 <phases>
                     <integration-test>io.gatling:gatling-maven-plugin:test</integration-test>
                     <package>io.gatling:gatling-maven-plugin:enterprisePackage</package>
+                    <deploy>io.gatling:gatling-maven-plugin:enterpriseDeploy</deploy>
                 </phases>
             </configuration>
         </component>

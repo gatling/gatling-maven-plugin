@@ -32,6 +32,6 @@ jobs:
           maven-${{ runner.os }}-
           maven-
     - name: Build
-      run: mvn --no-transfer-progress -B clean verify
+      run: mvn --no-transfer-progress -B clean spotless:check verify
     - name: Clean before caching
       run: find ~/.m2 -name "_remote.repositories" | xargs --no-run-if-empty rm

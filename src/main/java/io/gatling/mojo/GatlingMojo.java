@@ -408,7 +408,10 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     try {
       ClassLoader testClassLoader = new URLClassLoader(testClassPathUrls());
 
-      Class<?> simulationClass = testClassLoader.loadClass("io.gatling.core.scenario.Simulation");
+      Class<?> scalaSimulationClass =
+          testClassLoader.loadClass("io.gatling.core.scenario.Simulation");
+      Class<?> javaSimulationClass =
+          testClassLoader.loadClass("io.gatling.core.javaapi.Simulation");
       List<String> includes = MojoUtils.arrayAsListEmptyIfNull(this.includes);
       List<String> excludes = MojoUtils.arrayAsListEmptyIfNull(this.excludes);
 
@@ -423,7 +426,9 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
         if (isIncluded && !isExcluded) {
           // check if the class is a concrete Simulation
           Class<?> clazz = testClassLoader.loadClass(className);
-          if (simulationClass.isAssignableFrom(clazz) && isConcreteClass(clazz)) {
+          if (isConcreteClass(clazz)
+              && (javaSimulationClass.isAssignableFrom(clazz)
+                  || scalaSimulationClass.isAssignableFrom(clazz))) {
             simulationsClasses.add(className);
           }
         }

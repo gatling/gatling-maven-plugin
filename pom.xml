@@ -48,7 +48,7 @@
         <maven3.version>3.0</maven3.version>
         <plexus-utils.version>3.1.0</plexus-utils.version>
         <header.basedir>${project.basedir}</header.basedir>
-        <junit.version>5.8.0</junit.version>
+        <junit.version>5.8.1</junit.version>
         <zt-zip.version>1.14</zt-zip.version>
 
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>

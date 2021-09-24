@@ -371,7 +371,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
       if (simulations.size() > 1 && !runMultipleSimulations) {
         String message =
-            "More than 1 simulation to run, need to specify one, or enable runMultipleSimulations";
+            "More than 1 simulation to run. Either specify one with -Dgatling.simulationClass=<className>, or enable runMultipleSimulations in your pom.xml";
         getLog().error(message);
         throw new MojoFailureException(message);
       }

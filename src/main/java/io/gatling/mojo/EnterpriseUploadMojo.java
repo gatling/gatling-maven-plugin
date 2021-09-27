@@ -59,12 +59,11 @@ public class EnterpriseUploadMojo extends AbstractMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     if (apiToken == null) {
-      throw new MojoFailureException(
-          "API token is not configure on plugin, neither available in environment variable");
+      throw new MojoFailureException("API token is neither configured on the plugin's configuration nor available as the GATLING_ENTERPRISE_API_TOKEN environment variable");
     }
 
     if (packageId == null) {
-      throw new MojoFailureException("Artifact ID is not configure on plugin");
+      throw new MojoFailureException("Packaged ID is not configured");
     }
 
     final File file = EnterpriseUtil.shadedArtifactFile(project, targetPath, shadedClassifier);
@@ -72,7 +71,7 @@ public class EnterpriseUploadMojo extends AbstractMojo {
 
     try {
       enterpriseClient.uploadPackage(UUID.fromString(packageId), file);
-      getLog().info("Successfully upload package");
+      getLog().info("Package successfully uploaded");
     } catch (EnterpriseClientException e) {
       throw new MojoFailureException(e.getMessage(), e);
     }

@@ -225,7 +225,7 @@ public class EnterprisePackageMojo extends AbstractMojo {
     File shaded = EnterpriseUtil.shadedArtifactFile(project, targetPath, shadedClassifier);
 
     // generate jar
-    getLog().info("Generating FrontLine shaded jar " + shaded);
+    getLog().info("Generating Gatling Enterprise package " + shaded);
     ZipUtil.pack(workingDir, shaded);
 
     // attach jar so it can be deployed

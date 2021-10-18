@@ -59,7 +59,8 @@ public class EnterpriseUploadMojo extends AbstractMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     if (apiToken == null) {
-      throw new MojoFailureException("API token is neither configured on the plugin's configuration nor available as the GATLING_ENTERPRISE_API_TOKEN environment variable");
+      throw new MojoFailureException(
+          "API token is neither configured on the plugin's configuration nor available as the GATLING_ENTERPRISE_API_TOKEN environment variable");
     }
 
     if (packageId == null) {

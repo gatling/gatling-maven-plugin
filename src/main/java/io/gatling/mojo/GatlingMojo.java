@@ -411,7 +411,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
       Class<?> scalaSimulationClass =
           testClassLoader.loadClass("io.gatling.core.scenario.Simulation");
       Class<?> javaSimulationClass =
-          testClassLoader.loadClass("io.gatling.core.javaapi.Simulation");
+          testClassLoader.loadClass("io.gatling.javaapi.core.Simulation");
       List<String> includes = MojoUtils.arrayAsListEmptyIfNull(this.includes);
       List<String> excludes = MojoUtils.arrayAsListEmptyIfNull(this.excludes);
 

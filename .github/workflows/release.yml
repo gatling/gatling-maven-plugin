@@ -24,17 +24,18 @@ jobs:
           server-id: sonatype-nexus-staging
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
       - name: Prepare environment
         env:
           SONATYPE_PGP_SECRET: ${{ secrets.SONATYPE_PGP_SECRET }}
         run: |
-          mkdir --parents ~/.sbt/1.0 || true
           echo -n "$SONATYPE_PGP_SECRET" | base64 --decode | gpg --batch --import
 
       - name: Deploy
         env:
           MAVEN_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PASSPHRASE }}
         run: |
           mvn --batch-mode deploy -Dgpg.passphrase="${{ secrets.SONATYPE_PGP_PASSPHRASE }}"

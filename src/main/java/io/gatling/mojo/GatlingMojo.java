@@ -398,6 +398,15 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
     return args;
   }
 
+  private Optional<Class<?>> loadJavaSimulationClass(ClassLoader testClassLoader) {
+    try {
+        return Optional.of(testClassLoader.loadClass("io.gatling.javaapi.core.Simulation"));
+    } catch (ClassNotFoundException e) {
+      // ignore
+      return Optional.empty();
+    }
+  }
+
   /**
    * Resolve simulation files to execute from the simulation folder.
    *
@@ -410,13 +419,8 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
       Class<?> scalaSimulationClass =
           testClassLoader.loadClass("io.gatling.core.scenario.Simulation");
-      Optional<Class<?>> javaSimulationClass = Optional.empty();
-      try {
-        javaSimulationClass =
-            Optional.of(testClassLoader.loadClass("io.gatling.javaapi.core.Simulation"));
-      } catch (ClassNotFoundException e) {
-        // ignore
-      }
+      Optional<Class<?>> javaSimulationClass = loadJavaSimulationClass(testClassLoader);
+
       List<String> includes = MojoUtils.arrayAsListEmptyIfNull(this.includes);
       List<String> excludes = MojoUtils.arrayAsListEmptyIfNull(this.excludes);
 

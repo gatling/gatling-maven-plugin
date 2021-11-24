@@ -410,8 +410,13 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
       Class<?> scalaSimulationClass =
           testClassLoader.loadClass("io.gatling.core.scenario.Simulation");
-      Class<?> javaSimulationClass =
-          testClassLoader.loadClass("io.gatling.javaapi.core.Simulation");
+      Optional<Class<?>> javaSimulationClass = Optional.empty();
+      try {
+        javaSimulationClass =
+            Optional.of(testClassLoader.loadClass("io.gatling.javaapi.core.Simulation"));
+      } catch (ClassNotFoundException e) {
+        // ignore
+      }
       List<String> includes = MojoUtils.arrayAsListEmptyIfNull(this.includes);
       List<String> excludes = MojoUtils.arrayAsListEmptyIfNull(this.excludes);
 
@@ -427,7 +432,9 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
           // check if the class is a concrete Simulation
           Class<?> clazz = testClassLoader.loadClass(className);
           if (isConcreteClass(clazz)
-              && (javaSimulationClass.isAssignableFrom(clazz)
+              && (javaSimulationClass
+                      .map(simClass -> simClass.isAssignableFrom(clazz))
+                      .orElse(false)
                   || scalaSimulationClass.isAssignableFrom(clazz))) {
             simulationsClasses.add(className);
           }

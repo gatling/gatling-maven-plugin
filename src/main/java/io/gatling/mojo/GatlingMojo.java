@@ -138,8 +138,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
   /** Executes Gatling simulations. */
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-
-    EnterpriseUtil.failOnLegacyFrontLinePlugin(project);
+    checkPluginPreConditions();
 
     if (skip) {
       getLog().info("Skipping gatling-maven-plugin");
@@ -362,7 +361,9 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
       return Collections.singletonList(simulationClass);
 
     } else {
-      List<String> simulations = resolveSimulations();
+      List<String> simulations =
+          SimulationClassUtils.resolveSimulations(
+              mavenProject, compiledClassesFolder, includes, excludes);
 
       if (simulations.isEmpty()) {
         getLog().error("No simulations to run");

@@ -17,58 +17,32 @@
 package io.gatling.mojo;
 
 import io.gatling.plugin.util.EnterpriseClient;
-import io.gatling.plugin.util.EnterpriseClientException;
-import io.gatling.plugin.util.OkHttpEnterpriseClient;
+import io.gatling.plugin.util.exceptions.EnterpriseClientException;
 import java.io.File;
-import java.net.URL;
 import java.util.UUID;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
 
 @Execute(goal = "enterprisePackage")
 @Mojo(name = "enterpriseUpload")
-public class EnterpriseUploadMojo extends AbstractMojo {
-
-  @Parameter(defaultValue = "${project}", readonly = true)
-  private MavenProject project;
-
-  @Parameter(defaultValue = "${project.build.directory}", readonly = true)
-  private File targetPath;
-
-  @Parameter(defaultValue = "shaded")
-  private String shadedClassifier;
-
-  @Parameter(defaultValue = "https://cloud.gatling.io/api/public", readonly = true)
-  private URL enterpriseUrl;
-
-  @Parameter(
-      defaultValue = "${env.GATLING_ENTERPRISE_API_TOKEN}",
-      property = "gatling.enterprise.apiToken",
-      readonly = true)
-  private String apiToken;
+public class EnterpriseUploadMojo extends AbstractEnterpriseApiMojo {
 
   @Parameter(readonly = true)
   private String packageId;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-
-    if (apiToken == null) {
-      throw new MojoFailureException(
-          "API token is neither configured on the plugin's configuration nor available as the GATLING_ENTERPRISE_API_TOKEN environment variable");
-    }
+    checkPluginPreConditions();
 
     if (packageId == null) {
       throw new MojoFailureException("Packaged ID is not configured");
     }
 
-    final File file = EnterpriseUtil.shadedArtifactFile(project, targetPath, shadedClassifier);
-    final EnterpriseClient enterpriseClient = new OkHttpEnterpriseClient(enterpriseUrl, apiToken);
+    final File file = shadedArtifactFile();
+    final EnterpriseClient enterpriseClient = initEnterpriseClient();
 
     try {
       enterpriseClient.uploadPackage(UUID.fromString(packageId), file);

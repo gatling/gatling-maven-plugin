@@ -21,8 +21,10 @@ import static java.util.Arrays.asList;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -30,6 +32,9 @@ import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.toolchain.ToolchainManager;
 
 public abstract class AbstractGatlingMojo extends AbstractMojo {
+
+  private static final String FRONTLINE_MAVEN_PLUGIN_GROUP_ID = "io.gatling.frontline";
+  private static final String FRONTLINE_MAVEN_PLUGIN_ARTIFACT_ID = "frontline-maven-plugin";
 
   /** Use this folder as the configuration directory. */
   @Parameter(
@@ -55,6 +60,23 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
 
   /** Maven's repository. */
   @Component protected RepositorySystem repository;
+
+  protected void checkPluginPreConditions() throws MojoFailureException {
+    final boolean obsoletePluginFound =
+        mavenProject.getPluginArtifacts().stream().anyMatch(AbstractGatlingMojo::isFrontLinePlugin);
+    if (obsoletePluginFound) {
+      throw new MojoFailureException(
+          "Plugin `frontline-maven-plugin` is no longer needed, its functionality is now included in `gatling-maven-plugin`.\n"
+              + "Please remove `frontline-maven-plugin` from your pom.xml plugins configuration.\n"
+              + "Please use gatling:enterprisePackage instead of configuring it on package phase.\n"
+              + "See https://gatling.io/docs/gatling/reference/current/extensions/maven_plugin/ for more information ");
+    }
+  }
+
+  private static boolean isFrontLinePlugin(Artifact artifact) {
+    return artifact.getGroupId().equals(FRONTLINE_MAVEN_PLUGIN_GROUP_ID)
+        && artifact.getArtifactId().equals(FRONTLINE_MAVEN_PLUGIN_ARTIFACT_ID);
+  }
 
   protected List<String> buildTestClasspath() throws Exception {
     List<String> testClasspathElements = new ArrayList<>();

@@ -27,14 +27,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.*;
-import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.SelectorUtils;
 import org.zeroturnaround.zip.ZipUtil;
 import org.zeroturnaround.zip.commons.FileUtilsV2_2;
@@ -44,7 +40,7 @@ import org.zeroturnaround.zip.commons.FileUtilsV2_2;
     name = "enterprisePackage",
     defaultPhase = LifecyclePhase.PACKAGE,
     requiresDependencyResolution = ResolutionScope.TEST)
-public class EnterprisePackageMojo extends AbstractMojo {
+public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
 
   private static final String[] ALWAYS_EXCLUDES =
       new String[] {
@@ -70,23 +66,11 @@ public class EnterprisePackageMojo extends AbstractMojo {
     GATLING_GROUP_IDS = Collections.unmodifiableSet(groupIds);
   }
 
-  @Component private RepositorySystem repository;
-
   @Component private MavenProjectHelper projectHelper;
 
-  @Parameter(defaultValue = "${project}", readonly = true)
-  private MavenProject project;
-
-  @Parameter(defaultValue = "${session}", readonly = true)
-  private MavenSession session;
-
-  @Parameter private String[] excludes;
-
-  @Parameter(defaultValue = "shaded")
-  private String shadedClassifier;
-
-  @Parameter(defaultValue = "${project.build.directory}", readonly = true)
-  private File targetPath;
+  /** List of exclude patterns to use for scanning. Excludes none by default. */
+  @Parameter(property = "gatling.excludes")
+  private String[] excludes;
 
   private Set<Artifact> nonGatlingDependencies(Artifact artifact) {
     if (artifact == null) {
@@ -98,14 +82,11 @@ public class EnterprisePackageMojo extends AbstractMojo {
         .collect(Collectors.toSet());
   }
 
-  private void deprecatedFrontLineMavenPluginWarning() throws MojoFailureException {}
-
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    checkPluginPreConditions();
 
-    Set<Artifact> allDeps = project.getArtifacts();
-
-    EnterpriseUtil.failOnLegacyFrontLinePlugin(project);
+    Set<Artifact> allDeps = mavenProject.getArtifacts();
 
     Artifact gatlingApp = findByGroupIdAndArtifactId(allDeps, GATLING_GROUP_ID, "gatling-app");
     Artifact gatlingChartsHighcharts =
@@ -147,9 +128,9 @@ public class EnterprisePackageMojo extends AbstractMojo {
     }
 
     // copy compiled classes
-    File outputDirectory = new File(project.getBuild().getOutputDirectory());
+    File outputDirectory = new File(mavenProject.getBuild().getOutputDirectory());
     Path outputDirectoryPath = outputDirectory.toPath();
-    File testOutputDirectory = new File(project.getBuild().getTestOutputDirectory());
+    File testOutputDirectory = new File(mavenProject.getBuild().getTestOutputDirectory());
     Path testOutputDirectoryPath = testOutputDirectory.toPath();
 
     try {
@@ -178,14 +159,15 @@ public class EnterprisePackageMojo extends AbstractMojo {
     // generate maven files directory
     File mavenDir =
         new File(
-            new File(new File(metaInfDir, "maven"), project.getGroupId()), project.getArtifactId());
+            new File(new File(metaInfDir, "maven"), mavenProject.getGroupId()),
+            mavenProject.getArtifactId());
     mavenDir.mkdirs();
 
     // generate pom.properties
     try (FileWriter fw = new FileWriter(new File(mavenDir, "pom.properties"))) {
-      fw.write("groupId=" + project.getGroupId() + "\n");
-      fw.write("artifactId=" + project.getArtifactId() + "\n");
-      fw.write("version=" + project.getVersion() + "\n");
+      fw.write("groupId=" + mavenProject.getGroupId() + "\n");
+      fw.write("artifactId=" + mavenProject.getArtifactId() + "\n");
+      fw.write("version=" + mavenProject.getVersion() + "\n");
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to generate pom.properties", e);
     }
@@ -200,9 +182,9 @@ public class EnterprisePackageMojo extends AbstractMojo {
           "    xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">"
               + "\n");
       fw.write("    <modelVersion>4.0.0</modelVersion>" + "\n");
-      fw.write("    <groupId>" + project.getGroupId() + "</groupId>" + "\n");
-      fw.write("    <artifactId>" + project.getArtifactId() + "</artifactId>" + "\n");
-      fw.write("    <version>" + project.getVersion() + "</version>" + "\n");
+      fw.write("    <groupId>" + mavenProject.getGroupId() + "</groupId>" + "\n");
+      fw.write("    <artifactId>" + mavenProject.getArtifactId() + "</artifactId>" + "\n");
+      fw.write("    <version>" + mavenProject.getVersion() + "</version>" + "\n");
       fw.write("</project>");
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to generate pom.properties", e);
@@ -213,23 +195,23 @@ public class EnterprisePackageMojo extends AbstractMojo {
 
     try (FileWriter fw = new FileWriter(manifest)) {
       fw.write("Manifest-Version: 1.0\n");
-      fw.write("Implementation-Title: " + project.getArtifactId() + "\n");
-      fw.write("Implementation-Version: " + project.getVersion() + "\n");
-      fw.write("Implementation-Vendor: " + project.getGroupId() + "\n");
+      fw.write("Implementation-Title: " + mavenProject.getArtifactId() + "\n");
+      fw.write("Implementation-Version: " + mavenProject.getVersion() + "\n");
+      fw.write("Implementation-Vendor: " + mavenProject.getGroupId() + "\n");
       fw.write("Specification-Vendor: GatlingCorp\n");
       fw.write("Gatling-Version: " + gatlingApp.getVersion() + "\n");
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to generate manifest", e);
     }
 
-    File shaded = EnterpriseUtil.shadedArtifactFile(project, targetPath, shadedClassifier);
+    File shaded = shadedArtifactFile();
 
     // generate jar
     getLog().info("Generating Gatling Enterprise package " + shaded);
     ZipUtil.pack(workingDir, shaded);
 
     // attach jar so it can be deployed
-    projectHelper.attachArtifact(project, "jar", shadedClassifier, shaded);
+    projectHelper.attachArtifact(mavenProject, "jar", shadedClassifier, shaded);
 
     try {
       FileUtilsV2_2.deleteDirectory(workingDir);

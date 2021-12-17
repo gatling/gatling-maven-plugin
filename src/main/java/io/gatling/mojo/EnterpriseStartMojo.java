@@ -18,6 +18,7 @@ package io.gatling.mojo;
 
 import io.gatling.plugin.util.EnterpriseClient;
 import io.gatling.plugin.util.exceptions.EnterpriseClientException;
+import io.gatling.plugin.util.exceptions.TeamConfigurationRequiredException;
 import io.gatling.plugin.util.model.RunSummary;
 import io.gatling.plugin.util.model.SimulationAndRunSummary;
 import java.io.File;
@@ -25,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Execute;
@@ -44,10 +46,13 @@ public class EnterpriseStartMojo extends AbstractEnterpriseApiMojo {
   @Parameter(property = "gatling.simulationClass")
   private String simulationClass;
 
-  @Parameter(readonly = true)
+  @Parameter(property = "gatling.teamId")
+  private String teamId;
+
+  @Parameter(property = "gatling.simulationId")
   private String simulationId;
 
-  @Parameter(readonly = true)
+  @Parameter(property = "gatling.simulationSystemProperties")
   private Map<String, String> simulationSystemProperties;
 
   @Override
@@ -66,8 +71,10 @@ public class EnterpriseStartMojo extends AbstractEnterpriseApiMojo {
       final RunSummary runSummary;
       if (simulationId == null) {
         getLog().info("Creating and starting simulation...");
+        final UUID teamIdUuid = teamId != null ? UUID.fromString(teamId) : null;
         final SimulationAndRunSummary result =
             enterpriseClient.createAndStartSimulation(
+                teamIdUuid,
                 mavenProject.getGroupId(),
                 mavenProject.getArtifactId(),
                 simulation(),
@@ -81,7 +88,9 @@ public class EnterpriseStartMojo extends AbstractEnterpriseApiMojo {
         getLog()
             .info(String.format("Created simulation %s with ID %s", simulationName, simulationId));
         final String configMsg =
-            "To start again the same simulation, add the 'simulationId' configuration to your pom.xml, e.g.:\n"
+            "To start again the same simulation, specify -Dgatling.simulationId="
+                + simulationId
+                + ", or add the configuration to your pom.xml, e.g.:\n"
                 + "<plugin>\n"
                 + "  <groupId>io.gatling</groupId>\n"
                 + "  <artifactId>gatling-maven-plugin</artifactId>\n"
@@ -108,6 +117,28 @@ public class EnterpriseStartMojo extends AbstractEnterpriseApiMojo {
               + enterpriseUrl
               + runSummary.reportsPath;
       getLog().info(startedMsg);
+
+    } catch (TeamConfigurationRequiredException e) {
+      final String teams =
+          e.getAvailableTeams().stream()
+              .map(t -> String.format("- %s (%s)\n", t.id, t.name))
+              .collect(Collectors.joining());
+      final String teamExample = e.getAvailableTeams().get(0).id.toString();
+      final String msg =
+          "More than 1 team were found to create a simulation.\n"
+              + "Available teams:\n"
+              + teams
+              + "Specify the team you want to use with -Dgatling.simulationId=<simulationId>, or add the configuration to your pom.xml, e.g.:\n"
+              + "<plugin>\n"
+              + "  <groupId>io.gatling</groupId>\n"
+              + "  <artifactId>gatling-maven-plugin</artifactId>\n"
+              + "  <configuration>\n"
+              + "    <teamId>"
+              + teamExample
+              + "</teamId>\n"
+              + "  </configuration>\n"
+              + "</plugin>";
+      throw new MojoFailureException(msg);
     } catch (EnterpriseClientException e) {
       throw new MojoFailureException(e.getMessage(), e);
     }
@@ -126,10 +157,26 @@ public class EnterpriseStartMojo extends AbstractEnterpriseApiMojo {
       if (simulations.size() == 1) {
         return simulations.get(0);
       } else if (simulations.isEmpty()) {
-        throw new MojoFailureException("No simulation to start");
+        throw new MojoFailureException("No simulation class to start was found");
       } else {
-        throw new MojoFailureException(
-            "More than 1 simulation to start. Specify one with -Dgatling.simulationClass=<className>.");
+        final String simulationsMsg =
+            simulations.stream().map(s -> "- " + s + "\n").collect(Collectors.joining());
+        final String simulationExample = simulations.get(0);
+        final String msg =
+            "More than 1 simulations were found.\n"
+                + "Available simulation classes:\n"
+                + simulationsMsg
+                + "Specify the simulation you want to use with -Dgatling.simulationClass=<className>, or add the configuration to your pom.xml, e.g.:\n"
+                + "<plugin>\n"
+                + "  <groupId>io.gatling</groupId>\n"
+                + "  <artifactId>gatling-maven-plugin</artifactId>\n"
+                + "  <configuration>\n"
+                + "    <simulationClass>"
+                + simulationExample
+                + "</simulationClass>\n"
+                + "  </configuration>\n"
+                + "</plugin>";
+        throw new MojoFailureException(msg);
       }
     }
   }

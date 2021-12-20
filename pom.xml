@@ -54,7 +54,7 @@
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <maven-plugin-plugin.version>3.6.2</maven-plugin-plugin.version>
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
-        <spotless-maven-plugin.version>2.17.6</spotless-maven-plugin.version>
+        <spotless-maven-plugin.version>2.17.7</spotless-maven-plugin.version>
     </properties>
 
     <dependencies>

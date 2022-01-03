@@ -1,6 +1,6 @@
 
 /*
- * Copyright 2011-2020 GatlingCorp (https://gatling.io)
+ * Copyright 2011-2022 GatlingCorp (https://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -400,7 +400,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   private Optional<Class<?>> loadJavaSimulationClass(ClassLoader testClassLoader) {
     try {
-        return Optional.of(testClassLoader.loadClass("io.gatling.javaapi.core.Simulation"));
+      return Optional.of(testClassLoader.loadClass("io.gatling.javaapi.core.Simulation"));
     } catch (ClassNotFoundException e) {
       // ignore
       return Optional.empty();

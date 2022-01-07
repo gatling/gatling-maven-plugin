@@ -16,8 +16,8 @@
  */
 package io.gatling.mojo;
 
-import io.gatling.plugin.util.EnterpriseClient;
-import io.gatling.plugin.util.exceptions.EnterpriseClientException;
+import io.gatling.plugin.EnterprisePlugin;
+import io.gatling.plugin.exceptions.EnterprisePluginException;
 import java.io.File;
 import java.util.UUID;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -28,9 +28,9 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 @Execute(goal = "enterprisePackage")
 @Mojo(name = "enterpriseUpload")
-public class EnterpriseUploadMojo extends AbstractEnterpriseApiMojo {
+public class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
 
-  @Parameter(readonly = true)
+  @Parameter(property = "gatling.enterprise.packageId")
   private String packageId;
 
   @Override
@@ -38,16 +38,21 @@ public class EnterpriseUploadMojo extends AbstractEnterpriseApiMojo {
     checkPluginPreConditions();
 
     if (packageId == null) {
-      throw new MojoFailureException("Packaged ID is not configured");
+      final String msg =
+          "Missing packageID\n"
+              + "You must configure the ID of an existing package in Gatling Enterprise; see https://gatling.io/docs/enterprise/cloud/reference/user/package_conf/\n"
+              + CommonLogMessage.missingConfiguration(
+                  "package ID", "packageId", "gatling.enterprise.packageId", null, "MY_PACKAGE_ID");
+      throw new MojoFailureException(msg);
     }
 
     final File file = shadedArtifactFile();
-    final EnterpriseClient enterpriseClient = initEnterpriseClient();
+    final EnterprisePlugin enterprisePlugin = initEnterprisePlugin();
 
     try {
-      enterpriseClient.uploadPackage(UUID.fromString(packageId), file);
+      enterprisePlugin.uploadPackage(UUID.fromString(packageId), file);
       getLog().info("Package successfully uploaded");
-    } catch (EnterpriseClientException e) {
+    } catch (EnterprisePluginException e) {
       throw new MojoFailureException(e.getMessage(), e);
     }
   }

@@ -1,0 +1,93 @@
+
+/*
+ * Copyright 2011-2022 GatlingCorp (https://gatling.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gatling.mojo;
+
+import io.gatling.plugin.model.Simulation;
+import java.net.URL;
+
+public class CommonLogMessage {
+
+  private CommonLogMessage() {}
+
+  public static String simulationCreated(Simulation simulation) {
+    return String.format(
+        "Successfully created simulation %s with ID %s", simulation.name, simulation.id);
+  }
+
+  public static String simulationChosen(Simulation simulation) {
+    return String.format("Chose to start simulation %s with ID %s", simulation.name, simulation.id);
+  }
+
+  public static String simulationStartSample(Simulation simulation) {
+    return "To start again the same simulation, specify -Dgatling.enterprise.simulationId="
+        + simulation.id
+        + ", or add the configuration to your pom.xml, e.g.:\n"
+        + "<plugin>\n"
+        + "  <groupId>io.gatling</groupId>\n"
+        + "  <artifactId>gatling-maven-plugin</artifactId>\n"
+        + "  <configuration>\n"
+        + "    <simulationId>"
+        + simulation.id
+        + "</simulationId>\n"
+        + "    <packageId>"
+        + simulation.pkgId
+        + "</packageId>\n"
+        + "  </configuration>\n"
+        + "</plugin>";
+  }
+
+  public static String simulationStartSuccess(URL enterpriseUrl, String reportsPath) {
+    return "Simulation successfully started; once running, report will be available at "
+        + enterpriseUrl
+        + reportsPath;
+  }
+
+  /**
+   * @param commonName Required
+   * @param confName Required
+   * @param sysPropName Required
+   * @param envVarName Optional
+   * @param sampleValue Required
+   */
+  public static String missingConfiguration(
+      String commonName,
+      String confName,
+      String sysPropName,
+      String envVarName,
+      String sampleValue) {
+    final String envVarMsg =
+        envVarName != null ? " in the environment variable " + envVarName + ", pass it" : "";
+    final String firstLine =
+        String.format(
+            "Specify the %s you want to use%s with -D%s=<%s>, or add the configuration to your pom.xml, e.g.:\n",
+            commonName, envVarMsg, sysPropName, confName);
+    return firstLine
+        + "<plugin>\n"
+        + "  <groupId>io.gatling</groupId>\n"
+        + "  <artifactId>gatling-maven-plugin</artifactId>\n"
+        + "  <configuration>\n"
+        + "    <"
+        + confName
+        + ">"
+        + sampleValue
+        + "</"
+        + confName
+        + ">\n"
+        + "  </configuration>\n"
+        + "</plugin>";
+  }
+}

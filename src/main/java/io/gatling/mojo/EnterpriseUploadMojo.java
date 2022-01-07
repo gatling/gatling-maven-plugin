@@ -33,16 +33,20 @@ public class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
   @Parameter(property = "gatling.enterprise.packageId")
   private String packageId;
 
+  @Parameter(property = "gatling.enterprise.simulationId")
+  private String simulationId;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     checkPluginPreConditions();
 
-    if (packageId == null) {
+    if (packageId == null && simulationId == null) {
       final String msg =
           "Missing packageID\n"
               + "You must configure the ID of an existing package in Gatling Enterprise; see https://gatling.io/docs/enterprise/cloud/reference/user/package_conf/\n"
               + CommonLogMessage.missingConfiguration(
-                  "package ID", "packageId", "gatling.enterprise.packageId", null, "MY_PACKAGE_ID");
+                  "package ID", "packageId", "gatling.enterprise.packageId", null, "MY_PACKAGE_ID")
+              + "Alternately, if you don't configure a packageId, you can configure the simulationId of an existing simulation on Gatling Enterprise: your code will be uploaded to the package used by that simulation.";
       throw new MojoFailureException(msg);
     }
 
@@ -50,7 +54,11 @@ public class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
     final EnterprisePlugin enterprisePlugin = initEnterprisePlugin();
 
     try {
-      enterprisePlugin.uploadPackage(UUID.fromString(packageId), file);
+      if (packageId != null) {
+        enterprisePlugin.uploadPackage(UUID.fromString(packageId), file);
+      } else {
+        enterprisePlugin.uploadPackageWithSimulationId(UUID.fromString(simulationId), file);
+      }
       getLog().info("Package successfully uploaded");
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(e.getMessage(), e);

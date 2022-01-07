@@ -83,7 +83,7 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
 
   protected EnterprisePlugin initEnterprisePlugin() throws MojoFailureException {
     EnterpriseClient enterpriseClient = initEnterpriseClient();
-    return new EnterprisePluginClient(enterpriseClient);
+    return new EnterprisePluginClient(enterpriseClient, pluginLogger);
   }
 
   protected InteractiveEnterprisePlugin initInteractiveEnterprisePlugin()
@@ -114,8 +114,7 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
 
     try {
       final URL apiUrl = new URL(enterpriseUrl, "api/public");
-      return OkHttpEnterpriseClient.getInstance(
-          pluginLogger, apiUrl, apiToken, pluginTitle, pluginVersion);
+      return OkHttpEnterpriseClient.getInstance(apiUrl, apiToken, pluginTitle, pluginVersion);
     } catch (UnsupportedClientException e) {
       throw new MojoFailureException(
           "Please update the Gatling Maven plugin to the latest version for compatibility with Gatling Enterprise. See https://gatling.io/docs/gatling/reference/current/extensions/maven_plugin/ for more information about this plugin.",

@@ -38,27 +38,56 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
+/**
+ * Mojo to package, upload and start a simulation on Gatling Enterprise Cloud.
+ *
+ * <ul>
+ *   <li>By default, this goal will prompt you to choose to run a simulation already configured on
+ *       Gatling Enterprise or configure a new one, and provide all required details.
+ *   <li>If a simulationId is set, this goal will automatically choose to start that simulation.
+ *   <li>If Maven is run in batch mode, any interactive prompts will be disabled and the goal will
+ *       fail if user input is required (see Maven's batch mode here:
+ *       https://maven.apache.org/ref/3-LATEST/maven-embedder/cli.html#batch-mode).
+ * </ul>
+ */
 @Execute(goal = "enterprisePackage")
 @Mojo(name = "enterpriseStart", requiresDependencyResolution = ResolutionScope.TEST)
 public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
 
-  /** List of exclude patterns to use for scanning. Excludes none by default. */
+  /**
+   * List of exclude patterns to use when scanning for simulation classes. Excludes none by default.
+   */
   @Parameter(property = "gatling.excludes")
   private String[] excludes;
 
-  /** A name of a Simulation class to run. */
+  /** The fully qualified name of the Simulation class to run. */
   @Parameter(property = "gatling.simulationClass")
   private String simulationClass;
 
+  /** The ID of the team used when configuring a new package or simulation on Gatling Enterprise. */
   @Parameter(property = "gatling.enterprise.teamId")
   private String teamId;
 
+  /**
+   * The ID of a simulation already configured on Gatling Enterprise. If 'simulationId' is
+   * configured, gatling:enterpriseStart will upload your updated code to the package configured for
+   * that simulation, and start the simulation.
+   */
   @Parameter(property = "gatling.enterprise.simulationId")
   private String simulationId;
 
+  /**
+   * The ID of a package already configured on Gatling Enterprise. When configuring a new simulation
+   * on Gatling Enterprise, this will force the use of an existing package for that simulation.
+   */
   @Parameter(property = "gatling.enterprise.packageId")
   private String packageId;
 
+  /**
+   * Provides system properties when starting a simulation, in addition to the ones which may
+   * already be configured for that simulation (see
+   * https://gatling.io/docs/enterprise/cloud/reference/user/simulations/#step-4--5-jvm-options--java-system-properties).
+   */
   @Parameter(property = "gatling.enterprise.simulationSystemProperties")
   private Map<String, String> simulationSystemProperties;
 

@@ -22,6 +22,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
+/** Deprecated, see gatling:enterprisePackage instead. */
 @Deprecated
 @Mojo(
     name = "package",

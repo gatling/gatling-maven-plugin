@@ -21,6 +21,9 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 public abstract class AbstractEnterpriseMojo extends AbstractGatlingMojo {
 
+  /**
+   * The classifier used for the JAR file when packaging simulations to run on Gatling Enterprise.
+   */
   @Parameter(defaultValue = "shaded")
   protected String shadedClassifier;
 

@@ -35,6 +35,7 @@ import org.codehaus.plexus.util.SelectorUtils;
 import org.zeroturnaround.zip.ZipUtil;
 import org.zeroturnaround.zip.commons.FileUtilsV2_2;
 
+/** Mojo to package Gatling simulations to run on Gatling Enterprise (Cloud or Self-Hosted). */
 @Execute(phase = LifecyclePhase.TEST_COMPILE)
 @Mojo(
     name = "enterprisePackage",
@@ -53,10 +54,10 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
         "*.RSA"
       };
 
-  private static String GATLING_GROUP_ID = "io.gatling";
-  private static String GATLING_HIGHCHARTS_GROUP_ID = "io.gatling.highcharts";
-  private static String GATLING_FRONTLINE_GROUP_ID = "io.gatling.frontline";
-  private static Set<String> GATLING_GROUP_IDS;
+  private static final String GATLING_GROUP_ID = "io.gatling";
+  private static final String GATLING_HIGHCHARTS_GROUP_ID = "io.gatling.highcharts";
+  private static final String GATLING_FRONTLINE_GROUP_ID = "io.gatling.frontline";
+  private static final Set<String> GATLING_GROUP_IDS;
 
   static {
     HashSet<String> groupIds = new HashSet<>();
@@ -68,7 +69,9 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
 
   @Component private MavenProjectHelper projectHelper;
 
-  /** List of exclude patterns to use for scanning. Excludes none by default. */
+  /**
+   * List of exclude patterns to use when scanning for simulation classes. Excludes none by default.
+   */
   @Parameter(property = "gatling.excludes")
   private String[] excludes;
 

@@ -26,13 +26,28 @@ import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+/**
+ * Mojo to package Gatling simulations and immediately upload them to Gatling Enterprise Cloud. The
+ * package must already be configured on Gatling Enterprise (see
+ * https://gatling.io/docs/enterprise/cloud/reference/user/package_conf/).
+ */
 @Execute(goal = "enterprisePackage")
 @Mojo(name = "enterpriseUpload")
 public class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
 
+  /**
+   * The ID of the package configured on Gatling Enterprise where you want to upload your Gatling
+   * simulations (see https://gatling.io/docs/enterprise/cloud/reference/user/package_conf/).
+   */
   @Parameter(property = "gatling.enterprise.packageId")
   private String packageId;
 
+  /**
+   * Only used if 'packageId' is NOT defined. The ID of a simulation configured on Gatling
+   * Enterprise; your Gatling simulations will be uploaded to the package configured for that
+   * simulation (see
+   * https://gatling.io/docs/enterprise/cloud/reference/user/simulations/#step-2-build-configuration).
+   */
   @Parameter(property = "gatling.enterprise.simulationId")
   private String simulationId;
 

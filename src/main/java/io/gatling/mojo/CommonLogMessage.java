@@ -24,34 +24,22 @@ public class CommonLogMessage {
   private CommonLogMessage() {}
 
   public static String simulationCreated(Simulation simulation) {
-    return String.format(
-        "Successfully created simulation %s with ID %s", simulation.name, simulation.id);
+    return "Successfully created simulation " + simulation.name + " with ID " + simulation.id;
   }
 
   public static String simulationChosen(Simulation simulation) {
-    return String.format("Chose to start simulation %s with ID %s", simulation.name, simulation.id);
+    return "Chose to start simulation " + simulation.name + " with ID " + simulation.id;
   }
 
   public static String simulationStartSample(Simulation simulation) {
     return "To start again the same simulation, specify -Dgatling.enterprise.simulationId="
         + simulation.id
         + ", or add the configuration to your pom.xml, e.g.:\n"
-        + "<plugin>\n"
-        + "  <groupId>io.gatling</groupId>\n"
-        + "  <artifactId>gatling-maven-plugin</artifactId>\n"
-        + "  <configuration>\n"
-        + "    <simulationId>"
-        + simulation.id
-        + "</simulationId>\n"
-        + "    <packageId>"
-        + simulation.pkgId
-        + "</packageId>\n"
-        + "  </configuration>\n"
-        + "</plugin>";
+        + pluginConfiguration("simulationId", simulation.id.toString());
   }
 
   public static String simulationStartSuccess(URL enterpriseUrl, String reportsPath) {
-    return "Simulation successfully started; once running, report will be available at "
+    return "Simulation successfully started; the report will be available at "
         + enterpriseUrl
         + reportsPath;
   }
@@ -75,15 +63,18 @@ public class CommonLogMessage {
         String.format(
             "Specify the %s you want to use%s with -D%s=<%s>, or add the configuration to your pom.xml, e.g.:\n",
             commonName, envVarMsg, sysPropName, confName);
-    return firstLine
-        + "<plugin>\n"
+    return firstLine + pluginConfiguration(confName, sampleValue);
+  }
+
+  private static String pluginConfiguration(String confName, String confValue) {
+    return "<plugin>\n"
         + "  <groupId>io.gatling</groupId>\n"
         + "  <artifactId>gatling-maven-plugin</artifactId>\n"
         + "  <configuration>\n"
         + "    <"
         + confName
         + ">"
-        + sampleValue
+        + confValue
         + "</"
         + confName
         + ">\n"

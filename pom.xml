@@ -100,7 +100,7 @@
         <dependency>
             <groupId>io.gatling</groupId>
             <artifactId>gatling-enterprise-plugin-commons</artifactId>
-            <version>0.0.3-M20220107151633</version>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 

@@ -4,5 +4,6 @@
 
   <!-- String, comma separate multiple branches -->
   <nonQualifierBranches>main</nonQualifierBranches>
-  <strategy>MAVEN</strategy>
+<!--  <strategy>MAVEN</strategy>-->
+  <mavenLike>false</mavenLike>
 </configuration>

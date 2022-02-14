@@ -51,7 +51,7 @@
         <junit.version>5.8.2</junit.version>
         <zt-zip.version>1.14</zt-zip.version>
 
-        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.10</nexus-staging-maven-plugin.version>
         <maven-plugin-plugin.version>3.6.4</maven-plugin-plugin.version>
         <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>

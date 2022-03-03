@@ -57,6 +57,7 @@
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
         <spotless-maven-plugin.version>2.21.0</spotless-maven-plugin.version>
+        <gatling-enterprise-plugin-commons.version>1.0.2</gatling-enterprise-plugin-commons.version>
     </properties>
 
     <dependencies>
@@ -102,7 +103,7 @@
         <dependency>
             <groupId>io.gatling</groupId>
             <artifactId>gatling-enterprise-plugin-commons</artifactId>
-            <version>1.0.1</version>
+            <version>${gatling-enterprise-plugin-commons.version}</version>
         </dependency>
     </dependencies>
 

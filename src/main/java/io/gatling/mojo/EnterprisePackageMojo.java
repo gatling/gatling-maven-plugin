@@ -16,15 +16,15 @@
  */
 package io.gatling.mojo;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import io.gatling.mojo.util.Zip;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -32,8 +32,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.util.SelectorUtils;
-import org.zeroturnaround.zip.ZipUtil;
-import org.zeroturnaround.zip.commons.FileUtilsV2_2;
 
 /** Mojo to package Gatling simulations to run on Gatling Enterprise (Cloud or Self-Hosted). */
 @Execute(phase = LifecyclePhase.TEST_COMPILE)
@@ -127,7 +125,11 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
 
     // extract dep jars
     for (Artifact artifact : filteredDeps) {
-      ZipUtil.unpack(artifact.getFile(), workingDir, name -> exclude(name) ? null : name);
+      try {
+        Zip.unzipFile(artifact.getFile(), workingDir, this::exclude);
+      } catch (IOException e) {
+        throw new MojoExecutionException("Failed to unzip " + artifact.getFile(), e);
+      }
     }
 
     // copy compiled classes
@@ -138,14 +140,14 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
 
     try {
       if (outputDirectory.exists()) {
-        FileUtilsV2_2.copyDirectory(
+        FileUtils.copyDirectory(
             outputDirectory,
             workingDir,
             pathname -> !exclude(outputDirectoryPath.relativize(pathname.toPath()).toString()),
             false);
       }
       if (testOutputDirectory.exists()) {
-        FileUtilsV2_2.copyDirectory(
+        FileUtils.copyDirectory(
             testOutputDirectory,
             workingDir,
             pathname -> !exclude(testOutputDirectoryPath.relativize(pathname.toPath()).toString()),
@@ -211,13 +213,17 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
 
     // generate jar
     getLog().info("Generating Gatling Enterprise package " + shaded);
-    ZipUtil.pack(workingDir, shaded);
+    try {
+      Zip.zipDirectory(workingDir, shaded);
+    } catch (IOException e) {
+      throw new MojoExecutionException("Failed to generate archive", e);
+    }
 
     // attach jar so it can be deployed
     projectHelper.attachArtifact(mavenProject, "jar", shadedClassifier, shaded);
 
     try {
-      FileUtilsV2_2.deleteDirectory(workingDir);
+      FileUtils.deleteDirectory(workingDir);
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to delete working directory " + workingDir, e);
     }

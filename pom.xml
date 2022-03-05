@@ -49,7 +49,7 @@
         <plexus-utils.version>3.1.0</plexus-utils.version>
         <header.basedir>${project.basedir}</header.basedir>
         <junit.version>5.8.2</junit.version>
-        <commons-io.version>2.11.0</commons-io.version>
+        <zt-zip.version>1.14</zt-zip.version>
 
         <nexus-staging-maven-plugin.version>1.6.12</nexus-staging-maven-plugin.version>
         <maven-plugin-plugin.version>3.6.4</maven-plugin-plugin.version>
@@ -96,9 +96,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>${commons-io.version}</version>
+            <groupId>org.zeroturnaround</groupId>
+            <artifactId>zt-zip</artifactId>
+            <version>${zt-zip.version}</version>
         </dependency>
         <dependency>
             <groupId>io.gatling</groupId>

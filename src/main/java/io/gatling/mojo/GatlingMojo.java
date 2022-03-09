@@ -22,6 +22,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.Arrays.stream;
 import static org.codehaus.plexus.util.StringUtils.isBlank;
 
+import io.gatling.plugin.util.Fork;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -239,14 +240,13 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
       Toolchain toolchain)
       throws Exception {
     Fork forkedGatling =
-        new Fork(
+        newFork(
             GATLING_MAIN_CLASS,
             testClasspath,
             gatlingJvmArgs,
             gatlingArgs,
             toolchain,
             propagateSystemProperties,
-            getLog(),
             workingDirectory);
     try {
       forkedGatling.run();

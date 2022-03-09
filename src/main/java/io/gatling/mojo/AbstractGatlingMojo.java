@@ -18,6 +18,8 @@ package io.gatling.mojo;
 
 import static java.util.Arrays.asList;
 
+import io.gatling.plugin.io.PluginLogger;
+import io.gatling.plugin.util.Fork;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,7 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
+import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
 
 public abstract class AbstractGatlingMojo extends AbstractMojo {
@@ -100,5 +103,89 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
     if (value != null) {
       args.addAll(asList("-" + flag, value.toString()));
     }
+  }
+
+  private static String toWindowsShortName(String value) {
+    if (MojoUtils.IS_WINDOWS) {
+      int programFilesIndex = value.indexOf("Program Files");
+      if (programFilesIndex >= 0) {
+        // Could be "Program Files" or "Program Files (x86)"
+        int firstSeparatorAfterProgramFiles =
+            value.indexOf(File.separator, programFilesIndex + "Program Files".length());
+        File longNameDir =
+            firstSeparatorAfterProgramFiles < 0
+                ? new File(value)
+                : // C:\\Program Files with
+                // trailing separator
+                new File(value.substring(0, firstSeparatorAfterProgramFiles)); // chop child
+        // Some other sibling dir could be PrograXXX and might shift short name index
+        // so we can't be sure "Program Files" is "Progra~1" and "Program Files (x86)"
+        // is "Progra~2"
+        for (int i = 0; i < 10; i++) {
+          File shortNameDir = new File(longNameDir.getParent(), "Progra~" + i);
+          if (shortNameDir.equals(longNameDir)) {
+            return shortNameDir.toString();
+          }
+        }
+      }
+    }
+
+    return value;
+  }
+
+  private static String findJavaExecutable(Toolchain toolchain) {
+    String fromToolchain = toolchain != null ? toolchain.findTool("java") : null;
+    if (fromToolchain != null) {
+      return fromToolchain;
+    } else {
+      String javaHome;
+      javaHome = System.getenv("JAVA_HOME");
+      if (javaHome == null) {
+        javaHome = System.getProperty("java.home");
+        if (javaHome == null) {
+          throw new IllegalStateException(
+              "Couldn't locate java, try setting JAVA_HOME environment variable.");
+        }
+      }
+      return javaHome + File.separator + "bin" + File.separator + "java";
+    }
+  }
+
+  private static String safe(String value) {
+    return value.contains(" ") ? '"' + value + '"' : value;
+  }
+
+  private PluginLogger newPluginLogger() {
+    return new PluginLogger() {
+      @Override
+      public void info(String message) {
+        getLog().info(message);
+      }
+
+      @Override
+      public void error(String message) {
+        getLog().error(message);
+      }
+    };
+  }
+
+  protected Fork newFork(
+      String mainClassName,
+      List<String> classpath,
+      List<String> jvmArgs,
+      List<String> args,
+      Toolchain toolchain,
+      boolean propagateSystemProperties,
+      File workingDirectory) {
+
+    return new Fork(
+        mainClassName,
+        classpath,
+        jvmArgs,
+        args,
+        safe(toWindowsShortName(findJavaExecutable(toolchain))),
+        propagateSystemProperties,
+        newPluginLogger(),
+        workingDirectory);
   }
 }

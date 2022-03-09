@@ -19,6 +19,7 @@ package io.gatling.mojo;
 import static io.gatling.mojo.MojoConstants.GATLING_JVM_ARGS;
 import static io.gatling.mojo.MojoConstants.RECORDER_MAIN_CLASS;
 
+import io.gatling.plugin.util.Fork;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,14 +94,14 @@ public class RecorderMojo extends AbstractGatlingMojo {
       List<String> recorderArgs = recorderArgs();
       Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
       Fork forkedRecorder =
-          new Fork(
+          newFork(
               RECORDER_MAIN_CLASS,
               testClasspath,
               GATLING_JVM_ARGS,
               recorderArgs,
               toolchain,
               true,
-              getLog());
+              null);
       forkedRecorder.run();
     } catch (MojoExecutionException | MojoFailureException e) {
       throw e;

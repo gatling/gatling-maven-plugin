@@ -77,6 +77,8 @@ public class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
       getLog().info("Package successfully uploaded");
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(e.getMessage(), e);
+    } finally {
+      closeSilently(enterprisePlugin);
     }
   }
 }

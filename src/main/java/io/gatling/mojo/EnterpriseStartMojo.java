@@ -138,6 +138,8 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
           .runSummary;
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(e.getMessage(), e);
+    } finally {
+      closeSilently(enterprisePlugin);
     }
   }
 
@@ -170,6 +172,8 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
               + CommonLogMessage.missingConfiguration(
                   "team", "teamId", "gatling.enterprise.teamId", null, teamExample);
       throw new MojoFailureException(msg);
+    } finally {
+      closeSilently(enterprisePlugin);
     }
 
     logSimulationCreatedOrChosen(result);
@@ -196,6 +200,8 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
               file);
     } catch (EmptyChoicesException e) {
       throw new MojoFailureException(e.getMessage(), e);
+    } finally {
+      closeSilently(interactiveEnterprisePlugin);
     }
 
     logSimulationCreatedOrChosen(result);

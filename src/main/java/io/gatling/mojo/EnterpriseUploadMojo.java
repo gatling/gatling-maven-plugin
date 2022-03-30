@@ -16,7 +16,7 @@
  */
 package io.gatling.mojo;
 
-import io.gatling.plugin.EnterprisePlugin;
+import io.gatling.plugin.BatchEnterprisePlugin;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
 import java.io.File;
 import java.util.UUID;
@@ -66,7 +66,7 @@ public class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
     }
 
     final File file = shadedArtifactFile();
-    final EnterprisePlugin enterprisePlugin = initEnterprisePlugin();
+    final BatchEnterprisePlugin enterprisePlugin = initBatchEnterprisePlugin();
 
     try {
       if (packageId != null) {

@@ -16,10 +16,7 @@
  */
 package io.gatling.mojo;
 
-import io.gatling.plugin.EnterprisePlugin;
-import io.gatling.plugin.EnterprisePluginClient;
-import io.gatling.plugin.InteractiveEnterprisePlugin;
-import io.gatling.plugin.InteractiveEnterprisePluginClient;
+import io.gatling.plugin.*;
 import io.gatling.plugin.client.EnterpriseClient;
 import io.gatling.plugin.client.http.OkHttpEnterpriseClient;
 import io.gatling.plugin.exceptions.UnsupportedClientException;
@@ -81,15 +78,13 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
         }
       };
 
-  protected EnterprisePlugin initEnterprisePlugin() throws MojoFailureException {
-    EnterpriseClient enterpriseClient = initEnterpriseClient();
-    return new EnterprisePluginClient(enterpriseClient, pluginLogger);
+  protected BatchEnterprisePlugin initBatchEnterprisePlugin() throws MojoFailureException {
+    return new BatchEnterprisePluginClient(initEnterpriseClient(), pluginLogger);
   }
 
   protected InteractiveEnterprisePlugin initInteractiveEnterprisePlugin()
       throws MojoFailureException {
-    EnterpriseClient enterpriseClient = initEnterpriseClient();
-    return new InteractiveEnterprisePluginClient(enterpriseClient, pluginIO);
+    return new InteractiveEnterprisePluginClient(initEnterpriseClient(), pluginIO);
   }
 
   private EnterpriseClient initEnterpriseClient() throws MojoFailureException {

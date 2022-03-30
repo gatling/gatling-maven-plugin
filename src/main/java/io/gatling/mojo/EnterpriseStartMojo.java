@@ -18,8 +18,8 @@ package io.gatling.mojo;
 
 import io.gatling.plugin.EmptyChoicesException;
 import io.gatling.plugin.EnterprisePlugin;
-import io.gatling.plugin.InteractiveEnterprisePlugin;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
+import io.gatling.plugin.exceptions.SeveralSimulationClassNamesFoundException;
 import io.gatling.plugin.exceptions.SeveralTeamsFoundException;
 import io.gatling.plugin.exceptions.SimulationStartException;
 import io.gatling.plugin.model.RunSummary;
@@ -27,7 +27,6 @@ import io.gatling.plugin.model.Simulation;
 import io.gatling.plugin.model.SimulationStartResult;
 import java.io.File;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -105,36 +104,30 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
 
     try {
       final RunSummary runSummary;
+      final EnterprisePlugin plugin =
+          initEnterprisePlugin(session.getRequest().isInteractiveMode());
       if (simulationId != null) {
-        runSummary = startExistingSimulation(file);
-      } else if (session.getRequest().isInteractiveMode()) {
-        runSummary = interactiveCreateAndStartSimulation(file, teamIdUuid, packageIdUuid);
+        runSummary = startExistingSimulation(plugin, file);
       } else {
-        runSummary = batchCreateAndStartSimulation(file, teamIdUuid, packageIdUuid);
+        runSummary = createAndStartSimulation(plugin, file, teamIdUuid, packageIdUuid);
       }
       getLog().info(CommonLogMessage.simulationStartSuccess(enterpriseUrl, runSummary.reportsPath));
-    } catch (SimulationStartException e) {
-      final Simulation simulation = e.getSimulation();
-      final String msg =
-          "Failed to start simulation.\n"
-              + String.format(
-                  "Simulation %s with ID %s exists but could not be started: ",
-                  simulation.name, simulation.id)
-              + e.getCause().getMessage()
-              + "\n"
-              + CommonLogMessage.simulationStartSample(simulation);
-      throw new MojoFailureException(msg, e);
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(e.getMessage(), e);
     }
   }
 
-  private RunSummary startExistingSimulation(File file) throws MojoFailureException {
+  private EnterprisePlugin initEnterprisePlugin(Boolean isInteractive)
+          throws MojoFailureException {
+    return isInteractive ? initInteractiveEnterprisePlugin() : initBatchEnterprisePlugin();
+  }
+
+  private RunSummary startExistingSimulation(EnterprisePlugin enterprisePlugin, File file)
+      throws MojoFailureException {
     getLog().info("Uploading and starting simulation...");
-    final EnterprisePlugin enterprisePlugin = initEnterprisePlugin();
     try {
       return enterprisePlugin.uploadPackageAndStartSimulation(
-              UUID.fromString(simulationId), simulationSystemProperties, file)
+              UUID.fromString(simulationId), simulationSystemProperties, simulationClass, file)
           .runSummary;
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(e.getMessage(), e);
@@ -143,11 +136,9 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     }
   }
 
-  private RunSummary batchCreateAndStartSimulation(File file, UUID teamIdUuid, UUID packageIdUuid)
+  private RunSummary createAndStartSimulation(
+      EnterprisePlugin enterprisePlugin, File file, UUID teamIdUuid, UUID packageIdUuid)
       throws EnterprisePluginException, MojoFailureException {
-    getLog().info("Creating and starting simulation (batch mode)...");
-
-    final EnterprisePlugin enterprisePlugin = initEnterprisePlugin();
     final SimulationStartResult result;
     try {
       result =
@@ -155,7 +146,7 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
               teamIdUuid,
               mavenProject.getGroupId(),
               mavenProject.getArtifactId(),
-              simulationClass(),
+              simulationClass,
               packageIdUuid,
               simulationSystemProperties,
               file);
@@ -172,36 +163,35 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
               + CommonLogMessage.missingConfiguration(
                   "team", "teamId", "gatling.enterprise.teamId", null, teamExample);
       throw new MojoFailureException(msg);
-    } finally {
-      closeSilently(enterprisePlugin);
-    }
-
-    logSimulationCreatedOrChosen(result);
-    return result.runSummary;
-  }
-
-  private RunSummary interactiveCreateAndStartSimulation(
-      File file, UUID teamIdUuid, UUID packageIdUuid)
-      throws EnterprisePluginException, MojoFailureException {
-    final InteractiveEnterprisePlugin interactiveEnterprisePlugin =
-        initInteractiveEnterprisePlugin();
-
-    final SimulationStartResult result;
-    try {
-      result =
-          interactiveEnterprisePlugin.createOrStartSimulation(
-              teamIdUuid,
-              mavenProject.getGroupId(),
-              mavenProject.getArtifactId(),
-              simulationClass,
-              allSimulationClasses(),
-              packageIdUuid,
-              simulationSystemProperties,
-              file);
+    } catch (SeveralSimulationClassNamesFoundException e) {
+      final String availableClasses =
+          e.getAvailableSimulationClassNames().stream()
+              .map(s -> String.format("- %s\n", s))
+              .collect(Collectors.joining());
+      final String classExample = e.getAvailableSimulationClassNames().stream().findFirst().get();
+      final String msg =
+          "Several simulation classes were found.\n"
+              + "Available classes:\n"
+              + availableClasses
+              + "\n"
+              + CommonLogMessage.missingConfiguration(
+                  "class", "simulationClass", "gatling.simulationClass", null, classExample);
+      throw new MojoFailureException(msg);
+    } catch (SimulationStartException e) {
+      final Simulation simulation = e.getSimulation();
+      final String msg =
+          "Failed to start simulation.\n"
+              + String.format(
+                  "Simulation %s with ID %s exists but could not be started: ",
+                  simulation.name, simulation.id)
+              + e.getCause().getMessage()
+              + "\n"
+              + CommonLogMessage.simulationStartSample(simulation);
+      throw new MojoFailureException(msg, e);
     } catch (EmptyChoicesException e) {
       throw new MojoFailureException(e.getMessage(), e);
     } finally {
-      closeSilently(interactiveEnterprisePlugin);
+      closeSilently(enterprisePlugin);
     }
 
     logSimulationCreatedOrChosen(result);
@@ -215,42 +205,5 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
       getLog().info(CommonLogMessage.simulationChosen(result.simulation));
     }
     getLog().info(CommonLogMessage.simulationStartSample(result.simulation));
-  }
-
-  private String simulationClass() throws MojoFailureException {
-    // Solves the simulations, if no simulation file is defined
-    if (simulationClass != null) {
-      return simulationClass;
-    } else {
-      // excludes patterns are used to exclude classes from the enterprise JAR packaging, so
-      // excluded classes cannot be selected here either
-      final List<String> simulations = allSimulationClasses();
-      if (simulations.size() == 1) {
-        return simulations.get(0);
-      } else if (simulations.isEmpty()) {
-        throw new MojoFailureException(
-            "No simulation class discovered. Your project should contain at least one simulation (https://gatling.io/docs/gatling/reference/current/core/simulation/).");
-      } else {
-        final String availableSimulations =
-            simulations.stream().map(s -> "- " + s + "\n").collect(Collectors.joining());
-        final String simulationExample = simulations.get(0);
-        final String msg =
-            "Several simulation classes were found.\n"
-                + "Available simulations:\n"
-                + availableSimulations
-                + CommonLogMessage.missingConfiguration(
-                    "simulation",
-                    "simulationClass",
-                    "gatling.simulationClass",
-                    null,
-                    simulationExample);
-        throw new MojoFailureException(msg);
-      }
-    }
-  }
-
-  private List<String> allSimulationClasses() {
-    return SimulationClassUtils.resolveSimulations(
-        mavenProject, compiledClassesFolder, null, excludes);
   }
 }

@@ -20,6 +20,7 @@ import static java.util.Arrays.asList;
 
 import io.gatling.plugin.io.PluginLogger;
 import io.gatling.plugin.util.Fork;
+import io.gatling.plugin.util.MainWithArgsInFile;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,6 +96,7 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
 
     // Add plugin jar to classpath (used by MainWithArgsInFile)
     testClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));
+    testClasspathElements.add(MojoUtils.locateJar(MainWithArgsInFile.class));
 
     return testClasspathElements;
   }

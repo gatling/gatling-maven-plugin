@@ -17,7 +17,6 @@
 package io.gatling.mojo;
 
 import io.gatling.plugin.BatchEnterprisePlugin;
-import io.gatling.plugin.exceptions.EnterprisePluginException;
 import java.io.File;
 import java.util.UUID;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -69,14 +68,16 @@ public class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
     final BatchEnterprisePlugin enterprisePlugin = initBatchEnterprisePlugin();
 
     try {
-      if (packageId != null) {
-        enterprisePlugin.uploadPackage(UUID.fromString(packageId), file);
-      } else {
-        enterprisePlugin.uploadPackageWithSimulationId(UUID.fromString(simulationId), file);
-      }
+      RecoverEnterprisePluginException.handle(
+          () -> {
+            if (packageId != null) {
+              return enterprisePlugin.uploadPackage(UUID.fromString(packageId), file);
+            } else {
+              return enterprisePlugin.uploadPackageWithSimulationId(
+                  UUID.fromString(simulationId), file);
+            }
+          });
       getLog().info("Package successfully uploaded");
-    } catch (EnterprisePluginException e) {
-      throw new MojoFailureException(e.getMessage(), e);
     } finally {
       closeSilently(enterprisePlugin);
     }

@@ -16,20 +16,14 @@
  */
 package io.gatling.mojo;
 
-import io.gatling.plugin.EmptyChoicesException;
 import io.gatling.plugin.EnterprisePlugin;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
-import io.gatling.plugin.exceptions.SeveralSimulationClassNamesFoundException;
-import io.gatling.plugin.exceptions.SeveralTeamsFoundException;
-import io.gatling.plugin.exceptions.SimulationStartException;
 import io.gatling.plugin.model.RunSummary;
-import io.gatling.plugin.model.Simulation;
 import io.gatling.plugin.model.SimulationStartResult;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Execute;
@@ -117,8 +111,7 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     }
   }
 
-  private EnterprisePlugin initEnterprisePlugin(Boolean isInteractive)
-          throws MojoFailureException {
+  private EnterprisePlugin initEnterprisePlugin(Boolean isInteractive) throws MojoFailureException {
     return isInteractive ? initInteractiveEnterprisePlugin() : initBatchEnterprisePlugin();
   }
 
@@ -142,54 +135,16 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     final SimulationStartResult result;
     try {
       result =
-          enterprisePlugin.createAndStartSimulation(
-              teamIdUuid,
-              mavenProject.getGroupId(),
-              mavenProject.getArtifactId(),
-              simulationClass,
-              packageIdUuid,
-              simulationSystemProperties,
-              file);
-    } catch (SeveralTeamsFoundException e) {
-      final String availableTeams =
-          e.getAvailableTeams().stream()
-              .map(t -> String.format("- %s (%s)\n", t.id, t.name))
-              .collect(Collectors.joining());
-      final String teamExample = e.getAvailableTeams().get(0).id.toString();
-      final String msg =
-          "Several teams were found to create a simulation.\n"
-              + "Available teams:\n"
-              + availableTeams
-              + CommonLogMessage.missingConfiguration(
-                  "team", "teamId", "gatling.enterprise.teamId", null, teamExample);
-      throw new MojoFailureException(msg);
-    } catch (SeveralSimulationClassNamesFoundException e) {
-      final String availableClasses =
-          e.getAvailableSimulationClassNames().stream()
-              .map(s -> String.format("- %s\n", s))
-              .collect(Collectors.joining());
-      final String classExample = e.getAvailableSimulationClassNames().stream().findFirst().get();
-      final String msg =
-          "Several simulation classes were found.\n"
-              + "Available classes:\n"
-              + availableClasses
-              + "\n"
-              + CommonLogMessage.missingConfiguration(
-                  "class", "simulationClass", "gatling.simulationClass", null, classExample);
-      throw new MojoFailureException(msg);
-    } catch (SimulationStartException e) {
-      final Simulation simulation = e.getSimulation();
-      final String msg =
-          "Failed to start simulation.\n"
-              + String.format(
-                  "Simulation %s with ID %s exists but could not be started: ",
-                  simulation.name, simulation.id)
-              + e.getCause().getMessage()
-              + "\n"
-              + CommonLogMessage.simulationStartSample(simulation);
-      throw new MojoFailureException(msg, e);
-    } catch (EmptyChoicesException e) {
-      throw new MojoFailureException(e.getMessage(), e);
+          RecoverEnterprisePluginException.handle(
+              () ->
+                  enterprisePlugin.createAndStartSimulation(
+                      teamIdUuid,
+                      mavenProject.getGroupId(),
+                      mavenProject.getArtifactId(),
+                      simulationClass,
+                      packageIdUuid,
+                      simulationSystemProperties,
+                      file));
     } finally {
       closeSilently(enterprisePlugin);
     }

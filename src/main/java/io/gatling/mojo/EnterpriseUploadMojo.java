@@ -76,7 +76,8 @@ public class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
               return enterprisePlugin.uploadPackageWithSimulationId(
                   UUID.fromString(simulationId), file);
             }
-          });
+          },
+          getLog());
       getLog().info("Package successfully uploaded");
     } finally {
       closeSilently(enterprisePlugin);

@@ -144,7 +144,8 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
                       simulationClass,
                       packageIdUuid,
                       simulationSystemProperties,
-                      file));
+                      file),
+              getLog());
     } finally {
       closeSilently(enterprisePlugin);
     }

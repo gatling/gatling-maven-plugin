@@ -21,6 +21,7 @@ import io.gatling.plugin.exceptions.*;
 import io.gatling.plugin.model.Simulation;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 
 public class RecoverEnterprisePluginException {
 
@@ -29,7 +30,7 @@ public class RecoverEnterprisePluginException {
     R apply() throws EnterprisePluginException;
   }
 
-  static <R> R handle(EnterprisePluginExceptionFunction<R> f) throws MojoFailureException {
+  static <R> R handle(EnterprisePluginExceptionFunction<R> f, Log log) throws MojoFailureException {
     try {
       return f.apply();
     } catch (UnsupportedJavaVersionException e) {
@@ -72,6 +73,9 @@ public class RecoverEnterprisePluginException {
       throw new MojoFailureException(msg);
     } catch (SimulationStartException e) {
       final Simulation simulation = e.getSimulation();
+      if (e.isCreated()) {
+        log.info(CommonLogMessage.simulationCreated(simulation));
+      }
       final String msg =
           "Failed to start simulation.\n"
               + String.format(

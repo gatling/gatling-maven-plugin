@@ -17,10 +17,7 @@
 package io.gatling.mojo;
 
 import io.gatling.plugin.EmptyChoicesException;
-import io.gatling.plugin.exceptions.EnterprisePluginException;
-import io.gatling.plugin.exceptions.SeveralSimulationClassNamesFoundException;
-import io.gatling.plugin.exceptions.SeveralTeamsFoundException;
-import io.gatling.plugin.exceptions.SimulationStartException;
+import io.gatling.plugin.exceptions.*;
 import io.gatling.plugin.model.Simulation;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.MojoFailureException;
@@ -35,6 +32,17 @@ public class RecoverEnterprisePluginException {
   static <R> R handle(EnterprisePluginExceptionFunction<R> f) throws MojoFailureException {
     try {
       return f.apply();
+    } catch (UnsupportedJavaVersionException e) {
+      final String msg =
+          e.getMessage()
+              + "\nIn order to target the supported Java bytecode version, please use the following Maven setting:\n"
+              + "<maven.compiler.release>"
+              + e.supportedVersion
+              + "</maven.compiler.release>\n"
+              + "Or, reported class may come from your project dependencies, published targeting Java "
+              + e.version
+              + ".";
+      throw new MojoFailureException(msg);
     } catch (SeveralTeamsFoundException e) {
       final String availableTeams =
           e.getAvailableTeams().stream()

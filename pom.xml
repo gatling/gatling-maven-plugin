@@ -56,7 +56,7 @@
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
         <spotless-maven-plugin.version>2.22.2</spotless-maven-plugin.version>
-        <gatling-enterprise-plugin-commons.version>1.1.1</gatling-enterprise-plugin-commons.version>
+        <gatling-enterprise-plugin-commons.version>1.1.2</gatling-enterprise-plugin-commons.version>
     </properties>
 
     <dependencies>

@@ -111,7 +111,7 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     }
   }
 
-  private EnterprisePlugin initEnterprisePlugin(Boolean isInteractive) throws MojoFailureException {
+  private EnterprisePlugin initEnterprisePlugin(boolean isInteractive) throws MojoFailureException {
     return isInteractive ? initInteractiveEnterprisePlugin() : initBatchEnterprisePlugin();
   }
 

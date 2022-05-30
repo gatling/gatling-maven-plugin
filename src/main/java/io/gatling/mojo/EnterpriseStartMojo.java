@@ -79,10 +79,20 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
   /**
    * Provides system properties when starting a simulation, in addition to the ones which may
    * already be configured for that simulation (see
-   * https://gatling.io/docs/enterprise/cloud/reference/user/simulations/#step-4--5-jvm-options--java-system-properties).
+   * https://gatling.io/docs/enterprise/cloud/reference/user/simulations/#step-3-injector-parameters).
    */
   @Parameter(property = "gatling.enterprise.simulationSystemProperties")
   private Map<String, String> simulationSystemProperties;
+
+  /**
+   * Provides system properties formatted as a string when starting a simulation, in addition to the
+   * ones which may already be configured for that simulation (see
+   * https://gatling.io/docs/enterprise/cloud/reference/user/simulations/#step-3-injector-parameters).
+   * Use the following format: key1=value1,key2=value2 This setting will override the setting
+   * simulationSystemProperties
+   */
+  @Parameter(property = "gatling.enterprise.simulationSystemPropertiesString")
+  private String simulationSystemPropertiesString;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -120,7 +130,11 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     getLog().info("Uploading and starting simulation...");
     try {
       return enterprisePlugin.uploadPackageAndStartSimulation(
-              UUID.fromString(simulationId), simulationSystemProperties, simulationClass, file)
+              UUID.fromString(simulationId),
+              simulationSystemProperties,
+              simulationSystemPropertiesString,
+              simulationClass,
+              file)
           .runSummary;
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(e.getMessage(), e);
@@ -144,6 +158,7 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
                       simulationClass,
                       packageIdUuid,
                       simulationSystemProperties,
+                      simulationSystemPropertiesString,
                       file),
               getLog());
     } finally {

@@ -10,18 +10,14 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        java: [ '8', '11', '17' ]
-        os: [ 'ubuntu-latest' ]
-    runs-on: ${{ matrix.os }}
+    runs-on: 'ubuntu-latest'
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK
       uses: actions/setup-java@v2
       with:
         distribution: 'zulu'
-        java-version: ${{ matrix.java }}
+        java-version: '8'
     - name: print Java version
       run: java -version
     - uses: actions/cache@v2

@@ -20,6 +20,7 @@ import io.gatling.plugin.EnterprisePlugin;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.model.RunSummary;
 import io.gatling.plugin.model.SimulationStartResult;
+import io.gatling.plugin.util.PropertiesParserUtil;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
@@ -78,21 +79,36 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
 
   /**
    * Provides system properties when starting a simulation, in addition to the ones which may
-   * already be configured for that simulation (see
+   * already be defined for that simulation (see
    * https://gatling.io/docs/enterprise/cloud/reference/user/simulations/#step-3-injector-parameters).
+   * To provide system properties on the command line, use the format
+   * -Dgatling.enterprise.simulationSystemProperties=key1=value1,key2=value2
    */
-  @Parameter(property = "gatling.enterprise.simulationSystemProperties")
-  private Map<String, String> simulationSystemProperties;
+  @Parameter private Map<String, String> simulationSystemProperties;
 
   /**
-   * Provides system properties formatted as a string when starting a simulation, in addition to the
-   * ones which may already be configured for that simulation (see
-   * https://gatling.io/docs/enterprise/cloud/reference/user/simulations/#step-3-injector-parameters).
-   * Use the following format: key1=value1,key2=value2 This setting will override the setting
-   * simulationSystemProperties
+   * Alternative to simulationSystemProperties. Use the following format: key1=value1,key2=value2
+   * This is meant to be used on the command line, rather than in the pom.xml.
    */
-  @Parameter(property = "gatling.enterprise.simulationSystemPropertiesString")
+  @Parameter(property = "gatling.enterprise.simulationSystemProperties")
   private String simulationSystemPropertiesString;
+
+  /**
+   * Provides additional environment variables when starting a simulation, in addition to the ones
+   * which may already be defined for that simulation (see
+   * https://gatling.io/docs/enterprise/cloud/reference/user/simulations/#step-3-injector-parameters).
+   * To provide environment variables on the command line, use the format use
+   * -Dgatling.enterprise.simulationEnvironmentVariables=key1=value1,key2=value2
+   */
+  @Parameter private Map<String, String> simulationEnvironmentVariables;
+
+  /**
+   * Alternative to simulationEnvironmentVariables. Use the following format:
+   * key1=value1,key2=value2 This is meant to be used on the command line, rather than in the
+   * pom.xml.
+   */
+  @Parameter(property = "gatling.enterprise.simulationEnvironmentVariables")
+  private String simulationEnvironmentVariablesString;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -131,8 +147,9 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     try {
       return enterprisePlugin.uploadPackageAndStartSimulation(
               UUID.fromString(simulationId),
-              simulationSystemProperties,
-              simulationSystemPropertiesString,
+              selectProperties(simulationSystemProperties, simulationSystemPropertiesString),
+              selectProperties(
+                  simulationEnvironmentVariables, simulationEnvironmentVariablesString),
               simulationClass,
               file)
           .runSummary;
@@ -157,8 +174,10 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
                       mavenProject.getArtifactId(),
                       simulationClass,
                       packageIdUuid,
-                      simulationSystemProperties,
-                      simulationSystemPropertiesString,
+                      selectProperties(
+                          simulationSystemProperties, simulationSystemPropertiesString),
+                      selectProperties(
+                          simulationEnvironmentVariables, simulationEnvironmentVariablesString),
                       file),
               getLog());
     } finally {
@@ -176,5 +195,12 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
       getLog().info(CommonLogMessage.simulationChosen(result.simulation));
     }
     getLog().info(CommonLogMessage.simulationStartSample(result.simulation));
+  }
+
+  private Map<String, String> selectProperties(
+      Map<String, String> propertiesMap, String propertiesString) {
+    return (propertiesMap == null || propertiesMap.isEmpty())
+        ? PropertiesParserUtil.parseProperties(propertiesString)
+        : propertiesMap;
   }
 }

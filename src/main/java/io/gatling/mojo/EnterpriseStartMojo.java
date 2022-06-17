@@ -155,34 +155,26 @@ public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
           .runSummary;
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(e.getMessage(), e);
-    } finally {
-      closeSilently(enterprisePlugin);
     }
   }
 
   private RunSummary createAndStartSimulation(
       EnterprisePlugin enterprisePlugin, File file, UUID teamIdUuid, UUID packageIdUuid)
       throws EnterprisePluginException, MojoFailureException {
-    final SimulationStartResult result;
-    try {
-      result =
-          RecoverEnterprisePluginException.handle(
-              () ->
-                  enterprisePlugin.createAndStartSimulation(
-                      teamIdUuid,
-                      mavenProject.getGroupId(),
-                      mavenProject.getArtifactId(),
-                      simulationClass,
-                      packageIdUuid,
-                      selectProperties(
-                          simulationSystemProperties, simulationSystemPropertiesString),
-                      selectProperties(
-                          simulationEnvironmentVariables, simulationEnvironmentVariablesString),
-                      file),
-              getLog());
-    } finally {
-      closeSilently(enterprisePlugin);
-    }
+    final SimulationStartResult result =
+        RecoverEnterprisePluginException.handle(
+            () ->
+                enterprisePlugin.createAndStartSimulation(
+                    teamIdUuid,
+                    mavenProject.getGroupId(),
+                    mavenProject.getArtifactId(),
+                    simulationClass,
+                    packageIdUuid,
+                    selectProperties(simulationSystemProperties, simulationSystemPropertiesString),
+                    selectProperties(
+                        simulationEnvironmentVariables, simulationEnvironmentVariablesString),
+                    file),
+            getLog());
 
     logSimulationCreatedOrChosen(result);
     return result.runSummary;

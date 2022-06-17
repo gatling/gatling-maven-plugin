@@ -67,20 +67,13 @@ public class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
     final File file = shadedArtifactFile();
     final BatchEnterprisePlugin enterprisePlugin = initBatchEnterprisePlugin();
 
-    try {
-      RecoverEnterprisePluginException.handle(
-          () -> {
-            if (packageId != null) {
-              return enterprisePlugin.uploadPackage(UUID.fromString(packageId), file);
-            } else {
-              return enterprisePlugin.uploadPackageWithSimulationId(
-                  UUID.fromString(simulationId), file);
-            }
-          },
-          getLog());
-      getLog().info("Package successfully uploaded");
-    } finally {
-      closeSilently(enterprisePlugin);
-    }
+    RecoverEnterprisePluginException.handle(
+        () ->
+            packageId != null
+                ? enterprisePlugin.uploadPackage(UUID.fromString(packageId), file)
+                : enterprisePlugin.uploadPackageWithSimulationId(
+                    UUID.fromString(simulationId), file),
+        getLog());
+    getLog().info("Package successfully uploaded");
   }
 }

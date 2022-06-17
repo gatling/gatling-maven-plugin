@@ -18,7 +18,7 @@ package io.gatling.mojo;
 
 import io.gatling.plugin.*;
 import io.gatling.plugin.client.EnterpriseClient;
-import io.gatling.plugin.client.http.OkHttpEnterpriseClient;
+import io.gatling.plugin.client.http.HttpEnterpriseClient;
 import io.gatling.plugin.exceptions.UnsupportedClientException;
 import io.gatling.plugin.io.JavaPluginScanner;
 import io.gatling.plugin.io.PluginIO;
@@ -109,7 +109,7 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
 
     try {
       final URL apiUrl = new URL(enterpriseUrl, "api/public");
-      return new OkHttpEnterpriseClient(apiUrl, apiToken, pluginTitle, pluginVersion);
+      return new HttpEnterpriseClient(apiUrl, apiToken, pluginTitle, pluginVersion);
     } catch (UnsupportedClientException e) {
       throw new MojoFailureException(
           "Please update the Gatling Maven plugin to the latest version for compatibility with Gatling Enterprise. See https://gatling.io/docs/gatling/reference/current/extensions/maven_plugin/ for more information about this plugin.",

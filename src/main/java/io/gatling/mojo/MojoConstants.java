@@ -18,22 +18,25 @@ package io.gatling.mojo;
 
 import static java.util.Arrays.asList;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class MojoConstants {
 
   private MojoConstants() {}
 
   // Recorder constants
-  public static final String RECORDER_MAIN_CLASS = "io.gatling.recorder.GatlingRecorder";
+  static final String RECORDER_MAIN_CLASS = "io.gatling.recorder.GatlingRecorder";
 
   // Compiler constants
-  public static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
-  public static final List<String> COMPILER_JVM_ARGS = asList("-Xmx1G", "-Xss100M");
+  static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
+  static final List<String> COMPILER_JVM_ARGS = asList("-Xmx1G", "-Xss100M");
 
   // Gatling constants
-  public static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
-  public static final List<String> GATLING_JVM_ARGS =
+  static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
+  static final List<String> GATLING_JVM_ARGS =
       asList(
           "-server",
           "-Xmx1G",
@@ -43,4 +46,20 @@ public final class MojoConstants {
           "-XX:MaxInlineLevel=20",
           "-XX:MaxTrivialSize=12",
           "-XX:-UseBiasedLocking");
+
+  static final String GATLING_GROUP_ID = "io.gatling";
+  static final String GATLING_MODULE_APP = "gatling-app";
+  static final String GATLING_HIGHCHARTS_GROUP_ID = "io.gatling.highcharts";
+  static final String GATLING_MODULE_HIGHCHARTS = "gatling-charts-highcharts";
+  static final String GATLING_FRONTLINE_GROUP_ID = "io.gatling.frontline";
+  static final String GATLING_FRONTLINE_MODULE_PROBE = "frontline-probe";
+  static final Set<String> GATLING_GROUP_IDS;
+
+  static {
+    HashSet<String> groupIds = new HashSet<>();
+    groupIds.add(GATLING_GROUP_ID);
+    groupIds.add(GATLING_HIGHCHARTS_GROUP_ID);
+    groupIds.add(GATLING_FRONTLINE_GROUP_ID);
+    GATLING_GROUP_IDS = Collections.unmodifiableSet(groupIds);
+  }
 }

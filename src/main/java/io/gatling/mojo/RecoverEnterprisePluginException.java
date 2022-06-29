@@ -36,13 +36,16 @@ public class RecoverEnterprisePluginException {
     } catch (UnsupportedJavaVersionException e) {
       final String msg =
           e.getMessage()
-              + "\nIn order to target the supported Java bytecode version, please use the following Maven setting:\n"
+              + "\nIn order to target the supported Java version, please use the following Maven setting:\n"
               + "<maven.compiler.release>"
               + e.supportedVersion
               + "</maven.compiler.release>\n"
-              + "Or, reported class may come from your project dependencies, published targeting Java "
+              + "See also the Maven compiler plugin documentation: https://maven.apache.org/plugins/maven-compiler-plugin/examples/set-compiler-release.html\n"
+              + "Alternatively, the reported class may come from your project's dependencies, published targeting Java "
               + e.version
-              + ".";
+              + ". In this case you need to use dependencies which target Java "
+              + e.supportedVersion
+              + " or lower.";
       throw new MojoFailureException(msg);
     } catch (SeveralTeamsFoundException e) {
       final String availableTeams =
@@ -88,7 +91,8 @@ public class RecoverEnterprisePluginException {
     } catch (EmptyChoicesException e) {
       throw new MojoFailureException(e.getMessage(), e);
     } catch (EnterprisePluginException e) {
-      throw new MojoFailureException("Unhandled enterprise plugin exception", e);
+      throw new MojoFailureException(
+          "Unhandled Gatling Enterprise plugin exception: " + e.getMessage(), e);
     }
   }
 }

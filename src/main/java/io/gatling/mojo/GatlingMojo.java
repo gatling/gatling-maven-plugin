@@ -406,6 +406,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
 
     if ((gatlingMajorVersion == 3 && gatlingMinorVersion >= 8) || gatlingMajorVersion > 4) {
       addArg(args, "l", "maven");
+      addArg(args, "btv", MavenProject.class.getPackage().getImplementationVersion());
     }
 
     return args;

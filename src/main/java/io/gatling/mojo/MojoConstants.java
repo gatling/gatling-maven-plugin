@@ -16,12 +16,7 @@
  */
 package io.gatling.mojo;
 
-import static java.util.Arrays.asList;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public final class MojoConstants {
 
@@ -30,23 +25,8 @@ public final class MojoConstants {
   // Recorder constants
   static final String RECORDER_MAIN_CLASS = "io.gatling.recorder.GatlingRecorder";
 
-  // Compiler constants
-  static final String COMPILER_MAIN_CLASS = "io.gatling.compiler.ZincCompiler";
-  static final List<String> COMPILER_JVM_ARGS = asList("-Xmx1G", "-Xss100M");
-
   // Gatling constants
   static final String GATLING_MAIN_CLASS = "io.gatling.app.Gatling";
-  static final List<String> GATLING_JVM_ARGS =
-      asList(
-          "-server",
-          "-Xmx1G",
-          "-XX:+UseG1GC",
-          "-XX:+ParallelRefProcEnabled",
-          "-XX:+HeapDumpOnOutOfMemoryError",
-          "-XX:MaxInlineLevel=20",
-          "-XX:MaxTrivialSize=12",
-          "-XX:-UseBiasedLocking");
-
   static final String GATLING_GROUP_ID = "io.gatling";
   static final String GATLING_MODULE_APP = "gatling-app";
   static final String GATLING_HIGHCHARTS_GROUP_ID = "io.gatling.highcharts";

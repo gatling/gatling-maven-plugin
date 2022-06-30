@@ -16,9 +16,9 @@
  */
 package io.gatling.mojo;
 
-import static io.gatling.mojo.MojoConstants.GATLING_JVM_ARGS;
 import static io.gatling.mojo.MojoConstants.RECORDER_MAIN_CLASS;
 
+import io.gatling.plugin.GatlingConstants;
 import io.gatling.plugin.util.Fork;
 import java.io.File;
 import java.util.ArrayList;
@@ -97,7 +97,7 @@ public class RecorderMojo extends AbstractGatlingMojo {
           newFork(
               RECORDER_MAIN_CLASS,
               testClasspath,
-              GATLING_JVM_ARGS,
+              GatlingConstants.DEFAULT_JVM_OPTIONS_BASE,
               recorderArgs,
               toolchain,
               true,

@@ -22,6 +22,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.Arrays.stream;
 import static org.codehaus.plexus.util.StringUtils.isBlank;
 
+import io.gatling.plugin.GatlingConstants;
 import io.gatling.plugin.util.Fork;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -332,7 +333,7 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
   }
 
   private List<String> gatlingJvmArgs() {
-    return computeArgs(jvmArgs, GATLING_JVM_ARGS, overrideJvmArgs);
+    return computeArgs(jvmArgs, GatlingConstants.DEFAULT_JVM_OPTIONS_BASE, overrideJvmArgs);
   }
 
   private List<String> computeArgs0(List<String> custom, List<String> defaults, boolean override) {

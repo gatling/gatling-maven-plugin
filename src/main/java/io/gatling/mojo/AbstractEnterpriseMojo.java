@@ -17,7 +17,6 @@
 package io.gatling.mojo;
 
 import java.io.File;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 public abstract class AbstractEnterpriseMojo extends AbstractGatlingMojo {
@@ -40,13 +39,5 @@ public abstract class AbstractEnterpriseMojo extends AbstractGatlingMojo {
             + shadedClassifier
             + ".jar";
     return new File(targetPath.getAbsolutePath(), name);
-  }
-
-  protected static void closeSilently(AutoCloseable closeable) throws MojoFailureException {
-    try {
-      closeable.close();
-    } catch (Exception e) {
-      throw new MojoFailureException(e.getMessage(), e);
-    }
   }
 }

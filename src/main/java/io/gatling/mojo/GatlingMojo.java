@@ -36,7 +36,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.commons.exec.ExecuteException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -251,8 +250,8 @@ public class GatlingMojo extends AbstractGatlingExecutionMojo {
             workingDirectory);
     try {
       forkedGatling.run();
-    } catch (ExecuteException e) {
-      if (e.getExitValue() == 2) throw new GatlingSimulationAssertionsFailedException(e);
+    } catch (Fork.ForkException e) {
+      if (e.exitValue == 2) throw new GatlingSimulationAssertionsFailedException(e);
       else throw e; /* issue 1482 */
     }
   }

@@ -20,6 +20,7 @@ import static java.util.Arrays.asList;
 
 import io.gatling.plugin.io.PluginLogger;
 import io.gatling.plugin.util.Fork;
+import io.gatling.plugin.util.JavaLocator;
 import io.gatling.plugin.util.MainWithArgsInFile;
 import java.io.File;
 import java.util.ArrayList;
@@ -107,56 +108,6 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
     }
   }
 
-  private static String toWindowsShortName(String value) {
-    if (MojoUtils.IS_WINDOWS) {
-      int programFilesIndex = value.indexOf("Program Files");
-      if (programFilesIndex >= 0) {
-        // Could be "Program Files" or "Program Files (x86)"
-        int firstSeparatorAfterProgramFiles =
-            value.indexOf(File.separator, programFilesIndex + "Program Files".length());
-        File longNameDir =
-            firstSeparatorAfterProgramFiles < 0
-                ? new File(value)
-                : // C:\\Program Files with
-                // trailing separator
-                new File(value.substring(0, firstSeparatorAfterProgramFiles)); // chop child
-        // Some other sibling dir could be PrograXXX and might shift short name index
-        // so we can't be sure "Program Files" is "Progra~1" and "Program Files (x86)"
-        // is "Progra~2"
-        for (int i = 0; i < 10; i++) {
-          File shortNameDir = new File(longNameDir.getParent(), "Progra~" + i);
-          if (shortNameDir.equals(longNameDir)) {
-            return shortNameDir.toString();
-          }
-        }
-      }
-    }
-
-    return value;
-  }
-
-  private static String findJavaExecutable(Toolchain toolchain) {
-    String fromToolchain = toolchain != null ? toolchain.findTool("java") : null;
-    if (fromToolchain != null) {
-      return fromToolchain;
-    } else {
-      String javaHome;
-      javaHome = System.getenv("JAVA_HOME");
-      if (javaHome == null) {
-        javaHome = System.getProperty("java.home");
-        if (javaHome == null) {
-          throw new IllegalStateException(
-              "Couldn't locate java, try setting JAVA_HOME environment variable.");
-        }
-      }
-      return javaHome + File.separator + "bin" + File.separator + "java";
-    }
-  }
-
-  private static String safe(String value) {
-    return value.contains(" ") ? '"' + value + '"' : value;
-  }
-
   private PluginLogger newPluginLogger() {
     return new PluginLogger() {
       @Override
@@ -180,12 +131,16 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
       boolean propagateSystemProperties,
       File workingDirectory) {
 
+    String fromToolchain = toolchain != null ? toolchain.findTool("java") : null;
+    File javaExec =
+        fromToolchain != null ? new File(fromToolchain) : JavaLocator.getJavaExecutable();
+
     return new Fork(
         mainClassName,
         classpath,
         jvmArgs,
         args,
-        safe(toWindowsShortName(findJavaExecutable(toolchain))),
+        javaExec,
         propagateSystemProperties,
         newPluginLogger(),
         workingDirectory);

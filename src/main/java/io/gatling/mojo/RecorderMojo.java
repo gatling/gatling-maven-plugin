@@ -55,10 +55,7 @@ public class RecorderMojo extends AbstractGatlingMojo {
   private Integer proxySSLPort;
 
   /** Uses as the folder where generated simulations will be stored. */
-  @Parameter(
-      property = "gatling.recorder.simulationsFolder",
-      alias = "sf",
-      defaultValue = "${project.basedir}/src/test/scala")
+  @Parameter(property = "gatling.recorder.simulationsFolder", alias = "sf")
   private File simulationsFolder;
 
   /** Use this folder as the folder where feeders are stored. */
@@ -89,6 +86,12 @@ public class RecorderMojo extends AbstractGatlingMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    if (simulationsFolder == null) {
+      // project.testCompileSourceRoots typically contains exactly one element (can be set by
+      // build.testSourceDirectory in the POM); but if it is ambiguous we juste take the first one.
+      simulationsFolder = new File(mavenProject.getTestCompileSourceRoots().get(0));
+    }
+
     try {
       List<String> testClasspath = buildTestClasspath();
       List<String> recorderArgs = recorderArgs();

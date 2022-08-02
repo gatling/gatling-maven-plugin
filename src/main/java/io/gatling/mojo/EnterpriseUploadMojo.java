@@ -32,7 +32,7 @@ import org.apache.maven.plugins.annotations.Parameter;
  */
 @Execute(goal = "enterprisePackage")
 @Mojo(name = "enterpriseUpload")
-public class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
+public final class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
 
   /**
    * The ID of the package configured on Gatling Enterprise where you want to upload your Gatling
@@ -57,7 +57,7 @@ public class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
     if (packageId == null && simulationId == null) {
       final String msg =
           "Missing packageID\n"
-              + "You must configure the ID of an existing package in Gatling Enterprise; see https://gatling.io/docs/enterprise/cloud/reference/user/package_conf/\n"
+              + "You must configure the ID of an existing package in Gatling Enterprise; see https://gatling.io/docs/enterprise/cloud/reference/user/package_conf/ \n"
               + CommonLogMessage.missingConfiguration(
                   "package ID", "packageId", "gatling.enterprise.packageId", null, "MY_PACKAGE_ID")
               + "Alternately, if you don't configure a packageId, you can configure the simulationId of an existing simulation on Gatling Enterprise: your code will be uploaded to the package used by that simulation.";

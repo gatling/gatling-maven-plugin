@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 
-public class RecoverEnterprisePluginException {
+public final class RecoverEnterprisePluginException {
 
   @FunctionalInterface
   public static interface EnterprisePluginExceptionFunction<R> {
@@ -40,7 +40,7 @@ public class RecoverEnterprisePluginException {
               + "<maven.compiler.release>"
               + e.supportedVersion
               + "</maven.compiler.release>\n"
-              + "See also the Maven compiler plugin documentation: https://maven.apache.org/plugins/maven-compiler-plugin/examples/set-compiler-release.html\n"
+              + "See also the Maven compiler plugin documentation: https://maven.apache.org/plugins/maven-compiler-plugin/examples/set-compiler-release.html \n"
               + "Alternatively, the reported class may come from your project's dependencies, published targeting Java "
               + e.version
               + ". In this case you need to use dependencies which target Java "

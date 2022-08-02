@@ -36,7 +36,7 @@ import org.apache.maven.toolchain.Toolchain;
     name = "recorder",
     defaultPhase = LifecyclePhase.INTEGRATION_TEST,
     requiresDependencyResolution = ResolutionScope.TEST)
-public class RecorderMojo extends AbstractGatlingMojo {
+public final class RecorderMojo extends AbstractGatlingMojo {
 
   /** Local port used by Gatling Proxy for HTTP. */
   @Parameter(property = "gatling.recorder.localPort", alias = "lp")

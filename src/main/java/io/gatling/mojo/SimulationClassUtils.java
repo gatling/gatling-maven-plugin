@@ -32,7 +32,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.SelectorUtils;
 
-public class SimulationClassUtils {
+public final class SimulationClassUtils {
 
   private SimulationClassUtils() {}
 

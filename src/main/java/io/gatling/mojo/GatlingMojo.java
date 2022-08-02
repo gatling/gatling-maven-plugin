@@ -53,7 +53,7 @@ import org.codehaus.plexus.util.SelectorUtils;
     name = "test",
     defaultPhase = LifecyclePhase.INTEGRATION_TEST,
     requiresDependencyResolution = ResolutionScope.TEST)
-public class GatlingMojo extends AbstractGatlingExecutionMojo {
+public final class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   /** A name of a Simulation class to run. */
   @Parameter(property = "gatling.simulationClass")

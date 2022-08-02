@@ -19,7 +19,7 @@ package io.gatling.mojo;
 import io.gatling.plugin.model.Simulation;
 import java.net.URL;
 
-public class CommonLogMessage {
+public final class CommonLogMessage {
 
   private CommonLogMessage() {}
 

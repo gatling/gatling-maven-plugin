@@ -46,7 +46,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  */
 @Execute(goal = "enterprisePackage")
 @Mojo(name = "enterpriseStart", requiresDependencyResolution = ResolutionScope.TEST)
-public class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
+public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
 
   /**
    * List of exclude patterns to use when scanning for simulation classes. Excludes none by default.

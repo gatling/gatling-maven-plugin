@@ -28,7 +28,7 @@ import org.codehaus.plexus.util.StringUtils;
 
 /** Mojo to verify Gatling simulation results. */
 @Mojo(name = "verify", defaultPhase = LifecyclePhase.VERIFY)
-public class VerifyMojo extends AbstractGatlingExecutionMojo {
+public final class VerifyMojo extends AbstractGatlingExecutionMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {

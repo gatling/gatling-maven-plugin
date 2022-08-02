@@ -26,7 +26,7 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-class AssertionsSummary {
+final class AssertionsSummary {
   private final int errors;
   private final int failures;
 

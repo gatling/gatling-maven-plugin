@@ -57,6 +57,16 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
         "*.RSA"
       };
 
+  private static final Set<String> EXCLUDED_NETTY_ARTIFACTS;
+
+  static {
+    Set<String> excludedNettyArtifacts = new HashSet<>();
+    excludedNettyArtifacts.add("netty-all");
+    excludedNettyArtifacts.add("netty-resolver-dns-classes-macos");
+    excludedNettyArtifacts.add("netty-resolver-dns-native-macos");
+    EXCLUDED_NETTY_ARTIFACTS = Collections.unmodifiableSet(excludedNettyArtifacts);
+  }
+
   @Component private MavenProjectHelper projectHelper;
 
   /**
@@ -106,7 +116,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
                 artifact ->
                     !GATLING_GROUP_IDS.contains(artifact.getGroupId())
                         && !(artifact.getGroupId().equals("io.netty")
-                            && artifact.getArtifactId().equals("netty-all"))
+                            && EXCLUDED_NETTY_ARTIFACTS.contains(artifact.getArtifactId()))
                         && MojoUtils.artifactNotIn(artifact, gatlingDependencies))
             .collect(Collectors.toSet());
 

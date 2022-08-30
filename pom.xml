@@ -45,7 +45,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven3.version>3.0</maven3.version>
-        <plexus-utils.version>3.1.0</plexus-utils.version>
+        <plexus-utils.version>3.4.2</plexus-utils.version>
         <header.basedir>${project.basedir}</header.basedir>
         <junit.version>5.9.0</junit.version>
         <zt-zip.version>1.15</zt-zip.version>
@@ -76,7 +76,6 @@
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
             <version>${plexus-utils.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>

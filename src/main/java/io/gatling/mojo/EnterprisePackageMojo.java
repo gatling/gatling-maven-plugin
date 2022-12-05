@@ -205,6 +205,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
       fw.write("Implementation-Vendor: " + mavenProject.getGroupId() + "\n");
       fw.write("Specification-Vendor: GatlingCorp\n");
       fw.write("Gatling-Version: " + gatlingApp.getVersion() + "\n");
+      fw.write("Gatling-Packager: maven" + "\n");
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to generate manifest", e);
     }

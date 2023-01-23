@@ -19,6 +19,7 @@ package io.gatling.mojo;
 import io.gatling.plugin.EnterprisePlugin;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.model.RunSummary;
+import io.gatling.plugin.model.SimulationEndResult;
 import io.gatling.plugin.model.SimulationStartResult;
 import io.gatling.plugin.util.PropertiesParserUtil;
 import java.io.File;
@@ -110,6 +111,13 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
   @Parameter(property = "gatling.enterprise.simulationEnvironmentVariables")
   private String simulationEnvironmentVariablesString;
 
+  /**
+   * Wait for the result after starting the simulation on Gatling Enterprise, and complete with an
+   * error if the simulation ends with any error status.
+   */
+  @Parameter(property = "gatling.enterprise.waitForRunEnd", defaultValue = "false")
+  private boolean waitForRunEnd;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     checkPluginPreConditions();
@@ -134,6 +142,8 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
             getLog());
 
     getLog().info(CommonLogMessage.simulationStartSuccess(enterpriseUrl, runSummary.reportsPath));
+
+    waitForRunEnd(plugin, runSummary);
   }
 
   private EnterprisePlugin initEnterprisePlugin(boolean isInteractive) throws MojoFailureException {
@@ -184,5 +194,16 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     return (propertiesMap == null || propertiesMap.isEmpty())
         ? PropertiesParserUtil.parseProperties(propertiesString)
         : propertiesMap;
+  }
+
+  private void waitForRunEnd(EnterprisePlugin plugin, RunSummary startedRun)
+      throws MojoFailureException {
+    if (waitForRunEnd) {
+      final SimulationEndResult finishedRun =
+          RecoverEnterprisePluginException.handle(() -> plugin.waitForRunEnd(startedRun), getLog());
+      if (!finishedRun.status.successful) {
+        throw new MojoFailureException("Simulation failed.");
+      }
+    }
   }
 }

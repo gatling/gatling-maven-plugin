@@ -27,7 +27,6 @@ import io.gatling.plugin.io.PluginScanner;
 import java.net.URL;
 import java.util.Scanner;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
 
 public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMojo {
@@ -48,17 +47,16 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
       property = "gatling.enterprise.apiToken")
   protected String apiToken;
 
-  private final Log logger = getLog();
   private final PluginLogger pluginLogger =
       new PluginLogger() {
         @Override
         public void info(String message) {
-          logger.info(message);
+          getLog().info(message);
         }
 
         @Override
         public void error(String message) {
-          logger.error(message);
+          getLog().error(message);
         }
       };
 

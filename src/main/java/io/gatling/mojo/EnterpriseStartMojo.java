@@ -130,10 +130,9 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     }
     final File file = shadedArtifactFile();
 
-    final RunSummary runSummary;
     final EnterprisePlugin plugin = initEnterprisePlugin(session.getRequest().isInteractiveMode());
 
-    runSummary =
+    final SimulationStartResult startResult =
         RecoverEnterprisePluginException.handle(
             () ->
                 simulationId == null
@@ -141,28 +140,37 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
                     : startExistingSimulation(plugin, file),
             getLog());
 
-    getLog().info(CommonLogMessage.simulationStartSuccess(enterpriseUrl, runSummary.reportsPath));
+    getLog()
+        .info(
+            CommonLogMessage.simulationStartSuccess(
+                enterpriseUrl, startResult.runSummary.reportsPath));
 
-    waitForRunEnd(plugin, runSummary);
+    if (simulationId == null || !waitForRunEnd) {
+      getLog()
+          .info(
+              CommonLogMessage.simulationConfiguration(
+                  startResult.simulation, simulationId, waitForRunEnd));
+    }
+
+    waitForRunEnd(plugin, startResult.runSummary);
   }
 
   private EnterprisePlugin initEnterprisePlugin(boolean isInteractive) throws MojoFailureException {
     return isInteractive ? initInteractiveEnterprisePlugin() : initBatchEnterprisePlugin();
   }
 
-  private RunSummary startExistingSimulation(EnterprisePlugin enterprisePlugin, File file)
-      throws EnterprisePluginException {
+  private SimulationStartResult startExistingSimulation(
+      EnterprisePlugin enterprisePlugin, File file) throws EnterprisePluginException {
     getLog().info("Uploading and starting simulation...");
     return enterprisePlugin.uploadPackageAndStartSimulation(
-            UUID.fromString(simulationId),
-            selectProperties(simulationSystemProperties, simulationSystemPropertiesString),
-            selectProperties(simulationEnvironmentVariables, simulationEnvironmentVariablesString),
-            simulationClass,
-            file)
-        .runSummary;
+        UUID.fromString(simulationId),
+        selectProperties(simulationSystemProperties, simulationSystemPropertiesString),
+        selectProperties(simulationEnvironmentVariables, simulationEnvironmentVariablesString),
+        simulationClass,
+        file);
   }
 
-  private RunSummary createAndStartSimulation(
+  private SimulationStartResult createAndStartSimulation(
       EnterprisePlugin enterprisePlugin, File file, UUID teamIdUuid, UUID packageIdUuid)
       throws EnterprisePluginException {
     final SimulationStartResult result =
@@ -177,7 +185,7 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
             file);
 
     logSimulationCreatedOrChosen(result);
-    return result.runSummary;
+    return result;
   }
 
   private void logSimulationCreatedOrChosen(SimulationStartResult result) {
@@ -186,7 +194,6 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     } else {
       getLog().info(CommonLogMessage.simulationChosen(result.simulation));
     }
-    getLog().info(CommonLogMessage.simulationStartSample(result.simulation));
   }
 
   private Map<String, String> selectProperties(

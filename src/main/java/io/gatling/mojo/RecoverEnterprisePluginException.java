@@ -86,7 +86,7 @@ public final class RecoverEnterprisePluginException {
                   simulation.name, simulation.id)
               + e.getCause().getMessage()
               + "\n"
-              + CommonLogMessage.simulationStartSample(simulation);
+              + CommonLogMessage.simulationConfiguration(simulation, null, false);
       throw new MojoFailureException(msg, e);
     } catch (EmptyChoicesException e) {
       throw new MojoFailureException(e.getMessage(), e);

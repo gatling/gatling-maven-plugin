@@ -31,11 +31,25 @@ public final class CommonLogMessage {
     return "Chose to start simulation " + simulation.name + " with ID " + simulation.id;
   }
 
-  public static String simulationStartSample(Simulation simulation) {
-    return "To start again the same simulation, specify -Dgatling.enterprise.simulationId="
-        + simulation.id
-        + ", or add the configuration to your pom.xml, e.g.:\n"
-        + pluginConfiguration("simulationId", simulation.id.toString());
+  public static String simulationConfiguration(
+      Simulation simulation, String simulationIdSetting, boolean waitForRunEnd) {
+    final StringBuilder builder = new StringBuilder();
+    if (simulationIdSetting == null) {
+      builder
+          .append("To start the same simulation again, specify -Dgatling.enterprise.simulationId=")
+          .append(simulation.id)
+          .append(", or add the configuration to your pom.xml, e.g.:\n")
+          .append(pluginConfiguration("simulationId", simulation.id.toString()))
+          .append("\n");
+    }
+    if (!waitForRunEnd) {
+      builder
+          .append(
+              "To wait for the end of the run when starting a simulation on Gatling Enterprise, specify -Dgatling.enterprise.waitForRunEnd=true, or add the configuration to your pom.xml, e.g.:\n")
+          .append(pluginConfiguration("waitForRunEnd", "true"))
+          .append("\n");
+    }
+    return builder.toString();
   }
 
   public static String simulationStartSuccess(URL enterpriseUrl, String reportsPath) {

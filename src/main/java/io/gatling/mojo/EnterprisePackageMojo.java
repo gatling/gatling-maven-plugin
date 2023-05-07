@@ -114,7 +114,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
         allDeps.stream()
             .filter(
                 artifact ->
-                    artifact.getType().equals("pom")
+                    !artifact.getType().equals("pom")
                         && !GATLING_GROUP_IDS.contains(artifact.getGroupId())
                         && !(artifact.getGroupId().equals("io.netty")
                             && EXCLUDED_NETTY_ARTIFACTS.contains(artifact.getArtifactId()))

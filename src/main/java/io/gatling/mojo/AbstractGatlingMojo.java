@@ -85,14 +85,6 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
 
   protected List<String> buildTestClasspath() throws Exception {
     List<String> testClasspathElements = new ArrayList<>();
-
-    if (!new File(compiledClassesFolder, "gatling.conf").exists()) {
-      // src/test/resources content is not already copied into test-classes when
-      // running gatling:execute
-      // it only is when running the test phase
-      testClasspathElements.add(configFolder.getCanonicalPath());
-    }
-
     testClasspathElements.addAll(mavenProject.getTestClasspathElements());
 
     // Add plugin jar to classpath (used by ForkMain)

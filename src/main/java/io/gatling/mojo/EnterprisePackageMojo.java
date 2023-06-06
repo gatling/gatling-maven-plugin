@@ -23,9 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
@@ -45,18 +43,19 @@ import org.zeroturnaround.zip.commons.FileUtilsV2_2;
     requiresDependencyResolution = ResolutionScope.TEST)
 public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
 
-  private static final String[] ALWAYS_EXCLUDES =
-      new String[] {
-        "module-info.class",
-        "LICENSE",
-        "META-INF/LICENSE",
-        "META-INF/MANIFEST.MF",
-        "META-INF/versions/**",
-        "META-INF/maven/**",
-        "*.SF",
-        "*.DSA",
-        "*.RSA"
-      };
+  private static final List<char[]> ALWAYS_EXCLUDES =
+      toChars(
+          new String[] {
+            "module-info.class",
+            "LICENSE",
+            "META-INF/LICENSE",
+            "META-INF/MANIFEST.MF",
+            "META-INF/versions/**",
+            "META-INF/maven/**",
+            "*.SF",
+            "*.DSA",
+            "*.RSA"
+          });
 
   private static final Set<String> EXCLUDED_NETTY_ARTIFACTS;
 
@@ -129,9 +128,12 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
       throw new MojoExecutionException("Failed to create temp dir", e);
     }
 
+    List<char[]> compiledExcludes = compileExcludes();
+
     // extract dep jars
     for (Artifact artifact : filteredDeps) {
-      ZipUtil.unpack(artifact.getFile(), workingDir, name -> exclude(name) ? null : name);
+      ZipUtil.unpack(
+          artifact.getFile(), workingDir, name -> exclude(name, compiledExcludes) ? null : name);
     }
 
     // copy compiled classes
@@ -145,14 +147,19 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
         FileUtilsV2_2.copyDirectory(
             outputDirectory,
             workingDir,
-            pathname -> !exclude(outputDirectoryPath.relativize(pathname.toPath()).toString()),
+            pathname ->
+                !exclude(
+                    outputDirectoryPath.relativize(pathname.toPath()).toString(), compiledExcludes),
             false);
       }
       if (testOutputDirectory.exists()) {
         FileUtilsV2_2.copyDirectory(
             testOutputDirectory,
             workingDir,
-            pathname -> !exclude(testOutputDirectoryPath.relativize(pathname.toPath()).toString()),
+            pathname ->
+                !exclude(
+                    testOutputDirectoryPath.relativize(pathname.toPath()).toString(),
+                    compiledExcludes),
             false);
       }
     } catch (IOException e) {
@@ -228,19 +235,25 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
     }
   }
 
-  private boolean exclude(String name) {
-    for (String pattern : ALWAYS_EXCLUDES) {
-      if (SelectorUtils.match(pattern, name, false)) {
+  private static List<char[]> toChars(String[] patterns) {
+    return Arrays.stream(patterns).map(String::toCharArray).collect(Collectors.toList());
+  }
+
+  private List<char[]> compileExcludes() {
+    if (excludes == null) {
+      return ALWAYS_EXCLUDES;
+    }
+
+    List<char[]> compiledUserExcludes = toChars(excludes);
+    compiledUserExcludes.addAll(ALWAYS_EXCLUDES);
+    return compiledUserExcludes;
+  }
+
+  private boolean exclude(String name, List<char[]> excludes) {
+    for (char[] pattern : excludes) {
+      if (SelectorUtils.match(pattern, name.toCharArray(), false)) {
         getLog().info("Excluding file " + name);
         return true;
-      }
-    }
-    if (excludes != null) {
-      for (String pattern : excludes) {
-        if (SelectorUtils.match(pattern, name, false)) {
-          getLog().info("Excluding file " + name);
-          return true;
-        }
       }
     }
     return false;

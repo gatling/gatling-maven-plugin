@@ -48,6 +48,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
   private static final String[] ALWAYS_EXCLUDES =
       new String[] {
         "module-info.class",
+        "LICENSE",
         "META-INF/LICENSE",
         "META-INF/MANIFEST.MF",
         "META-INF/versions/**",

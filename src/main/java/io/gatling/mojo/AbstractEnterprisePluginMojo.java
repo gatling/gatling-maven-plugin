@@ -48,9 +48,9 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
   protected String apiToken;
 
   @Parameter(
-      defaultValue = "${env.GATLING_PRIVATE_CONTROL_PLANE_URL}",
-      property = "gatling.enterprise.privateControlPlaneUrl")
-  protected URL privateControlPlaneUrl;
+      defaultValue = "${env.GATLING_CONTROL_PLANE_URL}",
+      property = "gatling.enterprise.controlPlaneUrl")
+  protected URL controlPlaneUrl;
 
   private final PluginLogger pluginLogger =
       new PluginLogger() {
@@ -112,7 +112,7 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
 
     try {
       return new HttpEnterpriseClient(
-          enterpriseUrl, apiToken, pluginTitle, pluginVersion, privateControlPlaneUrl);
+          enterpriseUrl, apiToken, pluginTitle, pluginVersion, controlPlaneUrl);
     } catch (UnsupportedClientException e) {
       throw new MojoFailureException(
           "Please update the Gatling Maven plugin to the latest version for compatibility with Gatling Enterprise. See https://gatling.io/docs/gatling/reference/current/extensions/maven_plugin/ for more information about this plugin.",

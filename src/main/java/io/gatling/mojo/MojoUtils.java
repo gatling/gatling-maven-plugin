@@ -32,6 +32,7 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.apache.maven.artifact.Artifact;
 
 public final class MojoUtils {
@@ -128,5 +129,11 @@ public final class MojoUtils {
       }
     }
     return null;
+  }
+
+  static List<Artifact> findByGroupId(Set<Artifact> artifacts, String groupId) {
+    return artifacts.stream()
+        .filter(artifact -> artifact.getGroupId().equals(groupId))
+        .collect(Collectors.toList());
   }
 }

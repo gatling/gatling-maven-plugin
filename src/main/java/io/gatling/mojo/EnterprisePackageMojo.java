@@ -75,13 +75,12 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
   @Parameter(property = "gatling.excludes")
   private String[] excludes;
 
-  private Set<Artifact> nonGatlingDependencies(Artifact artifact) {
-    if (artifact == null) {
-      return Collections.emptySet();
-    }
-
-    return resolveTransitively(artifact).stream()
-        .filter(art -> !GATLING_GROUP_IDS.contains(art.getGroupId()))
+  private Set<Artifact> nonGatlingDependencies(List<Artifact> artifacts) {
+    return artifacts.stream()
+        .flatMap(
+            artifact ->
+                resolveTransitively(artifact).stream()
+                    .filter(art -> !GATLING_GROUP_IDS.contains(art.getGroupId())))
         .collect(Collectors.toSet());
   }
 
@@ -91,24 +90,28 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
 
     Set<Artifact> allDeps = mavenProject.getArtifacts();
 
-    Artifact gatlingApp =
-        MojoUtils.findByGroupIdAndArtifactId(allDeps, GATLING_GROUP_ID, GATLING_MODULE_APP);
-    Artifact gatlingChartsHighcharts =
-        MojoUtils.findByGroupIdAndArtifactId(
-            allDeps, GATLING_HIGHCHARTS_GROUP_ID, GATLING_MODULE_HIGHCHARTS);
-    Artifact frontlineProbe =
-        MojoUtils.findByGroupIdAndArtifactId(
-            allDeps, GATLING_FRONTLINE_GROUP_ID, GATLING_FRONTLINE_MODULE_PROBE);
-
-    if (gatlingApp == null) {
+    List<Artifact> depsWithFrontLineGroupId =
+        MojoUtils.findByGroupId(allDeps, GATLING_FRONTLINE_GROUP_ID);
+    if (!depsWithFrontLineGroupId.isEmpty()) {
       throw new MojoExecutionException(
-          "Couldn't find io.gatling:gatling-app in project dependencies");
+          "Found a dependency with group id "
+              + GATLING_FRONTLINE_GROUP_ID
+              + " in projects dependencies");
+    }
+
+    List<Artifact> depsWithGatlingGroupId = MojoUtils.findByGroupId(allDeps, GATLING_GROUP_ID);
+    List<Artifact> depsWithGatlingHighchartsGroupId =
+        MojoUtils.findByGroupId(allDeps, GATLING_HIGHCHARTS_GROUP_ID);
+    if (depsWithGatlingGroupId.isEmpty()) {
+      throw new MojoExecutionException(
+          "Couldn't find any dependencies with group id "
+              + GATLING_GROUP_ID
+              + " in project dependencies");
     }
 
     Set<Artifact> gatlingDependencies = new HashSet<>();
-    gatlingDependencies.addAll(nonGatlingDependencies(gatlingApp));
-    gatlingDependencies.addAll(nonGatlingDependencies(gatlingChartsHighcharts));
-    gatlingDependencies.addAll(nonGatlingDependencies(frontlineProbe));
+    gatlingDependencies.addAll(nonGatlingDependencies(depsWithGatlingGroupId));
+    gatlingDependencies.addAll(nonGatlingDependencies(depsWithGatlingHighchartsGroupId));
 
     Set<Artifact> filteredDeps =
         allDeps.stream()
@@ -207,13 +210,17 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
     // generate fake manifest
     File manifest = new File(metaInfDir, "MANIFEST.MF");
 
+    String gatlingVersion =
+        MojoUtils.findByGroupIdAndArtifactId(allDeps, GATLING_GROUP_ID, GATLING_MODULE_APP)
+            .getVersion();
+
     try (FileWriter fw = new FileWriter(manifest)) {
       fw.write("Manifest-Version: 1.0\n");
       fw.write("Implementation-Title: " + mavenProject.getArtifactId() + "\n");
       fw.write("Implementation-Version: " + mavenProject.getVersion() + "\n");
       fw.write("Implementation-Vendor: " + mavenProject.getGroupId() + "\n");
       fw.write("Specification-Vendor: GatlingCorp\n");
-      fw.write("Gatling-Version: " + gatlingApp.getVersion() + "\n");
+      fw.write("Gatling-Version: " + gatlingVersion + "\n");
       fw.write("Gatling-Packager: maven" + "\n");
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to generate manifest", e);

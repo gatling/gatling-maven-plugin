@@ -12,23 +12,20 @@ jobs:
   build:
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+
     - name: Set up JDK
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v3
       with:
         distribution: 'zulu'
         java-version: '8'
-    - name: print Java version
+        cache: 'maven'
+
+    - name: Print Java version
       run: java -version
-    - uses: actions/cache@v2
-      with:
-        path: ~/.m2/repository
-        key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
-          maven-${{ runner.os }}-
-          maven-
+
     - name: Build
       run: mvn --no-transfer-progress -B clean verify
+
     - name: Clean before caching
       run: find ~/.m2 -name "_remote.repositories" | xargs --no-run-if-empty rm

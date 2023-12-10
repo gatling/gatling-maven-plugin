@@ -42,8 +42,7 @@
 
     <properties>
         <encoding>UTF-8</encoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.release>11</maven.compiler.release>
         <maven3.version>3.0</maven3.version>
         <plexus-utils.version>3.4.2</plexus-utils.version>
         <header.basedir>${project.basedir}</header.basedir>

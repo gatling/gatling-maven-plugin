@@ -226,7 +226,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
       throw new MojoExecutionException("Failed to generate manifest", e);
     }
 
-    File shaded = shadedArtifactFile();
+    File shaded = enterprisePackage();
 
     // generate jar
     getLog().info("Generating Gatling Enterprise package " + shaded);

@@ -128,7 +128,7 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
       // @Parameter(defaultValue = ...) only works for properties with a single value
       simulationSystemProperties = Collections.emptyMap();
     }
-    final File file = shadedArtifactFile();
+    final File file = enterprisePackage();
 
     final EnterprisePlugin plugin = initEnterprisePlugin(session.getRequest().isInteractiveMode());
 

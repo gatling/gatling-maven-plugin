@@ -24,8 +24,7 @@ public abstract class AbstractEnterpriseMojo extends AbstractGatlingMojo {
   /**
    * The classifier used for the JAR file when packaging simulations to run on Gatling Enterprise.
    */
-  @Parameter(defaultValue = "shaded")
-  protected String shadedClassifier;
+  protected static final String SHADED_CLASSIFIER = "shaded";
 
   @Parameter(defaultValue = "${project.build.directory}", readonly = true)
   protected File targetPath;
@@ -36,7 +35,7 @@ public abstract class AbstractEnterpriseMojo extends AbstractGatlingMojo {
             + "-"
             + mavenProject.getVersion()
             + "-"
-            + shadedClassifier
+            + SHADED_CLASSIFIER
             + ".jar";
     return new File(targetPath.getAbsolutePath(), name);
   }

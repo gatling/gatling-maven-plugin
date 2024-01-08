@@ -233,7 +233,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
     ZipUtil.pack(workingDir, shaded);
 
     // attach jar so it can be deployed
-    projectHelper.attachArtifact(mavenProject, "jar", shadedClassifier, shaded);
+    projectHelper.attachArtifact(mavenProject, "jar", SHADED_CLASSIFIER, shaded);
 
     try {
       FileUtilsV2_2.deleteDirectory(workingDir);

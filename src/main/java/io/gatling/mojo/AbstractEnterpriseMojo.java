@@ -30,7 +30,7 @@ public abstract class AbstractEnterpriseMojo extends AbstractGatlingMojo {
   @Parameter(defaultValue = "${project.build.directory}", readonly = true)
   protected File targetPath;
 
-  protected File shadedArtifactFile() {
+  protected File enterprisePackage() {
     String name =
         mavenProject.getArtifactId()
             + "-"

@@ -64,7 +64,7 @@ public final class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
       throw new MojoFailureException(msg);
     }
 
-    final File file = shadedArtifactFile();
+    final File file = enterprisePackage();
     final BatchEnterprisePlugin enterprisePlugin = initBatchEnterprisePlugin();
 
     RecoverEnterprisePluginException.handle(

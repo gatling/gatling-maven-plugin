@@ -139,8 +139,6 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   /** Executes Gatling simulations. */
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    checkPluginPreConditions();
-
     if (skip) {
       getLog().info("Skipping gatling-maven-plugin");
       return;

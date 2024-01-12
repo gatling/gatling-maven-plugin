@@ -44,10 +44,9 @@
         <encoding>UTF-8</encoding>
         <maven.compiler.release>11</maven.compiler.release>
         <maven3.version>3.0</maven3.version>
-        <plexus-utils.version>3.4.2</plexus-utils.version>
         <header.basedir>${project.basedir}</header.basedir>
         <junit.version>5.10.1</junit.version>
-        <zt-zip.version>1.16</zt-zip.version>
+        <gatling-enterprise-plugin-commons.version>1.9.0-M5</gatling-enterprise-plugin-commons.version>
 
         <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
         <maven-plugin-plugin.version>3.11.0</maven-plugin-plugin.version>
@@ -58,7 +57,6 @@
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
         <maven-surefire-plugin.version>3.1.0</maven-surefire-plugin.version>
         <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
-        <gatling-enterprise-plugin-commons.version>1.8.0</gatling-enterprise-plugin-commons.version>
     </properties>
 
     <dependencies>
@@ -79,16 +77,6 @@
             <artifactId>maven-core</artifactId>
             <version>${maven3.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-utils</artifactId>
-            <version>${plexus-utils.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.zeroturnaround</groupId>
-            <artifactId>zt-zip</artifactId>
-            <version>${zt-zip.version}</version>
         </dependency>
         <dependency>
             <groupId>io.gatling</groupId>

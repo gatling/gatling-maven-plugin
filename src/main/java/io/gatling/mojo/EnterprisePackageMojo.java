@@ -64,11 +64,13 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
     allGatlingDeps.addAll(depsWithGatlingGroupId);
     allGatlingDeps.addAll(depsWithGatlingHighchartsGroupId);
 
-    Set<Artifact> gatlingTransitiveDependencies = gatlingTransitiveDependencies(allGatlingDeps);
+    Set<Artifact> gatlingAndTransitiveDependencies = new HashSet<>();
+    gatlingAndTransitiveDependencies.addAll(gatlingTransitiveDependencies(allGatlingDeps));
+    gatlingAndTransitiveDependencies.addAll(allGatlingDeps);
 
-    Set<Dependency> dependencies =
+    Set<Dependency> extraDependencies =
         allDeps.stream()
-            .filter(artifact -> MojoUtils.artifactNotIn(artifact, gatlingTransitiveDependencies))
+            .filter(artifact -> MojoUtils.artifactNotIn(artifact, gatlingAndTransitiveDependencies))
             .map(
                 artifact ->
                     new Dependency(
@@ -102,7 +104,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
       new EnterprisePackager(pluginLogger)
           .createEnterprisePackage(
               classDirectories,
-              dependencies,
+              extraDependencies,
               mavenProject.getGroupId(),
               mavenProject.getArtifactId(),
               mavenProject.getVersion(),

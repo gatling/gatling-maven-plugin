@@ -26,7 +26,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -119,9 +118,7 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
   private boolean waitForRunEnd;
 
   @Override
-  public void execute() throws MojoExecutionException, MojoFailureException {
-    checkPluginPreConditions();
-
+  public void execute() throws MojoFailureException {
     final UUID teamIdUuid = teamId != null ? UUID.fromString(teamId) : null;
     final UUID packageIdUuid = packageId != null ? UUID.fromString(packageId) : null;
     if (simulationSystemProperties == null) {

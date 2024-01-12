@@ -19,7 +19,6 @@ package io.gatling.mojo;
 import io.gatling.plugin.BatchEnterprisePlugin;
 import java.io.File;
 import java.util.UUID;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -51,9 +50,7 @@ public final class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
   private String simulationId;
 
   @Override
-  public void execute() throws MojoExecutionException, MojoFailureException {
-    checkPluginPreConditions();
-
+  public void execute() throws MojoFailureException {
     if (packageId == null && simulationId == null) {
       final String msg =
           "Missing packageID\n"

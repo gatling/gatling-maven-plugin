@@ -30,14 +30,6 @@ public final class MojoConstants {
   static final String GATLING_GROUP_ID = "io.gatling";
   static final String GATLING_MODULE_APP = "gatling-app";
   static final String GATLING_HIGHCHARTS_GROUP_ID = "io.gatling.highcharts";
-  static final String GATLING_FRONTLINE_GROUP_ID = "io.gatling.frontline";
-  static final Set<String> GATLING_GROUP_IDS;
-
-  static {
-    HashSet<String> groupIds = new HashSet<>();
-    groupIds.add(GATLING_GROUP_ID);
-    groupIds.add(GATLING_HIGHCHARTS_GROUP_ID);
-    groupIds.add(GATLING_FRONTLINE_GROUP_ID);
-    GATLING_GROUP_IDS = Collections.unmodifiableSet(groupIds);
-  }
+  static final Set<String> GATLING_GROUP_IDS =
+      Set.of(GATLING_GROUP_ID, GATLING_HIGHCHARTS_GROUP_ID);
 }

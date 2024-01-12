@@ -22,17 +22,13 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.apache.maven.artifact.Artifact;
 
 public final class MojoUtils {
@@ -116,24 +112,19 @@ public final class MojoUtils {
     return new URL(file.toURI().toASCIIString());
   }
 
-  static boolean artifactNotIn(Artifact target, Set<Artifact> artifacts) {
+  static boolean artifactNotIn(Artifact target, Collection<Artifact> artifacts) {
     return findByGroupIdAndArtifactId(artifacts, target.getGroupId(), target.getArtifactId())
         == null;
   }
 
   static Artifact findByGroupIdAndArtifactId(
-      Set<Artifact> artifacts, String groupId, String artifactId) {
-    for (Artifact artifact : artifacts) {
-      if (artifact.getGroupId().equals(groupId) && artifact.getArtifactId().equals(artifactId)) {
-        return artifact;
-      }
-    }
-    return null;
-  }
-
-  static List<Artifact> findByGroupId(Set<Artifact> artifacts, String groupId) {
+      Collection<Artifact> artifacts, String groupId, String artifactId) {
     return artifacts.stream()
-        .filter(artifact -> artifact.getGroupId().equals(groupId))
-        .collect(Collectors.toList());
+        .filter(
+            artifact ->
+                artifact.getGroupId().equals(groupId)
+                    && artifact.getArtifactId().equals(artifactId))
+        .findFirst()
+        .orElse(null);
   }
 }

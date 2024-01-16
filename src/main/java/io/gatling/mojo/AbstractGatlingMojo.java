@@ -78,7 +78,7 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
     }
   }
 
-  private PluginLogger newPluginLogger() {
+  protected PluginLogger newPluginLogger() {
     return new PluginLogger() {
       @Override
       public void info(String message) {

@@ -40,6 +40,7 @@ import org.apache.maven.project.MavenProjectHelper;
 public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
   private static final String META_INF_PACKAGER = "maven";
 
+  private final PluginLogger pluginLogger = newPluginLogger();
   @Component private MavenProjectHelper projectHelper;
 
   @Override
@@ -56,19 +57,6 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
             new File(mavenProject.getBuild().getTestOutputDirectory()));
 
     File enterprisePackage = enterprisePackage();
-
-    PluginLogger pluginLogger =
-        new PluginLogger() {
-          @Override
-          public void info(String message) {
-            getLog().info(message);
-          }
-
-          @Override
-          public void error(String message) {
-            getLog().error(message);
-          }
-        };
 
     try {
       new EnterprisePackager(pluginLogger)

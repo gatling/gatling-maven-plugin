@@ -38,47 +38,17 @@ import org.apache.maven.project.MavenProjectHelper;
     defaultPhase = LifecyclePhase.PACKAGE,
     requiresDependencyResolution = ResolutionScope.TEST)
 public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
+  private static final String META_INF_PACKAGER = "maven";
 
   @Component private MavenProjectHelper projectHelper;
 
   @Override
   public void execute() throws MojoExecutionException {
-    Set<Artifact> allDeps =
-        mavenProject.getArtifacts().stream()
-            .filter(artifact -> !artifact.getType().equals("pom"))
-            .collect(Collectors.toSet());
-
+    Set<Artifact> allDeps = getAllDeps();
     List<Artifact> depsWithGatlingGroupId = MojoUtils.findByGroupId(allDeps, GATLING_GROUP_ID);
+    Set<Dependency> extraDependencies = getExtraDependencies(allDeps, depsWithGatlingGroupId);
 
-    Artifact gatlingApp =
-        depsWithGatlingGroupId.stream()
-            .filter(artifact -> artifact.getArtifactId().equals("gatling-app"))
-            .findFirst()
-            .orElse(null);
-    Objects.requireNonNull(gatlingApp, "Can't find Gatling libraries in dependencies");
-    String gatlingVersion = gatlingApp.getVersion();
-
-    List<Artifact> depsWithGatlingHighchartsGroupId =
-        MojoUtils.findByGroupId(allDeps, GATLING_HIGHCHARTS_GROUP_ID);
-    List<Artifact> allGatlingDeps = new ArrayList<>();
-    allGatlingDeps.addAll(depsWithGatlingGroupId);
-    allGatlingDeps.addAll(depsWithGatlingHighchartsGroupId);
-
-    Set<Artifact> gatlingAndTransitiveDependencies = new HashSet<>();
-    gatlingAndTransitiveDependencies.addAll(gatlingTransitiveDependencies(allGatlingDeps));
-    gatlingAndTransitiveDependencies.addAll(allGatlingDeps);
-
-    Set<Dependency> extraDependencies =
-        allDeps.stream()
-            .filter(artifact -> MojoUtils.artifactNotIn(artifact, gatlingAndTransitiveDependencies))
-            .map(
-                artifact ->
-                    new Dependency(
-                        artifact.getGroupId(),
-                        artifact.getArtifactId(),
-                        artifact.getVersion(),
-                        artifact.getFile()))
-            .collect(Collectors.toSet());
+    String gatlingVersion = getGatlingVersion(depsWithGatlingGroupId);
 
     List<File> classDirectories =
         List.of(
@@ -109,14 +79,48 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
               mavenProject.getArtifactId(),
               mavenProject.getVersion(),
               gatlingVersion,
-              "maven",
+              META_INF_PACKAGER,
               getClass().getPackage().getImplementationVersion(),
               enterprisePackage);
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to generate Enterprise package", e);
     }
+
     // attach jar so it can be deployed
     projectHelper.attachArtifact(mavenProject, "jar", SHADED_CLASSIFIER, enterprisePackage);
+  }
+
+  private Set<Dependency> getExtraDependencies(
+      Set<Artifact> allDeps, List<Artifact> depsWithGatlingGroupId) {
+    List<Artifact> allGatlingDeps = getAllGatlingDeps(allDeps, depsWithGatlingGroupId);
+    Set<Artifact> gatlingAndTransitiveDependencies =
+        getGatlingAndTransitiveDependencies(allGatlingDeps);
+
+    return allDeps.stream()
+        .filter(artifact -> MojoUtils.artifactNotIn(artifact, gatlingAndTransitiveDependencies))
+        .map(
+            artifact ->
+                new Dependency(
+                    artifact.getGroupId(),
+                    artifact.getArtifactId(),
+                    artifact.getVersion(),
+                    artifact.getFile()))
+        .collect(Collectors.toSet());
+  }
+
+  private Set<Artifact> getAllDeps() {
+    return mavenProject.getArtifacts().stream()
+        .filter(artifact -> !artifact.getType().equals("pom"))
+        .collect(Collectors.toSet());
+  }
+
+  private Set<Artifact> getGatlingAndTransitiveDependencies(List<Artifact> allGatlingDeps) {
+    Set<Artifact> gatlingAndTransitiveDependencies = new HashSet<>();
+
+    gatlingAndTransitiveDependencies.addAll(gatlingTransitiveDependencies(allGatlingDeps));
+    gatlingAndTransitiveDependencies.addAll(allGatlingDeps);
+
+    return gatlingAndTransitiveDependencies;
   }
 
   private Set<Artifact> gatlingTransitiveDependencies(List<Artifact> artifacts) {
@@ -137,6 +141,27 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
             .setProxies(session.getRequest().getProxies())
             .setLocalRepository(session.getLocalRepository())
             .setRemoteRepositories(session.getCurrentProject().getRemoteArtifactRepositories());
+
     return repository.resolve(request).getArtifacts();
+  }
+
+  private static List<Artifact> getAllGatlingDeps(
+      Set<Artifact> allDeps, List<Artifact> depsWithGatlingGroupId) {
+    List<Artifact> depsWithGatlingHighchartsGroupId =
+        MojoUtils.findByGroupId(allDeps, GATLING_HIGHCHARTS_GROUP_ID);
+    List<Artifact> allGatlingDeps = new ArrayList<>();
+
+    allGatlingDeps.addAll(depsWithGatlingGroupId);
+    allGatlingDeps.addAll(depsWithGatlingHighchartsGroupId);
+
+    return allGatlingDeps;
+  }
+
+  private static String getGatlingVersion(List<Artifact> depsWithGatlingGroupId) {
+    return depsWithGatlingGroupId.stream()
+        .filter(artifact -> "gatling-app".equals(artifact.getArtifactId()))
+        .findFirst()
+        .orElseThrow(() -> new NullPointerException("Can't find Gatling libraries in dependencies"))
+        .getVersion();
   }
 }

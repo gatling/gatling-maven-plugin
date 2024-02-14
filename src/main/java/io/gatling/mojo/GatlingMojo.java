@@ -118,12 +118,6 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   @Parameter(property = "gatling.propagateSystemProperties", defaultValue = "true")
   private boolean propagateSystemProperties;
 
-  /** Use this folder as the folder where feeders are stored. */
-  @Parameter(
-      property = "gatling.resourcesFolder",
-      defaultValue = "${project.basedir}/src/test/resources")
-  private File resourcesFolder;
-
   @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> artifacts;
 
@@ -382,17 +376,14 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   private List<String> gatlingArgs(String simulationClass) throws Exception {
     // Arguments
     List<String> args = new ArrayList<>();
-    addArg(args, "rsf", resourcesFolder.getCanonicalPath());
+    addArg(args, "s", simulationClass);
+    addArg(args, "ro", reportsOnly);
     addArg(args, "rf", resultsFolder.getCanonicalPath());
-
     addArg(args, "rd", runDescription);
 
     if (noReports) {
       args.add("-nr");
     }
-
-    addArg(args, "s", simulationClass);
-    addArg(args, "ro", reportsOnly);
 
     String[] gatlingVersion =
         MojoUtils.findByGroupIdAndArtifactId(

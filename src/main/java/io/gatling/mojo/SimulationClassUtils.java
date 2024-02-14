@@ -16,20 +16,13 @@
  */
 package io.gatling.mojo;
 
+import io.gatling.scanner.SimulationScanResult;
+import io.gatling.scanner.SimulationScanner;
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Modifier;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import java.util.stream.Collectors;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.SelectorUtils;
 
 public final class SimulationClassUtils {
@@ -42,81 +35,39 @@ public final class SimulationClassUtils {
    * @return a list of simulation class names.
    */
   public static List<String> resolveSimulations(
-      MavenProject mavenProject, File compiledClassesFolder, String[] includes, String[] excludes) {
-
+      MavenProject mavenProject, String[] includes, String[] excludes) {
     try {
-      ClassLoader testClassLoader = new URLClassLoader(testClassPathUrls(mavenProject));
+      List<String> testClasspathElements = mavenProject.getTestClasspathElements();
 
-      Class<?> scalaSimulationClass =
-          testClassLoader.loadClass("io.gatling.core.scenario.Simulation");
-      Optional<Class<?>> javaSimulationClass = loadJavaSimulationClass(testClassLoader);
+      List<File> dependencies = new ArrayList<>();
+      List<File> classDirectories = new ArrayList<>();
+
+      for (String testClasspathElement : testClasspathElements) {
+        File file = new File(testClasspathElement);
+        if (file.isDirectory()) {
+          classDirectories.add(file);
+        } else if (file.isFile()) {
+          dependencies.add(file);
+        }
+      }
+
+      SimulationScanResult simulationScanResult =
+          SimulationScanner.scan(dependencies, classDirectories);
 
       List<String> includesList = MojoUtils.arrayAsListEmptyIfNull(includes);
       List<String> excludesList = MojoUtils.arrayAsListEmptyIfNull(excludes);
 
-      List<String> simulationsClasses = new ArrayList<>();
-
-      for (String classFile : compiledClassFiles(compiledClassesFolder)) {
-        String className = pathToClassName(classFile);
-
-        boolean isIncluded = includesList.isEmpty() || match(includesList, className);
-        boolean isExcluded = !excludesList.isEmpty() && match(excludesList, className);
-
-        if (isIncluded && !isExcluded) {
-          // check if the class is a concrete Simulation
-          Class<?> clazz = testClassLoader.loadClass(className);
-          if (isConcreteClass(clazz)
-              && (javaSimulationClass
-                      .map(simClass -> simClass.isAssignableFrom(clazz))
-                      .orElse(false)
-                  || scalaSimulationClass.isAssignableFrom(clazz))) {
-            simulationsClasses.add(className);
-          }
-        }
-      }
-
-      return simulationsClasses;
+      return simulationScanResult.getSimulationClasses().stream()
+          .filter(
+              className -> {
+                boolean isIncluded = includesList.isEmpty() || match(includesList, className);
+                boolean isExcluded = !excludesList.isEmpty() && match(excludesList, className);
+                return isIncluded && !isExcluded;
+              })
+          .collect(Collectors.toList());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private static URL[] testClassPathUrls(MavenProject mavenProject)
-      throws DependencyResolutionRequiredException, MalformedURLException {
-
-    List<String> testClasspathElements = mavenProject.getTestClasspathElements();
-
-    URL[] urls = new URL[testClasspathElements.size()];
-    for (int i = 0; i < testClasspathElements.size(); i++) {
-      String testClasspathElement = testClasspathElements.get(i);
-      URL url = Paths.get(testClasspathElement).toUri().toURL();
-      urls[i] = url;
-    }
-
-    return urls;
-  }
-
-  private static Optional<Class<?>> loadJavaSimulationClass(ClassLoader testClassLoader) {
-    try {
-      return Optional.of(testClassLoader.loadClass("io.gatling.javaapi.core.Simulation"));
-    } catch (ClassNotFoundException e) {
-      // ignore
-      return Optional.empty();
-    }
-  }
-
-  private static String[] compiledClassFiles(File compiledClassesFolder) throws IOException {
-    DirectoryScanner scanner = new DirectoryScanner();
-    scanner.setBasedir(compiledClassesFolder.getCanonicalPath());
-    scanner.setIncludes(new String[] {"**/*.class"});
-    scanner.scan();
-    String[] files = scanner.getIncludedFiles();
-    Arrays.sort(files);
-    return files;
-  }
-
-  private static String pathToClassName(String path) {
-    return path.substring(0, path.length() - ".class".length()).replace(File.separatorChar, '.');
   }
 
   private static boolean match(List<String> patterns, String string) {
@@ -126,9 +77,5 @@ public final class SimulationClassUtils {
       }
     }
     return false;
-  }
-
-  private static boolean isConcreteClass(Class<?> clazz) {
-    return !clazz.isInterface() && !Modifier.isAbstract(clazz.getModifiers());
   }
 }

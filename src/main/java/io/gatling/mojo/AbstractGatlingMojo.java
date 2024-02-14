@@ -36,17 +36,6 @@ import org.apache.maven.toolchain.ToolchainManager;
 
 public abstract class AbstractGatlingMojo extends AbstractMojo {
 
-  /** Use this folder as the configuration directory. */
-  @Parameter(
-      property = "gatling.configFolder",
-      alias = "cd",
-      defaultValue = "${project.basedir}/src/test/resources")
-  protected File configFolder;
-
-  /** Folder where the compiled classes are written. */
-  @Parameter(defaultValue = "${project.build.testOutputDirectory}", readonly = true)
-  protected File compiledClassesFolder;
-
   /** The Maven Project. */
   @Parameter(defaultValue = "${project}", readonly = true)
   protected MavenProject mavenProject;

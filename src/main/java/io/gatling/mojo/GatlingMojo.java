@@ -324,27 +324,15 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   }
 
   private List<String> gatlingJvmArgs() {
-    return computeArgs(jvmArgs, GatlingConstants.DEFAULT_JVM_OPTIONS_BASE, overrideJvmArgs);
-  }
-
-  private List<String> computeArgs0(List<String> custom, List<String> defaults, boolean override) {
-    if (custom.isEmpty()) {
-      return defaults;
+    if (jvmArgs.isEmpty()) {
+      return GatlingConstants.DEFAULT_JVM_OPTIONS_BASE;
     }
-    if (override) {
-      List<String> merged = new ArrayList<>(custom);
-      merged.addAll(defaults);
+    if (overrideJvmArgs) {
+      List<String> merged = new ArrayList<>(jvmArgs);
+      merged.addAll(GatlingConstants.DEFAULT_JVM_OPTIONS_BASE);
       return merged;
     }
-    return custom;
-  }
-
-  private List<String> computeArgs(List<String> custom, List<String> defaults, boolean override) {
-    List<String> result = new ArrayList<>(computeArgs0(custom, defaults, override));
-    // force disable disableClassPathURLCheck because Debian messed up and takes
-    // forever to fix, see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911925
-    result.add("-Djdk.net.URLClassPath.disableClassPathURLCheck=true");
-    return result;
+    return Collections.unmodifiableList(jvmArgs);
   }
 
   private List<String> simulations() throws MojoFailureException {

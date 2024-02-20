@@ -38,22 +38,6 @@ import org.apache.maven.toolchain.Toolchain;
     requiresDependencyResolution = ResolutionScope.TEST)
 public final class RecorderMojo extends AbstractGatlingMojo {
 
-  /** Local port used by Gatling Proxy for HTTP. */
-  @Parameter(property = "gatling.recorder.localPort", alias = "lp")
-  private Integer localPort;
-
-  /** Outgoing proxy host. */
-  @Parameter(property = "gatling.recorder.proxyHost", alias = "ph")
-  private String proxyHost;
-
-  /** Outgoing proxy port for HTTP. */
-  @Parameter(property = "gatling.recorder.proxyPort", alias = "pp")
-  private Integer proxyPort;
-
-  /** Outgoing proxy port for HTTPS. */
-  @Parameter(property = "gatling.recorder.proxySslPort", alias = "pps")
-  private Integer proxySSLPort;
-
   /** Uses as the folder where generated simulations will be stored. */
   @Parameter(property = "gatling.recorder.simulationsFolder", alias = "sf")
   private File simulationsFolder;
@@ -65,10 +49,6 @@ public final class RecorderMojo extends AbstractGatlingMojo {
       defaultValue = "${project.basedir}/src/test/resources")
   private File resourcesFolder;
 
-  /** The name of the generated class. */
-  @Parameter(property = "gatling.recorder.className", alias = "cn")
-  private String className;
-
   /** The package of the generated class. */
   @Parameter(
       property = "gatling.recorder.package",
@@ -76,13 +56,9 @@ public final class RecorderMojo extends AbstractGatlingMojo {
       defaultValue = "${project.groupId}")
   private String packageName;
 
-  /** The encoding used in the recorder. */
-  @Parameter(property = "gatling.recorder.encoding", alias = "enc")
-  private String encoding;
-
-  /** The value of the "Follow Redirects" option. */
-  @Parameter(property = "gatling.recorder.followRedirect", alias = "fr")
-  private Boolean followRedirect;
+  /** The name of the generated class. */
+  @Parameter(property = "gatling.recorder.className", alias = "cn")
+  private String className;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -115,16 +91,11 @@ public final class RecorderMojo extends AbstractGatlingMojo {
 
   private List<String> recorderArgs() throws Exception {
     List<String> arguments = new ArrayList<>();
-    addArg(arguments, "lp", localPort);
-    addArg(arguments, "ph", proxyHost);
-    addArg(arguments, "pp", proxyPort);
-    addArg(arguments, "pps", proxySSLPort);
     addArg(arguments, "sf", simulationsFolder.getCanonicalPath());
     addArg(arguments, "rf", resourcesFolder.getCanonicalPath());
-    addArg(arguments, "cn", className);
     addArg(arguments, "pkg", packageName);
-    addArg(arguments, "enc", encoding);
-    addArg(arguments, "fr", followRedirect);
+    addArg(arguments, "cn", className);
+    // format TODO: don't know how to detect
     return arguments;
   }
 }

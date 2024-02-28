@@ -27,6 +27,7 @@ import io.gatling.plugin.util.Fork;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -146,11 +147,12 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       List<String> jvmArgs = gatlingJvmArgs();
 
       if (reportsOnly != null) {
-        executeGatling(jvmArgs, gatlingArgs(null), testClasspath, toolchain);
+        executeGatling(jvmArgs, gatlingArgs(null, runDescription), testClasspath, toolchain);
 
       } else {
-        List<String> simulations = simulations();
-        iterateBySimulations(toolchain, jvmArgs, testClasspath, simulations);
+        boolean interactive = interactive();
+        List<String> simulations = simulations(interactive);
+        iterateBySimulations(toolchain, jvmArgs, testClasspath, simulations, interactive);
       }
 
     } catch (Exception e) {
@@ -186,13 +188,26 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       Toolchain toolchain,
       List<String> jvmArgs,
       List<String> testClasspath,
-      List<String> simulations)
+      List<String> simulations,
+      boolean interactive)
       throws Exception {
     Exception exc = null;
     int simulationsCount = simulations.size();
     for (int i = 0; i < simulationsCount; i++) {
       try {
-        executeGatling(jvmArgs, gatlingArgs(simulations.get(i)), testClasspath, toolchain);
+        String selectedSimulation = simulations.get(i);
+        String runDescription =
+            Optional.ofNullable(this.runDescription)
+                .orElse(interactive ? Interactive.selectRunDescription() : null);
+
+        List<String> gatlingArgs = gatlingArgs(selectedSimulation, runDescription);
+        String message = "Running simulation " + selectedSimulation + ".";
+        if (interactive) {
+          System.out.println(message);
+        } else {
+          getLog().info(message);
+        }
+        executeGatling(jvmArgs, gatlingArgs, testClasspath, toolchain);
       } catch (GatlingSimulationAssertionsFailedException e) {
         if (exc == null && i == simulationsCount - 1) {
           throw e;
@@ -327,7 +342,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     return Collections.unmodifiableList(jvmArgs);
   }
 
-  private List<String> simulations() throws MojoFailureException {
+  private List<String> simulations(boolean interactive) throws MojoFailureException {
     // Solves the simulations, if no simulation file is defined
     if (simulationClass != null) {
       return Collections.singletonList(simulationClass);
@@ -342,23 +357,32 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       }
 
       if (simulations.size() > 1 && !runMultipleSimulations) {
-        String message =
-            "More than 1 simulation to run. Either specify one with -Dgatling.simulationClass=<className>, or enable runMultipleSimulations in your pom.xml";
-        getLog().error(message);
-        throw new MojoFailureException(message);
+        if (interactive) {
+          return List.of(Interactive.selectSingleSimulation(simulations));
+        } else {
+          String message =
+              "Running in non-interactive mode, yet more than 1 simulation is available. Either specify one with -Dgatling.simulationClass=<className> or run them all sequentially with -Dgatling.runMultipleSimulations=true.";
+          getLog().error(message);
+          throw new MojoFailureException(message);
+        }
       }
-
       return simulations;
     }
   }
 
-  private List<String> gatlingArgs(String simulationClass) throws Exception {
-    // Arguments
+  private List<String> gatlingArgs(String simulationClass, String runDescription) throws Exception {
+    // encode runDescription in Base64 because it could contain characters that would break the
+    // command
+    String encodedRunDescription =
+        runDescription != null
+            ? Base64.getEncoder().encodeToString(runDescription.getBytes(StandardCharsets.UTF_8))
+            : null;
+
     List<String> args = new ArrayList<>();
     addArg(args, "s", simulationClass);
     addArg(args, "ro", reportsOnly);
     addArg(args, "rf", resultsFolder.getCanonicalPath());
-    addArg(args, "rd", runDescription);
+    addArg(args, "rd", encodedRunDescription);
 
     if (noReports) {
       args.add("-nr");

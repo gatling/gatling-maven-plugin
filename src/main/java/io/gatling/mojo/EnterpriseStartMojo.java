@@ -127,7 +127,7 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     }
     final File file = enterprisePackage();
 
-    final EnterprisePlugin plugin = initEnterprisePlugin(session.getRequest().isInteractiveMode());
+    final EnterprisePlugin plugin = initEnterprisePlugin(interactive());
 
     final SimulationStartResult startResult =
         RecoverEnterprisePluginException.handle(

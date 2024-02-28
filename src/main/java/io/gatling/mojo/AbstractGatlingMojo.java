@@ -50,6 +50,20 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
   /** Maven's repository. */
   @Component protected RepositorySystem repository;
 
+  /**
+   * Uses 2 different mechanisms to detect if the plugin is in interactive mode:
+   *
+   * <ul>
+   *   <li>the kind-of standard CI env var on CI tools
+   *   <li>the standard maven option -B,--batch-mode Run in non-interactive (batch), see mvn:help
+   * </ul>
+   *
+   * @return if the plugin is in interactive mode
+   */
+  protected boolean interactive() {
+    return session.getRequest().isInteractiveMode() && !Boolean.parseBoolean(System.getenv("CI"));
+  }
+
   protected List<String> buildTestClasspath() throws Exception {
     List<String> testClasspathElements = new ArrayList<>();
     testClasspathElements.addAll(mavenProject.getTestClasspathElements());

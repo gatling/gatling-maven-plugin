@@ -179,9 +179,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   private Set<File> runDirectories() {
     File[] directories = resultsFolder.listFiles(File::isDirectory);
-    return (directories == null)
-        ? Collections.emptySet()
-        : new HashSet<>(Arrays.asList(directories));
+    return directories == null ? Set.of() : Set.of(directories);
   }
 
   private void iterateBySimulations(

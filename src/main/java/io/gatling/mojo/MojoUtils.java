@@ -60,7 +60,7 @@ public final class MojoUtils {
   }
 
   public static <T> List<T> arrayAsListEmptyIfNull(T[] array) {
-    return array == null ? Collections.emptyList() : Arrays.asList(array);
+    return array == null ? List.of() : Arrays.asList(array);
   }
 
   /**

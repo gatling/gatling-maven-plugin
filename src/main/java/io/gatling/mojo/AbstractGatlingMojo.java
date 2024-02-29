@@ -16,8 +16,6 @@
  */
 package io.gatling.mojo;
 
-import static java.util.Arrays.asList;
-
 import io.gatling.plugin.io.PluginLogger;
 import io.gatling.plugin.util.Fork;
 import io.gatling.plugin.util.ForkMain;
@@ -77,7 +75,7 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
 
   protected void addArg(List<String> args, String flag, Object value) {
     if (value != null) {
-      args.addAll(asList("-" + flag, value.toString()));
+      args.addAll(List.of("-" + flag, value.toString()));
     }
   }
 

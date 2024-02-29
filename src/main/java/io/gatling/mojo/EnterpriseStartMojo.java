@@ -23,7 +23,6 @@ import io.gatling.plugin.model.SimulationEndResult;
 import io.gatling.plugin.model.SimulationStartResult;
 import io.gatling.plugin.util.PropertiesParserUtil;
 import java.io.File;
-import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import org.apache.maven.plugin.MojoFailureException;
@@ -123,7 +122,7 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     final UUID packageIdUuid = packageId != null ? UUID.fromString(packageId) : null;
     if (simulationSystemProperties == null) {
       // @Parameter(defaultValue = ...) only works for properties with a single value
-      simulationSystemProperties = Collections.emptyMap();
+      simulationSystemProperties = Map.of();
     }
     final File file = enterprisePackage();
 

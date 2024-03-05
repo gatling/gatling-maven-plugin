@@ -55,7 +55,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   private String simulationClass;
 
   /**
-   * Iterate over multiple simulations if more than one simulation file is found. By default false.
+   * Iterate over multiple simulations if more than one simulation file is found. false by default.
    * If multiple simulations are found but {@literal runMultipleSimulations} is false the execution
    * will fail.
    */
@@ -70,7 +70,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   @Parameter(property = "gatling.excludes")
   private List<String> excludes;
 
-  /** Run simulation but does not generate reports. By default false. */
+  /** Run simulation but does not generate reports. false by default. */
   @Parameter(property = "gatling.noReports", defaultValue = "false")
   private boolean noReports;
 

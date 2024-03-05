@@ -347,8 +347,9 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
         SimulationClassUtils.resolveSimulations(mavenProject, includes, excludes);
 
     if (simulations.isEmpty()) {
-      getLog().error("No simulations to run");
-      throw new MojoFailureException("No simulations to run");
+      String message = "No simulations to run";
+      getLog().error(message);
+      throw new MojoFailureException(message);
     }
 
     if (simulations.size() > 1 && !runMultipleSimulations) {

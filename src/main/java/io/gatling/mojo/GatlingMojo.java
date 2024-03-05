@@ -341,28 +341,27 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     // Solves the simulations, if no simulation file is defined
     if (simulationClass != null) {
       return List.of(simulationClass);
-
-    } else {
-      List<String> simulations =
-          SimulationClassUtils.resolveSimulations(mavenProject, includes, excludes);
-
-      if (simulations.isEmpty()) {
-        getLog().error("No simulations to run");
-        throw new MojoFailureException("No simulations to run");
-      }
-
-      if (simulations.size() > 1 && !runMultipleSimulations) {
-        if (interactive) {
-          return List.of(Interactive.selectSingleSimulation(simulations));
-        } else {
-          String message =
-              "Running in non-interactive mode, yet more than 1 simulation is available. Either specify one with -Dgatling.simulationClass=<className> or run them all sequentially with -Dgatling.runMultipleSimulations=true.";
-          getLog().error(message);
-          throw new MojoFailureException(message);
-        }
-      }
-      return simulations;
     }
+
+    List<String> simulations =
+        SimulationClassUtils.resolveSimulations(mavenProject, includes, excludes);
+
+    if (simulations.isEmpty()) {
+      getLog().error("No simulations to run");
+      throw new MojoFailureException("No simulations to run");
+    }
+
+    if (simulations.size() > 1 && !runMultipleSimulations) {
+      if (interactive) {
+        return List.of(Interactive.selectSingleSimulation(simulations));
+      } else {
+        String message =
+            "Running in non-interactive mode, yet more than 1 simulation is available. Either specify one with -Dgatling.simulationClass=<className> or run them all sequentially with -Dgatling.runMultipleSimulations=true.";
+        getLog().error(message);
+        throw new MojoFailureException(message);
+      }
+    }
+    return simulations;
   }
 
   private List<String> gatlingArgs(String simulationClass) throws Exception {

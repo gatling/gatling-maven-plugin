@@ -16,24 +16,15 @@
  */
 package io.gatling.mojo;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.maven.artifact.Artifact;
 
 public final class MojoUtils {
-
-  public static boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
 
   private MojoUtils() {}
 
@@ -50,66 +41,13 @@ public final class MojoUtils {
       Pattern p = Pattern.compile("^.*file:(.*)!.*$");
       Matcher m = p.matcher(location.toString());
       if (m.find()) {
-        return URLDecoder.decode(m.group(1), "UTF-8");
+        return URLDecoder.decode(m.group(1), StandardCharsets.UTF_8);
       }
       throw new ClassNotFoundException(
           "Cannot parse location of '" + location + "'.  Probably not loaded from a Jar");
     }
     throw new ClassNotFoundException(
         "Cannot find class '" + c.getName() + " using the classloader");
-  }
-
-  public static <T> List<T> arrayAsListEmptyIfNull(T[] array) {
-    return array == null ? List.of() : Arrays.asList(array);
-  }
-
-  /**
-   * Create a jar with just a manifest containing a Main-Class entry for BooterConfiguration and a
-   * Class-Path entry for all classpath elements.
-   *
-   * @param classPath List of all classpath elements.
-   * @param startClassName The classname to start (main-class)
-   * @return The file pointing to the jar
-   * @throws java.io.IOException When a file operation fails.
-   */
-  public static File createBooterJar(List<String> classPath, String startClassName)
-      throws IOException {
-    File file = File.createTempFile("gatlingbooter", ".jar");
-    file.deleteOnExit();
-
-    try (JarOutputStream jos = new JarOutputStream(new FileOutputStream(file))) {
-      jos.setLevel(JarOutputStream.STORED);
-      JarEntry je = new JarEntry("META-INF/MANIFEST.MF");
-      jos.putNextEntry(je);
-
-      Manifest manifest = new Manifest();
-
-      // we can't use StringUtils.join here since we need to add a '/' to
-      // the end of directory entries - otherwise the jvm will ignore them.
-      StringBuilder cp = new StringBuilder();
-      for (String el : classPath) {
-        // NOTE: if File points to a directory, this entry MUST end in '/'.
-        cp.append(getURL(new File(el)).toExternalForm()).append(" ");
-      }
-      cp.setLength(cp.length() - 1);
-
-      manifest.getMainAttributes().putValue(Attributes.Name.MANIFEST_VERSION.toString(), "1.0");
-      manifest.getMainAttributes().putValue(Attributes.Name.CLASS_PATH.toString(), cp.toString());
-      manifest.getMainAttributes().putValue(Attributes.Name.MAIN_CLASS.toString(), startClassName);
-
-      manifest.write(jos);
-    }
-
-    return file;
-  }
-
-  public static URL getURL(File file) throws MalformedURLException {
-
-    // encode any characters that do not comply with RFC 2396
-    // this is primarily to handle Windows where the user's home directory contains
-    // spaces
-
-    return new URL(file.toURI().toASCIIString());
   }
 
   static boolean artifactNotIn(Artifact target, Collection<Artifact> artifacts) {

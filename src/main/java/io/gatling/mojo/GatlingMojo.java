@@ -23,6 +23,7 @@ import static java.util.Arrays.stream;
 import static org.codehaus.plexus.util.StringUtils.isBlank;
 
 import io.gatling.plugin.GatlingConstants;
+import io.gatling.plugin.SimulationSelector;
 import io.gatling.plugin.util.Fork;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -33,6 +34,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.*;
@@ -62,11 +64,11 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   /** List of include patterns to use for scanning. Includes all simulations by default. */
   @Parameter(property = "gatling.includes")
-  private String[] includes;
+  private List<String> includes;
 
   /** List of exclude patterns to use for scanning. Excludes none by default. */
   @Parameter(property = "gatling.excludes")
-  private String[] excludes;
+  private List<String> excludes;
 
   /** Run simulation but does not generate reports. By default false. */
   @Parameter(property = "gatling.noReports", defaultValue = "false")
@@ -196,12 +198,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
         String selectedSimulation = simulations.get(i);
 
         List<String> gatlingArgs = gatlingArgs(selectedSimulation);
-        String message = "Running simulation " + selectedSimulation + ".";
-        if (interactive) {
-          System.out.println(message);
-        } else {
-          getLog().info(message);
-        }
+        getLog().info("Running simulation " + selectedSimulation + ".");
         executeGatling(jvmArgs, gatlingArgs, testClasspath, toolchain);
       } catch (GatlingSimulationAssertionsFailedException e) {
         if (exc == null && i == simulationsCount - 1) {
@@ -338,31 +335,48 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   }
 
   private List<String> simulations(boolean interactive) throws MojoFailureException {
-    // Solves the simulations, if no simulation file is defined
-    if (simulationClass != null) {
-      return List.of(simulationClass);
+    List<String> testClasspath;
+    try {
+      testClasspath = mavenProject.getTestClasspathElements();
+    } catch (DependencyResolutionRequiredException e) {
+      throw new MojoFailureException("Failed to build test classpath", e);
     }
 
-    List<String> simulations =
-        SimulationClassUtils.resolveSimulations(mavenProject, includes, excludes);
+    SimulationSelector.Result result =
+        SimulationSelector.simulations(
+            simulationClass,
+            testClasspath,
+            includes,
+            excludes,
+            runMultipleSimulations,
+            interactive);
 
-    if (simulations.isEmpty()) {
-      String message = "No simulations to run";
-      getLog().error(message);
-      throw new MojoFailureException(message);
-    }
+    SimulationSelector.Result.Error error = result.error;
 
-    if (simulations.size() > 1 && !runMultipleSimulations) {
-      if (interactive) {
-        return List.of(Interactive.selectSingleSimulation(simulations));
-      } else {
-        String message =
-            "Running in non-interactive mode, yet more than 1 simulation is available. Either specify one with -Dgatling.simulationClass=<className> or run them all sequentially with -Dgatling.runMultipleSimulations=true.";
-        getLog().error(message);
-        throw new MojoFailureException(message);
+    if (error != null) {
+      // switch on null is only introduced in Java 18
+      String errorMessage;
+
+      switch (error) {
+        case NoSimulations:
+          errorMessage = "No simulations to run";
+          break;
+        case MoreThanOneSimulationInNonInteractiveMode:
+          errorMessage =
+              "Running in non-interactive mode, yet more than 1 simulation is available. Either specify one with -Dgatling.simulationClass=<className> or run them all sequentially with -Dgatling.runMultipleSimulations=true.";
+          break;
+        case TooManyInteractiveAttempts:
+          errorMessage = "Max attempts of reading simulation number reached. Aborting.";
+          break;
+        default:
+          throw new MojoFailureException("Unknown error: " + error);
       }
+
+      getLog().error(errorMessage);
+      throw new MojoFailureException(errorMessage);
     }
-    return simulations;
+
+    return result.simulations;
   }
 
   private List<String> gatlingArgs(String simulationClass) throws Exception {

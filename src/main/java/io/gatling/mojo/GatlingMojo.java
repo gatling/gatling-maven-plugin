@@ -133,6 +133,8 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       return;
     }
 
+    validateGatlingVersion();
+
     // Create results directories
     if (!resultsFolder.exists() && !resultsFolder.mkdirs()) {
       throw new MojoExecutionException(
@@ -152,9 +154,8 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
         executeGatling(jvmArgs, gatlingArgs(null), testClasspath, toolchain);
 
       } else {
-        boolean interactive = interactive();
-        List<String> simulations = simulations(interactive);
-        iterateBySimulations(toolchain, jvmArgs, testClasspath, simulations, interactive);
+        List<String> simulations = simulations();
+        iterateBySimulations(toolchain, jvmArgs, testClasspath, simulations);
       }
 
     } catch (Exception e) {
@@ -179,6 +180,24 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     }
   }
 
+  private void validateGatlingVersion() {
+    String gatlingVersion =
+        MojoUtils.findByGroupIdAndArtifactId(
+                mavenProject.getArtifacts(), GATLING_GROUP_ID, GATLING_MODULE_APP)
+            .getVersion();
+
+    String[] gatlingVersionParts = gatlingVersion.split("\\.");
+    int gatlingMajorVersion = Integer.valueOf(gatlingVersionParts[0]);
+    int gatlingMinorVersion = Integer.valueOf(gatlingVersionParts[1]);
+
+    if (gatlingMajorVersion < 3 || (gatlingMajorVersion == 3 && gatlingMinorVersion < 11)) {
+      throw new UnsupportedOperationException(
+          "Gatling version "
+              + gatlingVersion
+              + " is unsupported. Minimal supported version is 3.11.0");
+    }
+  }
+
   private Set<File> runDirectories() {
     File[] directories = resultsFolder.listFiles(File::isDirectory);
     return directories == null ? Set.of() : Set.of(directories);
@@ -188,8 +207,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       Toolchain toolchain,
       List<String> jvmArgs,
       List<String> testClasspath,
-      List<String> simulations,
-      boolean interactive)
+      List<String> simulations)
       throws Exception {
     Exception exc = null;
     int simulationsCount = simulations.size();
@@ -334,7 +352,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     return Collections.unmodifiableList(jvmArgs);
   }
 
-  private List<String> simulations(boolean interactive) throws MojoFailureException {
+  private List<String> simulations() throws MojoFailureException {
     List<String> testClasspath;
     try {
       testClasspath = mavenProject.getTestClasspathElements();
@@ -349,7 +367,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
             includes,
             excludes,
             runMultipleSimulations,
-            interactive);
+            interactive());
 
     SimulationSelector.Result.Error error = result.error;
 
@@ -392,22 +410,11 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     addArg(args, "ro", reportsOnly);
     addArg(args, "rf", resultsFolder.getCanonicalPath());
     addArg(args, "rd", encodedRunDescription);
+    addArg(args, "l", "maven");
+    addArg(args, "btv", MavenProject.class.getPackage().getImplementationVersion());
 
     if (noReports) {
       args.add("-nr");
-    }
-
-    String[] gatlingVersion =
-        MojoUtils.findByGroupIdAndArtifactId(
-                mavenProject.getArtifacts(), GATLING_GROUP_ID, GATLING_MODULE_APP)
-            .getVersion()
-            .split("\\.");
-    int gatlingMajorVersion = Integer.valueOf(gatlingVersion[0]);
-    int gatlingMinorVersion = Integer.valueOf(gatlingVersion[1]);
-
-    if ((gatlingMajorVersion == 3 && gatlingMinorVersion >= 8) || gatlingMajorVersion > 4) {
-      addArg(args, "l", "maven");
-      addArg(args, "btv", MavenProject.class.getPackage().getImplementationVersion());
     }
 
     return args;

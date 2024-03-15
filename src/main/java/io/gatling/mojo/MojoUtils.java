@@ -28,6 +28,8 @@ public final class MojoUtils {
 
   private MojoUtils() {}
 
+  private static final Pattern FILE_URL_PATTERN = Pattern.compile("^.*file:(.*)!.*$");
+
   public static String locateJar(Class<?> c) throws Exception {
     final URL location;
     final String classLocation = c.getName().replace('.', '/') + ".class";
@@ -38,8 +40,7 @@ public final class MojoUtils {
       location = loader.getResource(classLocation);
     }
     if (location != null) {
-      Pattern p = Pattern.compile("^.*file:(.*)!.*$");
-      Matcher m = p.matcher(location.toString());
+      Matcher m = FILE_URL_PATTERN.matcher(location.toString());
       if (m.find()) {
         return URLDecoder.decode(m.group(1), StandardCharsets.UTF_8);
       }

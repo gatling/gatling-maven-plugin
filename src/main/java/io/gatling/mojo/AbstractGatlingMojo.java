@@ -75,7 +75,8 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
 
   protected void addArg(List<String> args, String flag, Object value) {
     if (value != null) {
-      args.addAll(List.of("-" + flag, value.toString()));
+      args.add("-" + flag);
+      args.add(value.toString());
     }
   }
 

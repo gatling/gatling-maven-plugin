@@ -19,8 +19,6 @@ package io.gatling.mojo;
 import static io.gatling.mojo.MojoConstants.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.util.Arrays.stream;
-import static org.codehaus.plexus.util.StringUtils.isBlank;
 
 import io.gatling.plugin.GatlingConstants;
 import io.gatling.plugin.SimulationSelector;
@@ -120,8 +118,6 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   @Parameter(property = "gatling.workingDirectory")
   private File workingDirectory;
 
-  private Set<File> existingRunDirectories;
-
   @Parameter(defaultValue = "${project}", readonly = true)
   private MavenProject project;
 
@@ -140,7 +136,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       throw new MojoExecutionException(
           "Could not create resultsFolder " + resultsFolder.getAbsolutePath());
     }
-    existingRunDirectories = runDirectories();
+    Set<File> existingRunDirectories = runDirectories();
     Exception ex = null;
 
     try {
@@ -176,7 +172,12 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       }
       ex = e instanceof GatlingSimulationAssertionsFailedException ? null : e;
     } finally {
-      recordSimulationResults(ex);
+      try {
+        saveSimulationResultToFile(existingRunDirectories, ex);
+        copyJUnitReports();
+      } catch (IOException e) {
+        throw new MojoExecutionException("Could not record simulation results.", e);
+      }
     }
   }
 
@@ -265,48 +266,34 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     }
   }
 
-  private void recordSimulationResults(Exception exception) throws MojoExecutionException {
-    try {
-      saveSimulationResultToFile(exception);
-      copyJUnitReports();
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not record simulation results.", e);
-    }
-  }
-
-  private void saveSimulationResultToFile(Exception exception) throws IOException {
+  private void saveSimulationResultToFile(Set<File> existingRunDirectories, Exception exception)
+      throws IOException {
     Path resultsFile = resultsFolder.toPath().resolve(LAST_RUN_FILE);
 
     try (BufferedWriter writer = Files.newBufferedWriter(resultsFile)) {
-      saveListOfNewRunDirectories(writer);
-      writeExceptionIfExists(writer, exception);
-    }
-  }
-
-  private void saveListOfNewRunDirectories(BufferedWriter writer) throws IOException {
-    for (File directory : runDirectories()) {
-      if (!existingRunDirectories.contains(directory)) {
-        writer.write(directory.getName() + System.lineSeparator());
+      for (File directory : runDirectories()) {
+        if (!existingRunDirectories.contains(directory)) {
+          writer.write(directory.getName() + System.lineSeparator());
+        }
+      }
+      if (exception != null) {
+        writer.write(
+            LAST_RUN_FILE_ERROR_LINE + getRecursiveCauses(exception) + System.lineSeparator());
       }
     }
   }
 
-  private void writeExceptionIfExists(BufferedWriter writer, Exception exception)
-      throws IOException {
-    if (exception != null) {
-      writer.write(
-          LAST_RUN_FILE_ERROR_LINE + getRecursiveCauses(exception) + System.lineSeparator());
-    }
-  }
-
-  private String getRecursiveCauses(Throwable e) {
-    return stream(ExceptionUtils.getThrowables(e))
-        .map(ex -> joinNullable(ex.getClass().getName(), ex.getMessage()))
+  private static String getRecursiveCauses(Throwable e) {
+    return Arrays.stream(ExceptionUtils.getThrowables(e))
+        .map(
+            ex -> {
+              String exceptionClassName = ex.getClass().getName();
+              String exceptionMessage = ex.getMessage();
+              return exceptionMessage != null
+                  ? exceptionClassName + ": " + exceptionMessage
+                  : exceptionClassName;
+            })
         .collect(Collectors.joining(" | "));
-  }
-
-  private String joinNullable(String s, String sNullable) {
-    return isBlank(sNullable) ? s : s + ": " + sNullable;
   }
 
   private void copyJUnitReports() throws MojoExecutionException {

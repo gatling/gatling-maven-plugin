@@ -30,6 +30,4 @@ public final class MojoConstants {
   static final String GATLING_GROUP_ID = "io.gatling";
   static final String GATLING_MODULE_APP = "gatling-app";
   static final String GATLING_HIGHCHARTS_GROUP_ID = "io.gatling.highcharts";
-  static final Set<String> GATLING_GROUP_IDS =
-      Set.of(GATLING_GROUP_ID, GATLING_HIGHCHARTS_GROUP_ID);
 }

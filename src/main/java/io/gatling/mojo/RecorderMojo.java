@@ -56,7 +56,9 @@ public final class RecorderMojo extends AbstractGatlingMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     List<Path> testResourcesDirectories =
-            mavenProject.getTestResources().stream().map(Resource::getDirectory).map(Path::of)
+        mavenProject.getTestResources().stream()
+            .map(Resource::getDirectory)
+            .map(Path::of)
             .filter(Files::isDirectory)
             .collect(Collectors.toList());
 
@@ -106,7 +108,8 @@ public final class RecorderMojo extends AbstractGatlingMojo {
 
     try {
       List<String> testClasspath = buildTestClasspath();
-      List<String> recorderArgs = recorderArgs(simulationsDirectory, format, testResourcesDirectory);
+      List<String> recorderArgs =
+          recorderArgs(simulationsDirectory, format, testResourcesDirectory);
       Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
       Fork forkedRecorder =
           newFork(
@@ -125,7 +128,8 @@ public final class RecorderMojo extends AbstractGatlingMojo {
     }
   }
 
-  private List<String> recorderArgs(Path simulationsDirectory, String format, Path testResourcesDirectory) throws Exception {
+  private List<String> recorderArgs(
+      Path simulationsDirectory, String format, Path testResourcesDirectory) throws Exception {
     List<String> arguments = new ArrayList<>();
     addArg(arguments, "sf", simulationsDirectory.toFile().getCanonicalPath());
     addArg(arguments, "fmt", format);

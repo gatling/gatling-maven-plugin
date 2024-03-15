@@ -20,9 +20,12 @@ import static io.gatling.mojo.MojoConstants.RECORDER_MAIN_CLASS;
 
 import io.gatling.plugin.GatlingConstants;
 import io.gatling.plugin.util.Fork;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -38,17 +41,6 @@ import org.apache.maven.toolchain.Toolchain;
     requiresDependencyResolution = ResolutionScope.TEST)
 public final class RecorderMojo extends AbstractGatlingMojo {
 
-  /** Uses as the folder where generated simulations will be stored. */
-  @Parameter(property = "gatling.recorder.simulationsFolder", alias = "sf")
-  private File simulationsFolder;
-
-  /** Use this folder as the folder where feeders are stored. */
-  @Parameter(
-      property = "gatling.recorder.resourcesFolder",
-      alias = "rsf",
-      defaultValue = "${project.basedir}/src/test/resources")
-  private File resourcesFolder;
-
   /** The package of the generated class. */
   @Parameter(
       property = "gatling.recorder.package",
@@ -62,15 +54,59 @@ public final class RecorderMojo extends AbstractGatlingMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if (simulationsFolder == null) {
-      // project.testCompileSourceRoots typically contains exactly one element (can be set by
-      // build.testSourceDirectory in the POM); but if it is ambiguous we juste take the first one.
-      simulationsFolder = new File(mavenProject.getTestCompileSourceRoots().get(0));
+
+    List<Path> testResourcesDirectories =
+            mavenProject.getTestResources().stream().map(Resource::getDirectory).map(Path::of)
+            .filter(Files::isDirectory)
+            .collect(Collectors.toList());
+
+    Path testResourcesDirectory;
+    if (testResourcesDirectories.isEmpty()) {
+      throw new MojoExecutionException("Missing test resources directory");
+    } else {
+      testResourcesDirectory = testResourcesDirectories.get(0);
+    }
+
+    List<Path> testSourceDirectories =
+        mavenProject.getTestCompileSourceRoots().stream()
+            .map(Path::of)
+            .filter(Files::isDirectory)
+            .collect(Collectors.toList());
+
+    Path scalaTestSourceDir = null;
+    Path kotlinTestSourceDir = null;
+    Path javaTestSourceDir = null;
+    for (Path testSourceDirectory : testSourceDirectories) {
+      if (testSourceDirectory.endsWith("scala")) {
+        scalaTestSourceDir = testSourceDirectory;
+      } else if (testSourceDirectory.endsWith("kotlin")) {
+        kotlinTestSourceDir = testSourceDirectory;
+      } else if (testSourceDirectory.endsWith("java")) {
+        javaTestSourceDir = testSourceDirectory;
+      }
+    }
+
+    Path simulationsDirectory;
+    String format;
+
+    if (scalaTestSourceDir != null) {
+      simulationsDirectory = scalaTestSourceDir;
+      format = "scala";
+    } else if (kotlinTestSourceDir != null) {
+      simulationsDirectory = kotlinTestSourceDir;
+      format = "kotlin";
+    } else if (javaTestSourceDir != null) {
+      simulationsDirectory = javaTestSourceDir;
+      // let the Recorder pick a default Java format based on the Java version
+      format = null;
+    } else {
+      throw new MojoExecutionException(
+          "Unable to locate testCompileSourceRoot for neither Scala nor Kotlin nor Java");
     }
 
     try {
       List<String> testClasspath = buildTestClasspath();
-      List<String> recorderArgs = recorderArgs();
+      List<String> recorderArgs = recorderArgs(simulationsDirectory, format, testResourcesDirectory);
       Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
       Fork forkedRecorder =
           newFork(
@@ -89,13 +125,13 @@ public final class RecorderMojo extends AbstractGatlingMojo {
     }
   }
 
-  private List<String> recorderArgs() throws Exception {
+  private List<String> recorderArgs(Path simulationsDirectory, String format, Path testResourcesDirectory) throws Exception {
     List<String> arguments = new ArrayList<>();
-    addArg(arguments, "sf", simulationsFolder.getCanonicalPath());
-    addArg(arguments, "rf", resourcesFolder.getCanonicalPath());
+    addArg(arguments, "sf", simulationsDirectory.toFile().getCanonicalPath());
+    addArg(arguments, "fmt", format);
+    addArg(arguments, "rf", testResourcesDirectory.toFile().getCanonicalPath());
     addArg(arguments, "pkg", packageName);
     addArg(arguments, "cn", className);
-    // format TODO: don't know how to detect
     return arguments;
   }
 }

@@ -43,14 +43,15 @@
     <properties>
         <encoding>UTF-8</encoding>
         <maven.compiler.release>11</maven.compiler.release>
-        <maven3.version>3.0</maven3.version>
+        <maven3.version>3.6.3</maven3.version>
+        <maven-plugin-annotations.version>3.6.2</maven-plugin-annotations.version>
         <header.basedir>${project.basedir}</header.basedir>
         <junit.version>5.10.2</junit.version>
         <gatling-enterprise-plugin-commons.version>1.9.0-M11</gatling-enterprise-plugin-commons.version>
 
         <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
         <maven-plugin-plugin.version>3.11.0</maven-plugin-plugin.version>
-        <maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
         <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
@@ -69,7 +70,7 @@
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>${maven3.version}</version>
+            <version>${maven-plugin-annotations.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

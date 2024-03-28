@@ -17,8 +17,6 @@
 package io.gatling.mojo;
 
 import io.gatling.plugin.BatchEnterprisePlugin;
-import io.gatling.plugin.configuration.PackageConfiguration;
-import io.gatling.plugin.exceptions.EnterprisePluginException;
 import java.io.File;
 import java.util.UUID;
 import org.apache.maven.plugin.MojoFailureException;
@@ -53,20 +51,6 @@ public final class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
 
   @Override
   public void execute() throws MojoFailureException {
-    final BatchEnterprisePlugin enterprisePlugin = initBatchEnterprisePlugin();
-
-    final String jsonConfig = PackageConfiguration.loadToJson(mavenProject.getBasedir());
-
-    if (jsonConfig != null) {
-      try {
-        getLog().info("Package configuration file detected, applying it.");
-        packageId = enterprisePlugin.uploadPackageConfiguration(jsonConfig).toString();
-        getLog().info("Package id: " + packageId);
-      } catch (EnterprisePluginException e) {
-        throw new MojoFailureException("Failed to upload package configuration", e);
-      }
-    }
-
     if (packageId == null && simulationId == null) {
       final String msg =
           "Missing packageID\n"
@@ -78,6 +62,7 @@ public final class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
     }
 
     final File file = enterprisePackage();
+    final BatchEnterprisePlugin enterprisePlugin = initBatchEnterprisePlugin();
 
     RecoverEnterprisePluginException.handle(
         () ->

@@ -16,46 +16,14 @@
  */
 package io.gatling.mojo;
 
-import io.gatling.plugin.model.Simulation;
 import java.net.URL;
 
 public final class CommonLogMessage {
 
   private CommonLogMessage() {}
 
-  public static String simulationCreated(Simulation simulation) {
-    return "Successfully created simulation " + simulation.name + " with ID " + simulation.id;
-  }
-
-  public static String simulationChosen(Simulation simulation) {
-    return "Chose to start simulation " + simulation.name + " with ID " + simulation.id;
-  }
-
-  public static String simulationConfiguration(
-      Simulation simulation, String simulationIdSetting, boolean waitForRunEnd) {
-    final StringBuilder builder = new StringBuilder();
-    if (simulationIdSetting == null) {
-      builder
-          .append("To start the same simulation again, specify -Dgatling.enterprise.simulationId=")
-          .append(simulation.id)
-          .append(", or add the configuration to your pom.xml, e.g.:\n")
-          .append(pluginConfiguration("simulationId", simulation.id.toString()))
-          .append("\n");
-    }
-    if (!waitForRunEnd) {
-      builder
-          .append(
-              "To wait for the end of the run when starting a simulation on Gatling Enterprise, specify -Dgatling.enterprise.waitForRunEnd=true, or add the configuration to your pom.xml, e.g.:\n")
-          .append(pluginConfiguration("waitForRunEnd", "true"))
-          .append("\n");
-    }
-    return builder.toString();
-  }
-
   public static String simulationStartSuccess(URL enterpriseUrl, String reportsPath) {
-    return "Simulation successfully started; the report will be available at "
-        + enterpriseUrl
-        + reportsPath;
+    return "Simulation successfully started; reports are available at " + enterpriseUrl + reportsPath;
   }
 
   /**

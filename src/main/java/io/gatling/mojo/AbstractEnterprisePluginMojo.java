@@ -18,7 +18,7 @@ package io.gatling.mojo;
 
 import io.gatling.plugin.*;
 import io.gatling.plugin.client.EnterpriseClient;
-import io.gatling.plugin.client.http.HttpEnterpriseClient;
+import io.gatling.plugin.client.HttpEnterpriseClient;
 import io.gatling.plugin.exceptions.UnsupportedClientException;
 import io.gatling.plugin.io.JavaPluginScanner;
 import io.gatling.plugin.io.PluginIO;

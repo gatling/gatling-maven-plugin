@@ -16,8 +16,6 @@
  */
 package io.gatling.mojo;
 
-import java.util.*;
-
 public final class MojoConstants {
 
   private MojoConstants() {}

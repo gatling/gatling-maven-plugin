@@ -20,6 +20,7 @@ import io.gatling.plugin.BatchEnterprisePlugin;
 import io.gatling.plugin.deployment.DeploymentConfiguration;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.model.BuildTool;
+import io.gatling.plugin.model.DeploymentInfo;
 import java.io.File;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Execute;
@@ -29,6 +30,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 @Execute(goal = "enterprisePackage")
 @Mojo(name = "enterpriseDeploy", requiresDependencyResolution = ResolutionScope.TEST)
 public final class EnterpriseDeployMojo extends AbstractEnterprisePluginMojo {
+  public static final String CONTEXT_ENTERPRISE_DEPLOY_INFO = "enterprise_deploy_info";
 
   @Override
   public void execute() throws MojoFailureException {
@@ -38,13 +40,16 @@ public final class EnterpriseDeployMojo extends AbstractEnterprisePluginMojo {
     final Boolean isPrivateRepositoryEnabled = controlPlaneUrl != null;
     final BatchEnterprisePlugin plugin = initBatchEnterprisePlugin();
     try {
-      plugin.deployFromDescriptor(
-          deploymentFile,
-          packageFile,
-          mavenProject.getArtifactId(),
-          isPrivateRepositoryEnabled,
-          BuildTool.MAVEN,
-          getClass().getPackage().getImplementationVersion());
+      DeploymentInfo deploymentInfo =
+          plugin.deployFromDescriptor(
+              deploymentFile,
+              packageFile,
+              mavenProject.getArtifactId(),
+              isPrivateRepositoryEnabled,
+              BuildTool.MAVEN,
+              getClass().getPackage().getImplementationVersion());
+
+      getPluginContext().put(CONTEXT_ENTERPRISE_DEPLOY_INFO, deploymentInfo);
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(e.getMessage(), e);
     }

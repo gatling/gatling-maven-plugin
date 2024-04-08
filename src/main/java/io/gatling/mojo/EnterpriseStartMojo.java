@@ -59,7 +59,7 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     final Map context = getPluginContext();
     final DeploymentInfo deploymentInfo =
         (DeploymentInfo) context.get(EnterpriseDeployMojo.CONTEXT_ENTERPRISE_DEPLOY_INFO);
-    final EnterprisePlugin plugin = initEnterprisePlugin(interactive());
+    final EnterprisePlugin plugin = initEnterprisePlugin(requireBatchMode());
 
     try {
       RunSummary runSummary = plugin.startSimulation(simulationName, deploymentInfo);
@@ -69,10 +69,6 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
       throw new MojoFailureException(
           "Unhandled Gatling Enterprise plugin exception: " + e.getMessage(), e);
     }
-  }
-
-  private EnterprisePlugin initEnterprisePlugin(boolean isInteractive) throws MojoFailureException {
-    return isInteractive ? initInteractiveEnterprisePlugin() : initBatchEnterprisePlugin();
   }
 
   private void waitForRunEnd(EnterprisePlugin plugin, RunSummary startedRun)

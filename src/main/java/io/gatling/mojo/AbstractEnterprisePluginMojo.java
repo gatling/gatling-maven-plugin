@@ -17,13 +17,13 @@
 package io.gatling.mojo;
 
 import io.gatling.plugin.*;
-import io.gatling.plugin.client.EnterpriseClient;
-import io.gatling.plugin.client.HttpEnterpriseClient;
+import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.exceptions.UnsupportedClientException;
 import io.gatling.plugin.io.JavaPluginScanner;
 import io.gatling.plugin.io.PluginIO;
 import io.gatling.plugin.io.PluginLogger;
 import io.gatling.plugin.io.PluginScanner;
+import io.gatling.plugin.model.BuildTool;
 import java.net.URL;
 import java.util.Scanner;
 import org.apache.maven.plugin.MojoFailureException;
@@ -81,16 +81,8 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
         }
       };
 
-  protected BatchEnterprisePlugin initBatchEnterprisePlugin() throws MojoFailureException {
-    return new BatchEnterprisePluginClient(initEnterpriseClient(), pluginLogger);
-  }
-
-  protected InteractiveEnterprisePlugin initInteractiveEnterprisePlugin()
+  private PluginConfiguration pluginConfiguration(Boolean forceBatchMode)
       throws MojoFailureException {
-    return new InteractiveEnterprisePluginClient(initEnterpriseClient(), pluginIO);
-  }
-
-  private EnterpriseClient initEnterpriseClient() throws MojoFailureException {
     if (apiToken == null) {
       final String msg =
           "Missing API token\n"
@@ -103,21 +95,33 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
                   "MY_API_TOKEN_VALUE");
       throw new MojoFailureException(msg);
     }
-    final String pluginTitle = getClass().getPackage().getImplementationTitle();
-    final String pluginVersion = getClass().getPackage().getImplementationVersion();
-    if (pluginTitle == null || pluginVersion == null) {
-      // Should no happen if the plugin is built and packaged properly
-      throw new IllegalStateException("Gatling plugin title and version not found");
-    }
+    return new PluginConfiguration(
+        enterpriseUrl,
+        apiToken,
+        controlPlaneUrl,
+        BuildTool.MAVEN,
+        pluginVersion(),
+        forceBatchMode,
+        pluginIO);
+  }
 
+  protected BatchEnterprisePlugin initBatchEnterprisePlugin() throws MojoFailureException {
     try {
-      return new HttpEnterpriseClient(
-          enterpriseUrl, apiToken, pluginTitle, pluginVersion, controlPlaneUrl);
+      return EnterprisePluginProvider.getBatchInstance(pluginConfiguration(true));
     } catch (UnsupportedClientException e) {
-      throw new MojoFailureException(
-          "Please update the Gatling Maven plugin to the latest version for compatibility with Gatling Enterprise. See https://gatling.io/docs/gatling/reference/current/extensions/maven_plugin/ for more information about this plugin.",
-          e);
-    } catch (Exception e) {
+      throw new UnsupportedClientMojoException(e);
+    } catch (EnterprisePluginException e) {
+      throw new MojoFailureException(e.getMessage(), e);
+    }
+  }
+
+  protected EnterprisePlugin initEnterprisePlugin(Boolean forceBatchMode)
+      throws MojoFailureException {
+    try {
+      return EnterprisePluginProvider.getInstance(pluginConfiguration(forceBatchMode));
+    } catch (UnsupportedClientException e) {
+      throw new UnsupportedClientMojoException(e);
+    } catch (EnterprisePluginException e) {
       throw new MojoFailureException(e.getMessage(), e);
     }
   }

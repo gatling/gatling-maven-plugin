@@ -19,7 +19,6 @@ package io.gatling.mojo;
 import io.gatling.plugin.BatchEnterprisePlugin;
 import io.gatling.plugin.deployment.DeploymentConfiguration;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
-import io.gatling.plugin.model.BuildTool;
 import io.gatling.plugin.model.DeploymentInfo;
 import java.io.File;
 import org.apache.maven.plugin.MojoFailureException;
@@ -45,9 +44,7 @@ public final class EnterpriseDeployMojo extends AbstractEnterprisePluginMojo {
               deploymentFile,
               packageFile,
               mavenProject.getArtifactId(),
-              isPrivateRepositoryEnabled,
-              BuildTool.MAVEN,
-              getClass().getPackage().getImplementationVersion());
+              isPrivateRepositoryEnabled);
 
       getPluginContext().put(CONTEXT_ENTERPRISE_DEPLOY_INFO, deploymentInfo);
     } catch (EnterprisePluginException e) {

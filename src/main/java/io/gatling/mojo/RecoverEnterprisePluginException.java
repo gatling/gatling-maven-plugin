@@ -16,7 +16,6 @@
  */
 package io.gatling.mojo;
 
-import io.gatling.plugin.EmptyChoicesException;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.exceptions.UnsupportedJavaVersionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -46,8 +45,6 @@ public final class RecoverEnterprisePluginException {
               + e.supportedVersion
               + " or lower.";
       throw new MojoFailureException(msg);
-    } catch (EmptyChoicesException e) {
-      throw new MojoFailureException(e.getMessage(), e);
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(
           "Unhandled Gatling Enterprise plugin exception: " + e.getMessage(), e);

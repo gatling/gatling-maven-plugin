@@ -17,6 +17,7 @@
 package io.gatling.mojo;
 
 import io.gatling.plugin.io.PluginLogger;
+import io.gatling.plugin.model.BuildTool;
 import io.gatling.plugin.util.Fork;
 import io.gatling.plugin.util.ForkMain;
 import io.gatling.plugin.util.JavaLocator;
@@ -48,18 +49,19 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
   /** Maven's repository. */
   @Component protected RepositorySystem repository;
 
-  /**
-   * Uses 2 different mechanisms to detect if the plugin is in interactive mode:
-   *
-   * <ul>
-   *   <li>the kind-of standard CI env var on CI tools
-   *   <li>the standard maven option -B,--batch-mode Run in non-interactive (batch), see mvn:help
-   * </ul>
-   *
-   * @return if the plugin is in interactive mode
-   */
-  protected boolean interactive() {
-    return session.getRequest().isInteractiveMode() && !Boolean.parseBoolean(System.getenv("CI"));
+  protected BuildTool buildTool = BuildTool.MAVEN;
+
+  protected String pluginVersion() {
+    final String pluginVersion = getClass().getPackage().getImplementationVersion();
+    if (pluginVersion == null) {
+      // Should not happen if the plugin is built and packaged properly
+      throw new IllegalStateException("Gatling plugin title and version not found");
+    }
+    return pluginVersion;
+  }
+
+  protected Boolean requireBatchMode() {
+    return !session.getRequest().isInteractiveMode();
   }
 
   protected List<String> buildTestClasspath() throws Exception {

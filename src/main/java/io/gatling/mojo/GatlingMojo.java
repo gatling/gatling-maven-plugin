@@ -22,6 +22,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import io.gatling.plugin.GatlingConstants;
 import io.gatling.plugin.SimulationSelector;
+import io.gatling.plugin.model.BuildPlugin;
 import io.gatling.plugin.util.Fork;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -354,7 +355,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
             includes,
             excludes,
             runMultipleSimulations,
-            interactive());
+            BuildPlugin.getInstance(buildTool, pluginVersion(), requireBatchMode()).interactive);
 
     SimulationSelector.Result.Error error = result.error;
 

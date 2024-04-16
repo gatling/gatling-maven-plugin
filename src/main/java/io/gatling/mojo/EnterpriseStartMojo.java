@@ -19,6 +19,7 @@ package io.gatling.mojo;
 import io.gatling.plugin.EnterprisePlugin;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.model.DeploymentInfo;
+import io.gatling.plugin.model.RunComment;
 import io.gatling.plugin.model.RunSummary;
 import io.gatling.plugin.model.SimulationEndResult;
 import java.util.Map;
@@ -47,6 +48,12 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
   @Parameter(property = "gatling.enterprise.simulationName")
   private String simulationName;
 
+  @Parameter(property = "gatling.enterprise.runTitle")
+  private String runTitle;
+
+  @Parameter(property = "gatling.enterprise.runDescription")
+  private String runDescription;
+
   /**
    * Wait for the result after starting the simulation on Gatling Enterprise, and complete with an
    * error if the simulation ends with any error status.
@@ -62,7 +69,9 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     final EnterprisePlugin plugin = initEnterprisePlugin(requireBatchMode());
 
     try {
-      RunSummary runSummary = plugin.startSimulation(simulationName, deploymentInfo);
+      final RunComment runComment = new RunComment(runTitle, runDescription);
+      final RunSummary runSummary =
+          plugin.startSimulation(simulationName, deploymentInfo, runComment);
       getLog().info(CommonLogMessage.simulationStartSuccess(enterpriseUrl, runSummary.reportsPath));
       waitForRunEnd(plugin, runSummary);
     } catch (EnterprisePluginException e) {

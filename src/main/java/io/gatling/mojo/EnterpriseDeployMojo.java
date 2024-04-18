@@ -24,6 +24,7 @@ import java.io.File;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 @Execute(goal = "enterprisePackage")
@@ -31,11 +32,13 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 public final class EnterpriseDeployMojo extends AbstractEnterprisePluginMojo {
   public static final String CONTEXT_ENTERPRISE_DEPLOY_INFO = "enterprise_deploy_info";
 
+  @Parameter(property = "gatling.enterprise.packageDescriptorFilename")
+  private String customPackageFilename;
+
   @Override
   public void execute() throws MojoFailureException {
     final File packageFile = enterprisePackage();
-    final File deploymentFile =
-        DeploymentConfiguration.fromBaseDirectory(mavenProject.getBasedir());
+    final File deploymentFile = getDeploymentFile();
     final Boolean isPrivateRepositoryEnabled = controlPlaneUrl != null;
     final BatchEnterprisePlugin plugin = initBatchEnterprisePlugin();
     try {
@@ -49,6 +52,15 @@ public final class EnterpriseDeployMojo extends AbstractEnterprisePluginMojo {
       getPluginContext().put(CONTEXT_ENTERPRISE_DEPLOY_INFO, deploymentInfo);
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(e.getMessage(), e);
+    }
+  }
+
+  private File getDeploymentFile() {
+    File baseDir = mavenProject.getBasedir();
+    if (customPackageFilename == null) {
+      return DeploymentConfiguration.fromBaseDirectory(baseDir, customPackageFilename);
+    } else {
+      return baseDir.toPath().resolve(customPackageFilename).toFile();
     }
   }
 }

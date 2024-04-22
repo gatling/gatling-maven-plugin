@@ -130,8 +130,6 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       return;
     }
 
-    validateGatlingVersion();
-
     // Create results directories
     if (!resultsFolder.exists() && !resultsFolder.mkdirs()) {
       throw new MojoExecutionException(
@@ -179,24 +177,6 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       } catch (IOException e) {
         throw new MojoExecutionException("Could not record simulation results.", e);
       }
-    }
-  }
-
-  private void validateGatlingVersion() {
-    String gatlingVersion =
-        MojoUtils.findByGroupIdAndArtifactId(
-                mavenProject.getArtifacts(), GATLING_GROUP_ID, GATLING_MODULE_APP)
-            .getVersion();
-
-    String[] gatlingVersionParts = gatlingVersion.split("\\.");
-    int gatlingMajorVersion = Integer.valueOf(gatlingVersionParts[0]);
-    int gatlingMinorVersion = Integer.valueOf(gatlingVersionParts[1]);
-
-    if (gatlingMajorVersion < 3 || (gatlingMajorVersion == 3 && gatlingMinorVersion < 11)) {
-      throw new UnsupportedOperationException(
-          "Gatling version "
-              + gatlingVersion
-              + " is unsupported. Minimal supported version is 3.11.0");
     }
   }
 
@@ -398,11 +378,22 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     addArg(args, "ro", reportsOnly);
     addArg(args, "rf", resultsFolder.getCanonicalPath());
     addArg(args, "rd", encodedRunDescription);
-    addArg(args, "l", "maven");
-    addArg(args, "btv", MavenProject.class.getPackage().getImplementationVersion());
 
     if (noReports) {
       args.add("-nr");
+    }
+
+    String[] gatlingVersion =
+        MojoUtils.findByGroupIdAndArtifactId(
+                mavenProject.getArtifacts(), GATLING_GROUP_ID, GATLING_MODULE_APP)
+            .getVersion()
+            .split("\\.");
+    int gatlingMajorVersion = Integer.valueOf(gatlingVersion[0]);
+    int gatlingMinorVersion = Integer.valueOf(gatlingVersion[1]);
+
+    if ((gatlingMajorVersion == 3 && gatlingMinorVersion >= 8) || gatlingMajorVersion > 4) {
+      addArg(args, "l", "maven");
+      addArg(args, "btv", MavenProject.class.getPackage().getImplementationVersion());
     }
 
     return args;

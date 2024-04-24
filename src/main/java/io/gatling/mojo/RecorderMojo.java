@@ -20,6 +20,7 @@ import static io.gatling.mojo.MojoConstants.RECORDER_MAIN_CLASS;
 
 import io.gatling.plugin.GatlingConstants;
 import io.gatling.plugin.util.Fork;
+import io.gatling.shared.cli.RecorderCliOptions;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -131,11 +132,17 @@ public final class RecorderMojo extends AbstractGatlingMojo {
   private List<String> recorderArgs(
       Path simulationsDirectory, String format, Path testResourcesDirectory) throws Exception {
     List<String> arguments = new ArrayList<>();
-    addArg(arguments, "sf", simulationsDirectory.toFile().getCanonicalPath());
-    addArg(arguments, "fmt", format);
-    addArg(arguments, "rf", testResourcesDirectory.toFile().getCanonicalPath());
-    addArg(arguments, "pkg", packageName);
-    addArg(arguments, "cn", className);
+    addArg(
+        arguments,
+        RecorderCliOptions.SimulationsFolder.abbr,
+        simulationsDirectory.toFile().getCanonicalPath());
+    addArg(arguments, RecorderCliOptions.Format.abbr, format);
+    addArg(
+        arguments,
+        RecorderCliOptions.ResourcesFolder.abbr,
+        testResourcesDirectory.toFile().getCanonicalPath());
+    addArg(arguments, RecorderCliOptions.Package.abbr, packageName);
+    addArg(arguments, RecorderCliOptions.ClassName.abbr, className);
     return arguments;
   }
 }

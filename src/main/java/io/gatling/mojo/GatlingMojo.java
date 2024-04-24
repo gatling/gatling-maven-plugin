@@ -24,6 +24,7 @@ import io.gatling.plugin.GatlingConstants;
 import io.gatling.plugin.SimulationSelector;
 import io.gatling.plugin.model.BuildPlugin;
 import io.gatling.plugin.util.Fork;
+import io.gatling.shared.cli.GatlingCliOptions;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -374,13 +375,13 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
             : null;
 
     List<String> args = new ArrayList<>();
-    addArg(args, "s", simulationClass);
-    addArg(args, "ro", reportsOnly);
-    addArg(args, "rf", resultsFolder.getCanonicalPath());
-    addArg(args, "rd", encodedRunDescription);
+    addArg(args, GatlingCliOptions.Simulation.abbr, simulationClass);
+    addArg(args, GatlingCliOptions.ReportsOnly.abbr, reportsOnly);
+    addArg(args, GatlingCliOptions.ResultsFolder.abbr, resultsFolder.getCanonicalPath());
+    addArg(args, GatlingCliOptions.RunDescription.abbr, encodedRunDescription);
 
     if (noReports) {
-      args.add("-nr");
+      args.add("-" + GatlingCliOptions.NoReports);
     }
 
     String[] gatlingVersion =
@@ -392,8 +393,11 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     int gatlingMinorVersion = Integer.valueOf(gatlingVersion[1]);
 
     if ((gatlingMajorVersion == 3 && gatlingMinorVersion >= 8) || gatlingMajorVersion > 4) {
-      addArg(args, "l", "maven");
-      addArg(args, "btv", MavenProject.class.getPackage().getImplementationVersion());
+      addArg(args, GatlingCliOptions.Launcher.abbr, "maven");
+      addArg(
+          args,
+          GatlingCliOptions.BuildToolVersion.abbr,
+          MavenProject.class.getPackage().getImplementationVersion());
     }
 
     return args;

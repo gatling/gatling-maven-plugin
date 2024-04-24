@@ -48,6 +48,7 @@
         <header.basedir>${project.basedir}</header.basedir>
         <junit.version>5.10.2</junit.version>
         <gatling-enterprise-plugin-commons.version>1.9.1</gatling-enterprise-plugin-commons.version>
+        <gatling-shared-cli.version>0.0.1</gatling-shared-cli.version>
 
         <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
         <maven-plugin-plugin.version>3.12.0</maven-plugin-plugin.version>
@@ -83,6 +84,11 @@
             <groupId>io.gatling</groupId>
             <artifactId>gatling-enterprise-plugin-commons</artifactId>
             <version>${gatling-enterprise-plugin-commons.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.gatling</groupId>
+            <artifactId>gatling-shared-cli</artifactId>
+            <version>${gatling-shared-cli.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

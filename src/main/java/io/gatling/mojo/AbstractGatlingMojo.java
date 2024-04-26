@@ -75,13 +75,6 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
     return testClasspathElements;
   }
 
-  protected void addArg(List<String> args, String flag, Object value) {
-    if (value != null) {
-      args.add("-" + flag);
-      args.add(value.toString());
-    }
-  }
-
   protected PluginLogger newPluginLogger() {
     return new PluginLogger() {
       @Override

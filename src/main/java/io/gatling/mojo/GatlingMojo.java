@@ -367,21 +367,24 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   }
 
   private List<String> gatlingArgs(String simulationClass) throws Exception {
-    // encode runDescription in Base64 because it could contain characters that would break the
-    // command
-    String encodedRunDescription =
-        runDescription != null
-            ? Base64.getEncoder().encodeToString(runDescription.getBytes(StandardCharsets.UTF_8))
-            : null;
-
     List<String> args = new ArrayList<>();
-    addArg(args, GatlingCliOptions.Simulation.abbr, simulationClass);
-    addArg(args, GatlingCliOptions.ReportsOnly.abbr, reportsOnly);
-    addArg(args, GatlingCliOptions.ResultsFolder.abbr, resultsFolder.getCanonicalPath());
-    addArg(args, GatlingCliOptions.RunDescription.abbr, encodedRunDescription);
-
+    if (simulationClass != null) {
+      args.addAll(List.of(GatlingCliOptions.Simulation.shortOption(), simulationClass));
+    }
+    args.addAll(
+        List.of(GatlingCliOptions.ResultsFolder.shortOption(), resultsFolder.getCanonicalPath()));
+    if (reportsOnly != null) {
+      args.addAll(List.of(GatlingCliOptions.ReportsOnly.shortOption(), reportsOnly));
+    }
+    if (runDescription != null) {
+      // encode runDescription in Base64 because it could contain characters that would break the
+      // command
+      String encodedRunDescription =
+          Base64.getEncoder().encodeToString(runDescription.getBytes(StandardCharsets.UTF_8));
+      args.addAll(List.of(GatlingCliOptions.RunDescription.shortOption(), encodedRunDescription));
+    }
     if (noReports) {
-      args.add("-" + GatlingCliOptions.NoReports);
+      args.add(GatlingCliOptions.NoReports.shortOption());
     }
 
     String[] gatlingVersion =
@@ -389,15 +392,15 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
                 mavenProject.getArtifacts(), GATLING_GROUP_ID, GATLING_MODULE_APP)
             .getVersion()
             .split("\\.");
-    int gatlingMajorVersion = Integer.valueOf(gatlingVersion[0]);
-    int gatlingMinorVersion = Integer.valueOf(gatlingVersion[1]);
+    int gatlingMajorVersion = Integer.parseInt(gatlingVersion[0]);
+    int gatlingMinorVersion = Integer.parseInt(gatlingVersion[1]);
 
     if ((gatlingMajorVersion == 3 && gatlingMinorVersion >= 8) || gatlingMajorVersion > 4) {
-      addArg(args, GatlingCliOptions.Launcher.abbr, "maven");
-      addArg(
-          args,
-          GatlingCliOptions.BuildToolVersion.abbr,
-          MavenProject.class.getPackage().getImplementationVersion());
+      args.addAll(List.of(GatlingCliOptions.Launcher.shortOption(), "maven"));
+      args.addAll(
+          List.of(
+              GatlingCliOptions.BuildToolVersion.shortOption(),
+              MavenProject.class.getPackage().getImplementationVersion()));
     }
 
     return args;

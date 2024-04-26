@@ -131,18 +131,18 @@ public final class RecorderMojo extends AbstractGatlingMojo {
 
   private List<String> recorderArgs(
       Path simulationsDirectory, String format, Path testResourcesDirectory) throws Exception {
-    List<String> arguments = new ArrayList<>();
-    addArg(
-        arguments,
-        RecorderCliOptions.SimulationsFolder.abbr,
-        simulationsDirectory.toFile().getCanonicalPath());
-    addArg(arguments, RecorderCliOptions.Format.abbr, format);
-    addArg(
-        arguments,
-        RecorderCliOptions.ResourcesFolder.abbr,
-        testResourcesDirectory.toFile().getCanonicalPath());
-    addArg(arguments, RecorderCliOptions.Package.abbr, packageName);
-    addArg(arguments, RecorderCliOptions.ClassName.abbr, className);
-    return arguments;
+    List<String> args = new ArrayList<>();
+    args.addAll(
+        List.of(
+            RecorderCliOptions.SimulationsFolder.shortName,
+            simulationsDirectory.toFile().getCanonicalPath()));
+    args.addAll(List.of(RecorderCliOptions.Format.shortName, format));
+    args.addAll(
+        List.of(
+            RecorderCliOptions.ResourcesFolder.shortName,
+            testResourcesDirectory.toFile().getCanonicalPath()));
+    args.addAll(List.of(RecorderCliOptions.Package.shortName, packageName));
+    args.addAll(List.of(RecorderCliOptions.ClassName.shortName, className));
+    return args;
   }
 }

@@ -311,11 +311,11 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   private List<String> gatlingJvmArgs() {
     if (jvmArgs.isEmpty()) {
-      return GatlingConstants.DEFAULT_JVM_OPTIONS_BASE;
+      return GatlingConstants.DEFAULT_JVM_OPTIONS_GATLING;
     }
     if (overrideJvmArgs) {
       List<String> merged = new ArrayList<>(jvmArgs);
-      merged.addAll(GatlingConstants.DEFAULT_JVM_OPTIONS_BASE);
+      merged.addAll(GatlingConstants.DEFAULT_JVM_OPTIONS_GATLING);
       return merged;
     }
     return Collections.unmodifiableList(jvmArgs);

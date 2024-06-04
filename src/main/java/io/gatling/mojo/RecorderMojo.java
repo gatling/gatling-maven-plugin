@@ -145,7 +145,9 @@ public final class RecorderMojo extends AbstractGatlingMojo {
             RecorderCliOptions.ResourcesFolder.shortName,
             testResourcesDirectory.toFile().getCanonicalPath()));
     args.addAll(List.of(RecorderCliOptions.Package.shortName, packageName));
-    args.addAll(List.of(RecorderCliOptions.ClassName.shortName, className));
+    if (className != null) {
+      args.addAll(List.of(RecorderCliOptions.ClassName.shortName, className));
+    }
     return args;
   }
 }

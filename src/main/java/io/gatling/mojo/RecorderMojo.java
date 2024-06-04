@@ -134,19 +134,19 @@ public final class RecorderMojo extends AbstractGatlingMojo {
     List<String> args = new ArrayList<>();
     args.addAll(
         List.of(
-            RecorderCliOptions.SimulationsFolder.shortName,
+            RecorderCliOptions.SimulationsFolder.shortOption(),
             simulationsDirectory.toFile().getCanonicalPath()));
     if (format != null) {
       // format is option, best suited Java version will be picked
-      args.addAll(List.of(RecorderCliOptions.Format.shortName, format));
+      args.addAll(List.of(RecorderCliOptions.Format.shortOption(), format));
     }
     args.addAll(
         List.of(
-            RecorderCliOptions.ResourcesFolder.shortName,
+            RecorderCliOptions.ResourcesFolder.shortOption(),
             testResourcesDirectory.toFile().getCanonicalPath()));
-    args.addAll(List.of(RecorderCliOptions.Package.shortName, packageName));
+    args.addAll(List.of(RecorderCliOptions.Package.shortOption(), packageName));
     if (className != null) {
-      args.addAll(List.of(RecorderCliOptions.ClassName.shortName, className));
+      args.addAll(List.of(RecorderCliOptions.ClassName.shortOption(), className));
     }
     return args;
   }

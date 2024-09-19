@@ -22,7 +22,7 @@ import org.apache.maven.plugin.MojoFailureException;
 public class UnsupportedClientMojoException extends MojoFailureException {
   public UnsupportedClientMojoException(UnsupportedClientException e) {
     super(
-        "Please update the Gatling Maven plugin to the latest version for compatibility with Gatling Enterprise. See https://gatling.io/docs/gatling/reference/current/extensions/maven_plugin/ for more information about this plugin.",
+        "Please update the Gatling Maven plugin to the latest version for compatibility with Gatling Enterprise. See https://docs.gatling.io/reference/integrations/build-tools/maven-plugin/ for more information about this plugin.",
         e);
   }
 }

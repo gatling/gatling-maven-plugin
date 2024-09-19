@@ -7,4 +7,4 @@
 [![Gatling Community](https://img.shields.io/badge/Community-Gatling-e28961?style=for-the-badge&logo=discourse)](https://community.gatling.io)
 
 > [!WARNING]
-> The documentation now lives on the Gatling website and can be found [here](https://gatling.io/docs/current/extensions/maven_plugin/).
+> The documentation now lives on the Gatling website and can be found [here](https://docs.gatling.io/reference/integrations/build-tools/maven-plugin/).

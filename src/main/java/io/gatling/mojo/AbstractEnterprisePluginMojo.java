@@ -32,8 +32,11 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMojo {
 
-  @Parameter(defaultValue = ConfigurationConstants.Url.DEFAULT, readonly = true)
-  protected URL enterpriseUrl;
+  @Parameter(defaultValue = ConfigurationConstants.ApiUrl.DEFAULT, readonly = true)
+  protected URL enterpriseApiUrl;
+
+  @Parameter(defaultValue = ConfigurationConstants.WebAppUrl.DEFAULT, readonly = true)
+  protected URL enterpriseWebAppUrl;
 
   /**
    * The API token used to connect to Gatling Enterprise (see <a
@@ -98,7 +101,8 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
       throw new MojoFailureException(msg);
     }
     return new PluginConfiguration(
-        enterpriseUrl,
+        enterpriseApiUrl,
+        enterpriseWebAppUrl,
         apiToken,
         controlPlaneUrl,
         BuildTool.MAVEN,

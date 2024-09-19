@@ -75,7 +75,9 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
       final RunComment runComment = new RunComment(runTitle, runDescription);
       final RunSummary runSummary =
           plugin.startSimulation(simulationName, deploymentInfo, runComment);
-      getLog().info(CommonLogMessage.simulationStartSuccess(enterpriseUrl, runSummary.reportsPath));
+      getLog()
+          .info(
+              CommonLogMessage.simulationStartSuccess(enterpriseWebAppUrl, runSummary.reportsPath));
       waitForRunEnd(plugin, runSummary);
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(

@@ -16,6 +16,7 @@
  */
 package io.gatling.mojo;
 
+import io.gatling.plugin.ConfigurationConstants;
 import io.gatling.plugin.EnterprisePlugin;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.model.DeploymentInfo;
@@ -45,20 +46,22 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 @Mojo(name = "enterpriseStart", requiresDependencyResolution = ResolutionScope.TEST)
 public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
 
-  @Parameter(property = "gatling.enterprise.simulationName")
+  @Parameter(property = ConfigurationConstants.StartOptions.SimulationName.SYS_PROP)
   private String simulationName;
 
-  @Parameter(property = "gatling.enterprise.runTitle")
+  @Parameter(property = ConfigurationConstants.StartOptions.RunTitle.SYS_PROP)
   private String runTitle;
 
-  @Parameter(property = "gatling.enterprise.runDescription")
+  @Parameter(property = ConfigurationConstants.StartOptions.RunDescription.SYS_PROP)
   private String runDescription;
 
   /**
    * Wait for the result after starting the simulation on Gatling Enterprise, and complete with an
    * error if the simulation ends with any error status.
    */
-  @Parameter(property = "gatling.enterprise.waitForRunEnd", defaultValue = "false")
+  @Parameter(
+      property = ConfigurationConstants.StartOptions.WaitForRunEnd.SYS_PROP,
+      defaultValue = "false")
   private boolean waitForRunEnd;
 
   @Override

@@ -17,6 +17,7 @@
 package io.gatling.mojo;
 
 import io.gatling.plugin.BatchEnterprisePlugin;
+import io.gatling.plugin.ConfigurationConstants;
 import java.io.File;
 import java.util.UUID;
 import org.apache.maven.plugin.MojoFailureException;
@@ -26,8 +27,9 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * Mojo to package Gatling simulations and immediately upload them to Gatling Enterprise Cloud. The
- * package must already be configured on Gatling Enterprise (see
- * https://gatling.io/docs/enterprise/cloud/reference/user/package_conf/).
+ * package must already be configured on Gatling Enterprise (see <a
+ * href="https://docs.gatling.io/reference/execute/cloud/user/package-conf/">the reference
+ * documentation</a>).
  */
 @Execute(goal = "enterprisePackage")
 @Mojo(name = "enterpriseUpload")
@@ -35,18 +37,21 @@ public final class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
 
   /**
    * The ID of the package configured on Gatling Enterprise where you want to upload your Gatling
-   * simulations (see https://gatling.io/docs/enterprise/cloud/reference/user/package_conf/).
+   * simulations (see <a
+   * href="https://docs.gatling.io/reference/execute/cloud/user/package-conf/">the reference
+   * documentation</a>).
    */
-  @Parameter(property = "gatling.enterprise.packageId")
+  @Parameter(property = ConfigurationConstants.UploadOptions.PackageId.SYS_PROP)
   private String packageId;
 
   /**
    * Only used if 'packageId' is NOT defined. The ID of a simulation configured on Gatling
    * Enterprise; your Gatling simulations will be uploaded to the package configured for that
-   * simulation (see
-   * https://gatling.io/docs/enterprise/cloud/reference/user/simulations/#step-2-build-configuration).
+   * simulation (see <a
+   * href="https://docs.gatling.io/reference/execute/cloud/user/simulations/#step-1-general">the
+   * reference documentation</a>).
    */
-  @Parameter(property = "gatling.enterprise.simulationId")
+  @Parameter(property = ConfigurationConstants.UploadOptions.SimulationId.SYS_PROP)
   private String simulationId;
 
   @Override
@@ -54,9 +59,13 @@ public final class EnterpriseUploadMojo extends AbstractEnterprisePluginMojo {
     if (packageId == null && simulationId == null) {
       final String msg =
           "Missing packageID\n"
-              + "You must configure the ID of an existing package in Gatling Enterprise; see https://gatling.io/docs/enterprise/cloud/reference/user/package_conf/ \n"
+              + "You must configure the ID of an existing package in Gatling Enterprise; see https://docs.gatling.io/reference/execute/cloud/user/package-conf/ \n"
               + CommonLogMessage.missingConfiguration(
-                  "package ID", "packageId", "gatling.enterprise.packageId", null, "MY_PACKAGE_ID")
+                  "package ID",
+                  "packageId",
+                  ConfigurationConstants.UploadOptions.PackageId.SYS_PROP,
+                  null,
+                  "MY_PACKAGE_ID")
               + "Alternately, if you don't configure a packageId, you can configure the simulationId of an existing simulation on Gatling Enterprise: your code will be uploaded to the package used by that simulation.";
       throw new MojoFailureException(msg);
     }

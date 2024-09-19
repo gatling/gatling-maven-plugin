@@ -17,6 +17,7 @@
 package io.gatling.mojo;
 
 import io.gatling.plugin.*;
+import io.gatling.plugin.ConfigurationConstants;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.exceptions.UnsupportedClientException;
 import io.gatling.plugin.io.JavaPluginScanner;
@@ -31,25 +32,26 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMojo {
 
-  @Parameter(defaultValue = "https://cloud.gatling.io", readonly = true)
+  @Parameter(defaultValue = ConfigurationConstants.Url.DEFAULT, readonly = true)
   protected URL enterpriseUrl;
 
   /**
-   * The API token used to connect to Gatling Enterprise (see
-   * https://gatling.io/docs/enterprise/cloud/reference/admin/api_tokens/).
+   * The API token used to connect to Gatling Enterprise (see <a
+   * href="https://docs.gatling.io/reference/execute/cloud/admin/api-tokens/">the reference
+   * documentation</a>).
    *
    * <p>Note: the API token is an authentication secret and should generally not be committed to
    * your code repository. You can instead provide the API token in an environment variable named
    * GATLING_ENTERPRISE_API_TOKEN.
    */
   @Parameter(
-      defaultValue = "${env.GATLING_ENTERPRISE_API_TOKEN}",
-      property = "gatling.enterprise.apiToken")
+      defaultValue = "${env." + ConfigurationConstants.ApiToken.ENV_VAR + "}",
+      property = ConfigurationConstants.ApiToken.SYS_PROP)
   protected String apiToken;
 
   @Parameter(
-      defaultValue = "${env.GATLING_CONTROL_PLANE_URL}",
-      property = "gatling.enterprise.controlPlaneUrl")
+      defaultValue = "${env." + ConfigurationConstants.ControlPlaneUrl.ENV_VAR + "}",
+      property = ConfigurationConstants.ControlPlaneUrl.SYS_PROP)
   protected URL controlPlaneUrl;
 
   private final PluginLogger pluginLogger =
@@ -86,12 +88,12 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
     if (apiToken == null) {
       final String msg =
           "Missing API token\n"
-              + "An API token is required to call the Gatling Enterprise server; see https://gatling.io/docs/enterprise/cloud/reference/admin/api_tokens/ and create a token with the role 'Configure'.\n"
+              + "An API token is required to call the Gatling Enterprise server; see https://docs.gatling.io/reference/execute/cloud/admin/api-tokens/ and create a token with the role 'Configure'.\n"
               + CommonLogMessage.missingConfiguration(
                   "API token",
                   "apiToken",
-                  "gatling.enterprise.apiToken",
-                  "GATLING_ENTERPRISE_API_TOKEN",
+                  ConfigurationConstants.ApiToken.SYS_PROP,
+                  ConfigurationConstants.ApiToken.ENV_VAR,
                   "MY_API_TOKEN_VALUE");
       throw new MojoFailureException(msg);
     }

@@ -17,6 +17,7 @@
 package io.gatling.mojo;
 
 import io.gatling.plugin.BatchEnterprisePlugin;
+import io.gatling.plugin.ConfigurationConstants;
 import io.gatling.plugin.deployment.DeploymentConfiguration;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.model.DeploymentInfo;
@@ -32,7 +33,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 public final class EnterpriseDeployMojo extends AbstractEnterprisePluginMojo {
   public static final String CONTEXT_ENTERPRISE_DEPLOY_INFO = "enterprise_deploy_info";
 
-  @Parameter(property = "gatling.enterprise.packageDescriptorFilename")
+  @Parameter(property = ConfigurationConstants.DeployOptions.PackageDescriptorFilename.SYS_PROP)
   private String customPackageFilename;
 
   @Override
@@ -58,7 +59,7 @@ public final class EnterpriseDeployMojo extends AbstractEnterprisePluginMojo {
   private File getDeploymentFile() {
     File baseDir = mavenProject.getBasedir();
     if (customPackageFilename == null) {
-      return DeploymentConfiguration.fromBaseDirectory(baseDir, customPackageFilename);
+      return DeploymentConfiguration.fromBaseDirectory(baseDir, null);
     } else {
       return baseDir.toPath().resolve(customPackageFilename).toFile();
     }

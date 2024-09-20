@@ -1,6 +1,6 @@
 # Gatling Plugin for Maven
 
-[<img src="https://gatling.io/wp-content/uploads/2019/04/logo-gatling-transparent@15x.svg" alt="Gatling" width="50%">](https://gatling.io)
+[<picture><source media="(prefers-color-scheme: dark)" srcset="https://docs.gatling.io/images/logo-gatling.svg"><img src="https://docs.gatling.io/images/logo-gatling-noir.svg" alt="Gatling" width="50%"></picture>](https://gatling.io)
 
 [![Workflow Status (main)](https://img.shields.io/github/actions/workflow/status/gatling/gatling-maven-plugin/ci.yml?branch=main&logo=github&style=for-the-badge)](https://github.com/gatling/gatling-maven-plugin/actions?query=branch%3Amain)
 [![License](https://img.shields.io/github/license/gatling/gatling-maven-plugin?logo=apache&style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)

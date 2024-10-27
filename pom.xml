@@ -51,7 +51,7 @@
         <gatling-shared-cli.version>0.0.3</gatling-shared-cli.version>
 
         <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
-        <maven-plugin-plugin.version>3.15.0</maven-plugin-plugin.version>
+        <maven-plugin-plugin.version>3.15.1</maven-plugin-plugin.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
         <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>

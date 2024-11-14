@@ -92,7 +92,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   /**
    * Continue execution of simulations despite assertion failure. If you have some stack of
-   * simulations and you want to get results from all simulations despite some assertion failures in
+   * simulations, and you want to get results from all simulations despite some assertion failures in
    * previous one.
    */
   @Parameter(property = "gatling.continueOnAssertionFailure", defaultValue = "false")

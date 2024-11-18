@@ -101,13 +101,13 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   @Parameter(property = "gatling.useOldJenkinsJUnitSupport", defaultValue = "false")
   private boolean useOldJenkinsJUnitSupport;
 
-  /** Extra JVM arguments to pass when running Gatling. */
+  /** Extra JVM arguments to pass when running Gatling. See also gatling.ignoreDefaultGatlingJvmArgs */
   @Parameter(property = "gatling.jvmArgs")
   private List<String> jvmArgs;
 
-  /** Override Gatling's default JVM args, instead of replacing them. */
-  @Parameter(property = "gatling.overrideJvmArgs", defaultValue = "false")
-  private boolean overrideJvmArgs;
+  /** Only use user-defined gatling.jvmArgs instead of giving them precedence over the default Gatling ones. */
+  @Parameter(property = "gatling.ignoreDefaultGatlingJvmArgs", defaultValue = "false")
+  private boolean ignoreDefaultGatlingJvmArgs;
 
   /** Propagate System properties to forked processes. */
   @Parameter(property = "gatling.propagateSystemProperties", defaultValue = "true")
@@ -310,15 +310,14 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   }
 
   private List<String> gatlingJvmArgs() {
-    if (jvmArgs.isEmpty()) {
-      return GatlingConstants.DEFAULT_JVM_OPTIONS_GATLING;
+    if (ignoreDefaultGatlingJvmArgs) {
+      return Collections.unmodifiableList(jvmArgs);
     }
-    if (overrideJvmArgs) {
-      List<String> merged = new ArrayList<>(jvmArgs);
-      merged.addAll(GatlingConstants.DEFAULT_JVM_OPTIONS_GATLING);
-      return merged;
-    }
-    return Collections.unmodifiableList(jvmArgs);
+
+    // the JVM gives precedence to the rightmost values
+    List<String> merged = new ArrayList<>(GatlingConstants.DEFAULT_JVM_OPTIONS_GATLING);
+    merged.addAll(jvmArgs);
+    return merged;
   }
 
   private List<String> simulations() throws MojoFailureException {

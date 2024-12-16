@@ -6,11 +6,13 @@ updates:
       prefix: "chore"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "monday" # explicit, even tough it's the weekly default
+      time: "07:00" # UTC
   - package-ecosystem: "maven"
     directory: "/"
     commit-message:
       prefix: "chore"
     schedule:
       interval: "weekly"
-      day: "sunday"
+      day: "monday" # explicit, even tough it's the weekly default
+      time: "07:00" # UTC

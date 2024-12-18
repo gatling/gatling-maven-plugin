@@ -92,8 +92,8 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   /**
    * Continue execution of simulations despite assertion failure. If you have some stack of
-   * simulations, and you want to get results from all simulations despite some assertion failures in
-   * previous one.
+   * simulations, and you want to get results from all simulations despite some assertion failures
+   * in previous one.
    */
   @Parameter(property = "gatling.continueOnAssertionFailure", defaultValue = "false")
   private boolean continueOnAssertionFailure;
@@ -101,17 +101,18 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   @Parameter(property = "gatling.useOldJenkinsJUnitSupport", defaultValue = "false")
   private boolean useOldJenkinsJUnitSupport;
 
-  /** Extra JVM arguments to pass when running Gatling. See also gatling.ignoreDefaultGatlingJvmArgs */
+  /**
+   * Extra JVM arguments to pass when running Gatling. See also gatling.ignoreDefaultGatlingJvmArgs
+   */
   @Parameter(property = "gatling.jvmArgs")
   private List<String> jvmArgs;
 
-  /** Only use user-defined gatling.jvmArgs instead of giving them precedence over the default Gatling ones. */
+  /**
+   * Only use user-defined gatling.jvmArgs instead of giving them precedence over the default
+   * Gatling ones.
+   */
   @Parameter(property = "gatling.ignoreDefaultGatlingJvmArgs", defaultValue = "false")
   private boolean ignoreDefaultGatlingJvmArgs;
-
-  /** Propagate System properties to forked processes. */
-  @Parameter(property = "gatling.propagateSystemProperties", defaultValue = "true")
-  private boolean propagateSystemProperties;
 
   @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> artifacts;
@@ -238,7 +239,6 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
             gatlingJvmArgs,
             gatlingArgs,
             toolchain,
-            propagateSystemProperties,
             workingDirectory);
     try {
       forkedGatling.run();

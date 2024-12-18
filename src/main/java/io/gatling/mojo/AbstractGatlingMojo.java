@@ -95,7 +95,6 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
       List<String> jvmArgs,
       List<String> args,
       Toolchain toolchain,
-      boolean propagateSystemProperties,
       File workingDirectory) {
 
     String fromToolchain = toolchain != null ? toolchain.findTool("java") : null;
@@ -103,13 +102,6 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
         fromToolchain != null ? new File(fromToolchain) : JavaLocator.getJavaExecutable();
 
     return new Fork(
-        mainClassName,
-        classpath,
-        jvmArgs,
-        args,
-        javaExec,
-        propagateSystemProperties,
-        newPluginLogger(),
-        workingDirectory);
+        mainClassName, classpath, jvmArgs, args, javaExec, newPluginLogger(), workingDirectory);
   }
 }

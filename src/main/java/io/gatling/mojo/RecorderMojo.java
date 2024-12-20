@@ -23,7 +23,7 @@ import io.gatling.plugin.util.Fork;
 import io.gatling.shared.cli.RecorderCliOptions;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.maven.model.Resource;
@@ -131,9 +131,10 @@ public final class RecorderMojo extends AbstractGatlingMojo {
   private List<String> recorderArgs(
       Path simulationsDirectory, String format, Path testResourcesDirectory) throws Exception {
     List<String> args =
-        Arrays.asList(
-            RecorderCliOptions.SimulationsFolder.shortOption(),
-            simulationsDirectory.toFile().getCanonicalPath());
+        new ArrayList<>(
+            List.of(
+                RecorderCliOptions.SimulationsFolder.shortOption(),
+                simulationsDirectory.toFile().getCanonicalPath()));
 
     if (format != null) {
       // format is option, best suited Java version will be picked

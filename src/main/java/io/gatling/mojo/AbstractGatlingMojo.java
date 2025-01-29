@@ -24,9 +24,9 @@ import io.gatling.plugin.util.JavaLocator;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
@@ -44,10 +44,10 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
   protected MavenSession session;
 
   /** The toolchain manager to use. */
-  @Component protected ToolchainManager toolchainManager;
+  @Inject protected ToolchainManager toolchainManager;
 
   /** Maven's repository. */
-  @Component protected RepositorySystem repository;
+  @Inject protected RepositorySystem repository;
 
   protected BuildTool buildTool = BuildTool.MAVEN;
 
@@ -65,8 +65,7 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
   }
 
   protected List<String> buildTestClasspath() throws Exception {
-    List<String> testClasspathElements = new ArrayList<>();
-    testClasspathElements.addAll(mavenProject.getTestClasspathElements());
+    List<String> testClasspathElements = new ArrayList<>(mavenProject.getTestClasspathElements());
 
     // Add plugin jar to classpath (used by ForkMain)
     testClasspathElements.add(MojoUtils.locateJar(GatlingMojo.class));

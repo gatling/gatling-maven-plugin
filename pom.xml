@@ -44,7 +44,7 @@
         <encoding>UTF-8</encoding>
         <maven.compiler.release>11</maven.compiler.release>
         <maven3.version>3.9.9</maven3.version>
-        <maven-plugin-annotations.version>3.6.2</maven-plugin-annotations.version>
+        <maven-plugin-annotations.version>3.15.1</maven-plugin-annotations.version>
         <header.basedir>${project.basedir}</header.basedir>
         <junit.version>5.11.4</junit.version>
         <gatling-enterprise-plugin-commons.version>1.13.3</gatling-enterprise-plugin-commons.version>

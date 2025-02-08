@@ -24,6 +24,7 @@ import io.gatling.plugin.GatlingConstants;
 import io.gatling.plugin.SimulationSelector;
 import io.gatling.plugin.model.BuildPlugin;
 import io.gatling.plugin.util.Fork;
+import io.gatling.plugin.util.NoFork;
 import io.gatling.shared.cli.GatlingCliOptions;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -113,6 +114,15 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
    */
   @Parameter(property = "gatling.ignoreDefaultGatlingJvmArgs", defaultValue = "false")
   private boolean ignoreDefaultGatlingJvmArgs;
+
+  /**
+   * Use only for attaching a debugger, not for running load tests. Run Gatling in maven's JVM
+   * instead of forking a new Java process. Requires at least Gatling 3.13.4. When enabled, the user
+   * is responsible for passing the proper JVM options, typically with the <a
+   * href="https://maven.apache.org/configure.html">MAVEN_OPTS env var</a>.
+   */
+  @Parameter(property = "gatling.sameProcess", defaultValue = "false")
+  private boolean sameProcess;
 
   @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
   private List<Artifact> artifacts;
@@ -232,19 +242,27 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       List<String> testClasspath,
       Toolchain toolchain)
       throws Exception {
-    Fork forkedGatling =
-        newFork(
-            GATLING_MAIN_CLASS,
-            testClasspath,
-            gatlingJvmArgs,
-            gatlingArgs,
-            toolchain,
-            workingDirectory);
-    try {
-      forkedGatling.run();
-    } catch (Fork.ForkException e) {
-      if (e.exitValue == 2) throw new GatlingSimulationAssertionsFailedException(e);
-      else throw e; /* issue 1482 */
+    if (sameProcess) {
+      new NoFork(
+              GATLING_MAIN_CLASS,
+              gatlingArgs,
+              testClasspath.stream().map(File::new).collect(Collectors.toList()))
+          .run();
+    } else {
+      Fork forkedGatling =
+          newFork(
+              GATLING_MAIN_CLASS,
+              testClasspath,
+              gatlingJvmArgs,
+              gatlingArgs,
+              toolchain,
+              workingDirectory);
+      try {
+        forkedGatling.run();
+      } catch (Fork.ForkException e) {
+        if (e.exitValue == 2) throw new GatlingSimulationAssertionsFailedException(e);
+        else throw e; /* issue 1482 */
+      }
     }
   }
 

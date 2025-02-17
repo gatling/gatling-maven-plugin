@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -43,7 +44,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
       Set.of(GATLING_GROUP_ID, GATLING_HIGHCHARTS_GROUP_ID);
 
   private final PluginLogger pluginLogger = newPluginLogger();
-  @Component private MavenProjectHelper projectHelper;
+  @Inject private MavenProjectHelper projectHelper;
 
   @Override
   public void execute() throws MojoExecutionException {
@@ -108,8 +109,12 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
   private Set<Artifact> gatlingAndTransitiveDependencies(List<Artifact> artifacts) {
     return artifacts.stream()
         .flatMap(artifact -> resolveTransitively(artifact).stream())
-        // exclude protobuf from Gatling provided deps as only the user knows if he wants to use protobuf 3 or 4
-        .filter(artifact -> artifact.getGroupId().equals("com.google.protobuf") && artifact.getArtifactId().equals("protobuf-java"))
+        // exclude protobuf from Gatling provided deps as only the user knows if he wants to use
+        // protobuf 3 or 4
+        .filter(
+            artifact ->
+                artifact.getGroupId().equals("com.google.protobuf")
+                    && artifact.getArtifactId().equals("protobuf-java"))
         .collect(Collectors.toSet());
   }
 

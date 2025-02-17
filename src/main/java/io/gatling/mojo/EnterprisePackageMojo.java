@@ -108,6 +108,8 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
   private Set<Artifact> gatlingAndTransitiveDependencies(List<Artifact> artifacts) {
     return artifacts.stream()
         .flatMap(artifact -> resolveTransitively(artifact).stream())
+        // exclude protobuf from Gatling provided deps as only the user knows if he wants to use protobuf 3 or 4
+        .filter(artifact -> artifact.getGroupId().equals("com.google.protobuf") && artifact.getArtifactId().equals("protobuf-java"))
         .collect(Collectors.toSet());
   }
 

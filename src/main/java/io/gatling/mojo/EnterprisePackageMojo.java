@@ -113,8 +113,8 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
         // protobuf 3 or 4
         .filter(
             artifact ->
-                artifact.getGroupId().equals("com.google.protobuf")
-                    && artifact.getArtifactId().equals("protobuf-java"))
+                !artifact.getGroupId().equals("com.google.protobuf")
+                    || !artifact.getArtifactId().equals("protobuf-java"))
         .collect(Collectors.toSet());
   }
 

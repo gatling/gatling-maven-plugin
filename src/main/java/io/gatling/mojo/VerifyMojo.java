@@ -16,7 +16,6 @@
  */
 package io.gatling.mojo;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,8 +51,6 @@ public final class VerifyMojo extends AbstractGatlingExecutionMojo {
     if (results.toFile().exists()) {
       for (String line : Files.readAllLines(results)) {
         checkError(line);
-        File directory = new File(resultsFolder, line);
-        searchForAssertionFailures(directory);
       }
     }
   }
@@ -61,29 +58,6 @@ public final class VerifyMojo extends AbstractGatlingExecutionMojo {
   private void checkError(String line) throws MojoFailureException {
     if (line.contains(LAST_RUN_FILE_ERROR_LINE)) {
       throwFailureException(line.substring(LAST_RUN_FILE_ERROR_LINE.length()));
-    }
-  }
-
-  private void searchForAssertionFailures(File runDirectory)
-      throws MojoExecutionException, MojoFailureException {
-    File jsDir = new File(runDirectory, "js");
-    if (jsDir.exists() && jsDir.isDirectory()) {
-      File assertionFile = new File(jsDir, "assertions.xml");
-      if (assertionFile.exists()) {
-        analyzeFile(assertionFile);
-      }
-    }
-  }
-
-  private void analyzeFile(File assertionFile) throws MojoExecutionException, MojoFailureException {
-    AssertionsSummary summary;
-    try {
-      summary = AssertionsSummary.fromAssertionsFile(assertionFile);
-    } catch (Exception e) {
-      throw new MojoExecutionException("Failed to parse " + assertionFile.toString(), e);
-    }
-    if (summary.hasFailures()) {
-      throwFailureException("Gatling simulation assertions failed!");
     }
   }
 

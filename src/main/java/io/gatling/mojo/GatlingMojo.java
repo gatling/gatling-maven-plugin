@@ -176,7 +176,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
             .warn(
                 "There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
       }
-      ex = e instanceof GatlingSimulationAssertionsFailedException ? null : e;
+      ex = e;
     } finally {
       try {
         saveSimulationResultToFile(existingRunDirectories, ex);
@@ -271,8 +271,11 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
         }
       }
       if (exception != null) {
-        writer.write(
-            LAST_RUN_FILE_ERROR_LINE + getRecursiveCauses(exception) + System.lineSeparator());
+        String error =
+            exception instanceof GatlingSimulationAssertionsFailedException
+                ? "Gatling simulation assertions failed!"
+                : getRecursiveCauses(exception);
+        writer.write(LAST_RUN_FILE_ERROR_LINE + error + System.lineSeparator());
       }
     }
   }

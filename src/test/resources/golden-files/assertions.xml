@@ -1,5 +1,0 @@
-<testsuite name="computerdatabase.BasicSimulation" tests="3" errors="2" failures="1" time="0">
-<testcase name="Global: count of failed requests is 0.0" status="false" time="0">
-  <failure type="Global">Actual value: 1.0</failure>
-</testcase>
-</testsuite>

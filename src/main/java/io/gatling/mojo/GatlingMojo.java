@@ -17,8 +17,6 @@
 package io.gatling.mojo;
 
 import static io.gatling.mojo.MojoConstants.*;
-import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import io.gatling.plugin.GatlingConstants;
 import io.gatling.plugin.SimulationSelector;
@@ -98,9 +96,6 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
    */
   @Parameter(property = "gatling.continueOnAssertionFailure", defaultValue = "false")
   private boolean continueOnAssertionFailure;
-
-  @Parameter(property = "gatling.useOldJenkinsJUnitSupport", defaultValue = "false")
-  private boolean useOldJenkinsJUnitSupport;
 
   /**
    * Extra JVM arguments to pass when running Gatling. See also gatling.ignoreDefaultGatlingJvmArgs
@@ -185,7 +180,6 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     } finally {
       try {
         saveSimulationResultToFile(existingRunDirectories, ex);
-        copyJUnitReports();
       } catch (IOException e) {
         throw new MojoExecutionException("Could not record simulation results.", e);
       }
@@ -294,37 +288,6 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
                   : exceptionClassName;
             })
         .collect(Collectors.joining(" | "));
-  }
-
-  private void copyJUnitReports() throws MojoExecutionException {
-
-    try {
-      if (useOldJenkinsJUnitSupport) {
-        for (File directory : runDirectories()) {
-          File jsDir = new File(directory, "js");
-          if (jsDir.exists() && jsDir.isDirectory()) {
-            File assertionFile = new File(jsDir, "assertions.xml");
-            if (assertionFile.exists()) {
-              File newAssertionFile =
-                  new File(resultsFolder, "assertions-" + directory.getName() + ".xml");
-              Files.copy(
-                  assertionFile.toPath(),
-                  newAssertionFile.toPath(),
-                  COPY_ATTRIBUTES,
-                  REPLACE_EXISTING);
-              getLog()
-                  .info(
-                      "Copying assertion file "
-                          + assertionFile.getCanonicalPath()
-                          + " to "
-                          + newAssertionFile.getCanonicalPath());
-            }
-          }
-        }
-      }
-    } catch (IOException e) {
-      throw new MojoExecutionException("Failed to copy JUnit reports", e);
-    }
   }
 
   private List<String> gatlingJvmArgs() {

@@ -47,7 +47,7 @@
         <maven-plugin-annotations.version>3.15.1</maven-plugin-annotations.version>
         <header.basedir>${project.basedir}</header.basedir>
         <junit.version>5.12.2</junit.version>
-        <gatling-enterprise-plugin-commons.version>1.16.3</gatling-enterprise-plugin-commons.version>
+        <gatling-enterprise-plugin-commons.version>1.17.0</gatling-enterprise-plugin-commons.version>
         <gatling-shared-cli.version>0.0.6</gatling-shared-cli.version>
 
         <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>

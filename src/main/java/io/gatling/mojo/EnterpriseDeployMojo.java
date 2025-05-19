@@ -33,6 +33,9 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 public final class EnterpriseDeployMojo extends AbstractEnterprisePluginMojo {
   public static final String CONTEXT_ENTERPRISE_DEPLOY_INFO = "enterprise_deploy_info";
 
+  @Parameter(property = ConfigurationConstants.DeployOptions.ValidateSimulationId.SYS_PROP)
+  private String validateSimulationId;
+
   @Parameter(property = ConfigurationConstants.DeployOptions.PackageDescriptorFilename.SYS_PROP)
   private String customPackageFilename;
 
@@ -44,11 +47,18 @@ public final class EnterpriseDeployMojo extends AbstractEnterprisePluginMojo {
     final BatchEnterprisePlugin plugin = initBatchEnterprisePlugin();
     try {
       DeploymentInfo deploymentInfo =
-          plugin.deployFromDescriptor(
-              deploymentFile,
-              packageFile,
-              mavenProject.getArtifactId(),
-              isPrivateRepositoryEnabled);
+          (validateSimulationId == null)
+              ? plugin.deployFromDescriptor(
+                  deploymentFile,
+                  packageFile,
+                  mavenProject.getArtifactId(),
+                  isPrivateRepositoryEnabled)
+              : plugin.deployFromDescriptor(
+                  deploymentFile,
+                  packageFile,
+                  mavenProject.getArtifactId(),
+                  isPrivateRepositoryEnabled,
+                  validateSimulationId);
 
       getPluginContext().put(CONTEXT_ENTERPRISE_DEPLOY_INFO, deploymentInfo);
     } catch (EnterprisePluginException e) {

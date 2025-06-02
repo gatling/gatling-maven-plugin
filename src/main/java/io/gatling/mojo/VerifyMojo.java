@@ -19,6 +19,8 @@ package io.gatling.mojo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -49,7 +51,9 @@ public final class VerifyMojo extends AbstractGatlingExecutionMojo {
     Path results = resultsFolder.toPath().resolve(LAST_RUN_FILE);
 
     if (results.toFile().exists()) {
-      for (String line : Files.readAllLines(results)) {
+      List<String> lines = Files.readAllLines(results);
+      results.toFile().delete();
+      for (String line : lines) {
         checkError(line);
       }
     }

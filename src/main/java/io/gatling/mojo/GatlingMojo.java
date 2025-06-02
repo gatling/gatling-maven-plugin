@@ -129,6 +129,17 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   @Parameter(defaultValue = "${project}", readonly = true)
   private MavenProject project;
 
+  private static final class SaveSimulationResultToFileException extends Exception {
+    public SaveSimulationResultToFileException(IOException cause) {
+      super(cause);
+    }
+
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+      return this;
+    }
+  }
+
   /** Executes Gatling simulations. */
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -142,8 +153,7 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       throw new MojoExecutionException(
           "Could not create resultsFolder " + resultsFolder.getAbsolutePath());
     }
-    Set<File> existingRunDirectories = runDirectories();
-    Exception ex = null;
+    Set<File> preExistingRunDirectories = runDirectories();
 
     try {
       List<String> testClasspath = buildTestClasspath();
@@ -160,6 +170,16 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
         iterateBySimulations(toolchain, jvmArgs, testClasspath, simulations);
       }
 
+      if (!failOnError) {
+        try {
+          saveSimulationResultToFile(preExistingRunDirectories, null);
+        } catch (IOException e) {
+          throw new SaveSimulationResultToFileException(e);
+        }
+      }
+    } catch (SaveSimulationResultToFileException e) {
+      // don't recatch and re-try to save result
+      throw new MojoExecutionException("Could not record simulation results.", e.getCause());
     } catch (Exception e) {
       if (failOnError) {
         if (e instanceof GatlingSimulationAssertionsFailedException) {
@@ -175,13 +195,11 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
         getLog()
             .warn(
                 "There were some errors while running your simulation, but failOnError was set to false won't fail your build.");
-      }
-      ex = e;
-    } finally {
-      try {
-        saveSimulationResultToFile(existingRunDirectories, ex);
-      } catch (IOException e) {
-        throw new MojoExecutionException("Could not record simulation results.", e);
+        try {
+          saveSimulationResultToFile(preExistingRunDirectories, e);
+        } catch (IOException newE) {
+          throw new MojoExecutionException("Could not record simulation results.", newE);
+        }
       }
     }
   }
@@ -260,13 +278,13 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     }
   }
 
-  private void saveSimulationResultToFile(Set<File> existingRunDirectories, Exception exception)
+  private void saveSimulationResultToFile(Set<File> preExistingRunDirectories, Exception exception)
       throws IOException {
     Path resultsFile = resultsFolder.toPath().resolve(LAST_RUN_FILE);
 
     try (BufferedWriter writer = Files.newBufferedWriter(resultsFile)) {
       for (File directory : runDirectories()) {
-        if (!existingRunDirectories.contains(directory)) {
+        if (!preExistingRunDirectories.contains(directory)) {
           writer.write(directory.getName() + System.lineSeparator());
         }
       }

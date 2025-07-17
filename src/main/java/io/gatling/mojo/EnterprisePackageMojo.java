@@ -80,7 +80,8 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
               mavenProject.getVersion(),
               MAVEN_PACKAGER_NAME,
               getClass().getPackage().getImplementationVersion(),
-              enterprisePackage);
+              enterprisePackage,
+              mavenProject.getBasedir());
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to generate Enterprise package", e);
     }

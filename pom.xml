@@ -43,7 +43,7 @@
     <properties>
         <encoding>UTF-8</encoding>
         <maven.compiler.release>11</maven.compiler.release>
-        <maven3.version>3.9.10</maven3.version>
+        <maven3.version>3.9.11</maven3.version>
         <maven-plugin-annotations.version>3.15.1</maven-plugin-annotations.version>
         <header.basedir>${project.basedir}</header.basedir>
         <junit.version>5.13.3</junit.version>

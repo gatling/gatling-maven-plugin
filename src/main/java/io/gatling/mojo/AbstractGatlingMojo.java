@@ -77,6 +77,11 @@ public abstract class AbstractGatlingMojo extends AbstractMojo {
   protected PluginLogger newPluginLogger() {
     return new PluginLogger() {
       @Override
+      public void debug(String message) {
+        getLog().debug(message);
+      }
+
+      @Override
       public void info(String message) {
         getLog().info(message);
       }

@@ -57,24 +57,13 @@ public abstract class AbstractEnterprisePluginMojo extends AbstractEnterpriseMoj
       property = ConfigurationConstants.ControlPlaneUrl.SYS_PROP)
   protected URL controlPlaneUrl;
 
-  private final PluginLogger pluginLogger =
-      new PluginLogger() {
-        @Override
-        public void info(String message) {
-          getLog().info(message);
-        }
-
-        @Override
-        public void error(String message) {
-          getLog().error(message);
-        }
-      };
-
   private final Scanner scanner = new Scanner(System.in);
   private final PluginScanner pluginScanner = new JavaPluginScanner(scanner);
 
   private final PluginIO pluginIO =
       new PluginIO() {
+        final PluginLogger pluginLogger = AbstractEnterprisePluginMojo.this.newPluginLogger();
+
         @Override
         public PluginLogger getLogger() {
           return pluginLogger;

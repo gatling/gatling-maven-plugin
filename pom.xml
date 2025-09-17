@@ -168,7 +168,10 @@
                             <include>src/main/java/**/*.java</include>
                             <include>src/test/java/**/*.java</include>
                         </includes>
-                        <googleJavaFormat />
+                        <googleJavaFormat>
+                            <!-- remove when spotless-maven-plugin increases its default com.google.googlejavaformat:google-java-format version -->
+                            <version>1.28.0</version>
+                        </googleJavaFormat>
                         <licenseHeader>
                             <file>${header.basedir}/src/etc/header.txt</file>
                         </licenseHeader>

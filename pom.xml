@@ -60,7 +60,7 @@
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.1.0</maven-surefire-plugin.version>
-        <spotless-maven-plugin.version>2.46.1</spotless-maven-plugin.version>
+        <spotless-maven-plugin.version>3.0.0</spotless-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -168,10 +168,6 @@
                             <include>src/main/java/**/*.java</include>
                             <include>src/test/java/**/*.java</include>
                         </includes>
-                        <googleJavaFormat>
-                            <!-- remove when spotless-maven-plugin increases its default com.google.googlejavaformat:google-java-format version -->
-                            <version>1.28.0</version>
-                        </googleJavaFormat>
                         <licenseHeader>
                             <file>${header.basedir}/src/etc/header.txt</file>
                         </licenseHeader>

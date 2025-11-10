@@ -46,7 +46,7 @@ public final class VerifyMojo extends AbstractGatlingExecutionMojo {
     }
   }
 
-  private void verifyLastRun() throws IOException, MojoFailureException, MojoExecutionException {
+  private void verifyLastRun() throws IOException, MojoFailureException {
     Path results = resultsFolder.toPath().resolve(LAST_RUN_FILE);
 
     if (results.toFile().exists()) {

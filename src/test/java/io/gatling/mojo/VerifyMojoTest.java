@@ -16,23 +16,34 @@
  */
 package io.gatling.mojo;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.apache.maven.plugin.MojoFailureException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class VerifyMojoTest {
-  @Test
-  void errors() {
-    VerifyMojo verifyMojo = new VerifyMojo();
-    verifyMojo.resultsFolder = new File("src/test/resources/golden-files/last-run/last-run-error/");
-    Assertions.assertThrows(MojoFailureException.class, () -> verifyMojo.execute());
+
+  private Path createTempResultFolder(Path originalCopyDir) throws IOException {
+    Path resultFolder = Files.createTempDirectory("last-run-error");
+    resultFolder.toFile().deleteOnExit();
+    Files.copy(originalCopyDir.resolve(AbstractGatlingExecutionMojo.LAST_RUN_FILE), resultFolder.resolve(AbstractGatlingExecutionMojo.LAST_RUN_FILE));
+    return resultFolder;
   }
 
   @Test
-  void empty() {
+  void errors() throws IOException {
     VerifyMojo verifyMojo = new VerifyMojo();
-    verifyMojo.resultsFolder = new File("src/test/resources/golden-files/last-run/last-run-empty/");
-    Assertions.assertDoesNotThrow(() -> verifyMojo.execute());
+    verifyMojo.resultsFolder = createTempResultFolder(Path.of("src/test/resources/golden-files/last-run/last-run-error/")).toFile();
+    Assertions.assertThrows(MojoFailureException.class, verifyMojo::execute);
+  }
+
+  @Test
+  void empty() throws IOException {
+    VerifyMojo verifyMojo = new VerifyMojo();
+    verifyMojo.resultsFolder = createTempResultFolder(Path.of("src/test/resources/golden-files/last-run/last-run-empty/")).toFile();
+    Assertions.assertDoesNotThrow(verifyMojo::execute);
   }
 }

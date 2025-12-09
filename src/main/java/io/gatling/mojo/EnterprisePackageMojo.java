@@ -125,6 +125,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
             .setArtifact(artifact)
             .setResolveRoot(true)
             .setResolveTransitively(true)
+            .setOffline(session.isOffline())
             .setServers(session.getRequest().getServers())
             .setMirrors(session.getRequest().getMirrors())
             .setProxies(session.getRequest().getProxies())

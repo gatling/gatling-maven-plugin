@@ -49,18 +49,22 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
   @Override
   public void execute() throws MojoExecutionException {
     Set<Artifact> allArtifacts = getAllArtifacts();
+    pluginLogger.debug("allArtifacts=" + allArtifacts);
 
     List<Artifact> gatlingArtifacts =
         allArtifacts.stream()
             .filter(artifact -> GATLING_GROUP_IDS.contains(artifact.getGroupId()))
             .collect(Collectors.toList());
+    pluginLogger.debug("gatlingArtifacts=" + gatlingArtifacts);
 
     Set<Dependency> gatlingDependencies =
         gatlingArtifacts.stream()
             .map(EnterprisePackageMojo::artifactToDependency)
             .collect(Collectors.toSet());
+    pluginLogger.debug("gatlingDependencies=" + gatlingDependencies);
 
     Set<Dependency> extraDependencies = getExtraDependencies(allArtifacts, gatlingArtifacts);
+    pluginLogger.debug("extraDependencies=" + extraDependencies);
 
     List<File> classDirectories =
         List.of(

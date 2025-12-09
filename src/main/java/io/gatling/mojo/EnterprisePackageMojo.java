@@ -98,6 +98,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
       Set<Artifact> allDeps, List<Artifact> gatlingArtifacts) {
     Set<Artifact> gatlingAndTransitiveDependencies =
         gatlingAndTransitiveDependencies(gatlingArtifacts);
+    pluginLogger.debug("gatlingAndTransitiveDependencies=" + gatlingAndTransitiveDependencies);
 
     return allDeps.stream()
         .filter(artifact -> MojoUtils.artifactNotIn(artifact, gatlingAndTransitiveDependencies))
@@ -118,6 +119,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
   }
 
   private Set<Artifact> resolveTransitively(Artifact artifact) {
+    pluginLogger.debug("Resolving artifact=" + artifact);
     ArtifactResolutionRequest request =
         new ArtifactResolutionRequest()
             .setArtifact(artifact)
@@ -128,7 +130,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
             .setProxies(session.getRequest().getProxies())
             .setLocalRepository(session.getLocalRepository())
             .setRemoteRepositories(session.getCurrentProject().getRemoteArtifactRepositories());
-
+    pluginLogger.debug("Resolved artifact=" + artifact);
     return repository.resolve(request).getArtifacts();
   }
 

@@ -22,10 +22,8 @@ public final class CommonLogMessage {
 
   private CommonLogMessage() {}
 
-  public static String simulationStartSuccess(URL enterpriseWebAppUrl, String reportsPath) {
-    return "Simulation successfully started; reports are available at "
-        + enterpriseWebAppUrl
-        + reportsPath;
+  public static String simulationStartSuccess(URL reportsUrl) {
+    return "Simulation successfully started; reports are available at " + reportsUrl;
   }
 
   /**

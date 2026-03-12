@@ -23,7 +23,11 @@ import io.gatling.plugin.model.DeploymentInfo;
 import io.gatling.plugin.model.RunComment;
 import io.gatling.plugin.model.RunSummary;
 import io.gatling.plugin.model.SimulationEndResult;
+
+import java.net.URL;
 import java.util.Map;
+
+import io.gatling.plugin.util.WebAppUrlRenderer;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -75,9 +79,9 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
       final RunComment runComment = new RunComment(runTitle, runDescription);
       final RunSummary runSummary =
           plugin.startSimulation(simulationName, deploymentInfo, runComment);
-      getLog()
-          .info(
-              CommonLogMessage.simulationStartSuccess(enterpriseWebAppUrl, runSummary.reportsPath));
+
+      final URL reportsUrl = WebAppUrlRenderer.toWebAppUrl(enterpriseWebAppUrl, runSummary.reportsUrl);
+      getLog().info(CommonLogMessage.simulationStartSuccess(reportsUrl));
       waitForRunEnd(plugin, runSummary);
     } catch (EnterprisePluginException e) {
       throw new MojoFailureException(
@@ -90,7 +94,7 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
     if (waitForRunEnd) {
       final SimulationEndResult finishedRun =
           RecoverEnterprisePluginException.handle(() -> plugin.waitForRunEnd(startedRun), getLog());
-      if (!finishedRun.status.successful) {
+      if (!finishedRun.successful) {
         throw new MojoFailureException("Simulation failed.");
       }
     }

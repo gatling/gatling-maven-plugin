@@ -137,10 +137,12 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
 
   private static Dependency artifactToDependency(Artifact artifact) {
     return new Dependency(
-        artifact.getGroupId(),
-        artifact.getArtifactId(),
-        artifact.getVersion(),
-        artifact.getClassifier(),
+        new Dependency.Id(
+            artifact.getGroupId(),
+            artifact.getArtifactId(),
+            artifact.getVersion(),
+            artifact.getClassifier()
+        ),
         artifact.getFile()
     );
   }

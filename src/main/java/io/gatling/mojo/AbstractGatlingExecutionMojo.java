@@ -25,9 +25,7 @@ public abstract class AbstractGatlingExecutionMojo extends AbstractGatlingMojo {
   static final String LAST_RUN_FILE_ERROR_LINE = "ExecutionError: ";
 
   /** Use this folder as the folder where results are stored. */
-  @Parameter(
-      property = "gatling.resultsFolder",
-      defaultValue = "${project.build.directory}/gatling")
+  @Parameter(defaultValue = "${project.build.directory}/gatling", readonly = true)
   protected File resultsFolder;
 
   /** Disable the plugin. */

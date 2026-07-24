@@ -77,6 +77,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
       new EnterprisePackager(pluginLogger)
           .createEnterprisePackage(
               classDirectories,
+              Collections.emptyList(),
               gatlingDependencies,
               extraDependencies,
               mavenProject.getGroupId(),

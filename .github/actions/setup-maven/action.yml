@@ -1,0 +1,88 @@
+name: Set up Maven
+description: Set up Java and the Maven settings reading and deploying the Gatling staging repository on CodeArtifact
+
+inputs:
+  aws-role:
+    description: AWS role to assume with GitHub OIDC, allowed to read and publish on CodeArtifact
+    required: true
+  staging-repository:
+    description: Staging repository, as id::url
+    required: true
+  codeartifact-domain:
+    description: CodeArtifact domain
+    required: true
+  codeartifact-owner:
+    description: CodeArtifact domain owner
+    required: true
+  java-version:
+    description: Java version
+    default: '25'
+  cache-dependencies:
+    description: Cache the Maven dependencies (not for releases, which must be clean and full)
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+      with:
+        role-to-assume: ${{ inputs.aws-role }}
+        aws-region: us-east-1
+
+    - name: Set up JDK
+      uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      with:
+        distribution: 'zulu'
+        java-version: ${{ inputs.java-version }}
+        cache: ${{ inputs.cache-dependencies == 'true' && 'maven' || '' }}
+
+    - name: Prepare Maven settings
+      shell: bash
+      env:
+        AWS_CODEARTIFACT_DOMAIN: ${{ inputs.codeartifact-domain }}
+        AWS_CODEARTIFACT_OWNER: ${{ inputs.codeartifact-owner }}
+        STAGING_REPOSITORY: ${{ inputs.staging-repository }}
+      run: |
+        token="$(aws codeartifact get-authorization-token --domain "$AWS_CODEARTIFACT_DOMAIN" --domain-owner "$AWS_CODEARTIFACT_OWNER" --query authorizationToken --output text)"
+        echo "::add-mask::$token"
+        echo "CODEARTIFACT_AUTH_TOKEN=$token" >> "$GITHUB_ENV"
+
+        # Overwrites the settings.xml written by setup-java: Maven only reads one user settings file,
+        # and setup-java can neither declare repositories nor activate profiles
+        id="${STAGING_REPOSITORY%%::*}"
+        url="${STAGING_REPOSITORY#*::}"
+        mkdir --parents ~/.m2
+        cat > ~/.m2/settings.xml <<EOF
+        <settings>
+          <servers>
+            <server>
+              <id>${id}</id>
+              <username>aws</username>
+              <password>\${env.CODEARTIFACT_AUTH_TOKEN}</password>
+            </server>
+          </servers>
+          <profiles>
+            <profile>
+              <id>gatlingcorp-staging</id>
+              <repositories>
+                <repository>
+                  <id>${id}</id>
+                  <url>${url}</url>
+                  <snapshots><enabled>false</enabled></snapshots>
+                </repository>
+              </repositories>
+              <pluginRepositories>
+                <pluginRepository>
+                  <id>${id}</id>
+                  <url>${url}</url>
+                  <snapshots><enabled>false</enabled></snapshots>
+                </pluginRepository>
+              </pluginRepositories>
+            </profile>
+          </profiles>
+          <activeProfiles>
+            <activeProfile>gatlingcorp-staging</activeProfile>
+          </activeProfiles>
+        </settings>
+        EOF

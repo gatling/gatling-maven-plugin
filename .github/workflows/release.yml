@@ -9,6 +9,10 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -16,15 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set up JDK
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      - name: Set up Maven
+        uses: ./.github/actions/setup-maven
         with:
-          distribution: 'zulu'
-          java-version: '25'
-          server-id: central
-          server-username-env-var: MAVEN_USERNAME
-          server-password-env-var: MAVEN_PASSWORD
-          gpg-passphrase-env-var: MAVEN_GPG_PASSPHRASE
+          aws-role: ${{ vars.AWS_ROLE_PROD_MAVEN_PLUGIN }}
+          staging-repository: ${{ vars.MAVEN_STAGING_REPOSITORY }}
+          codeartifact-domain: ${{ vars.AWS_CODEARTIFACT_DOMAIN }}
+          codeartifact-owner: ${{ vars.AWS_CODEARTIFACT_OWNER }}
+          cache-dependencies: false # No cache for release! We want clean and full release!
 
       - name: Prepare environment
         env:
@@ -34,8 +37,7 @@ jobs:
 
       - name: Deploy
         env:
-          MAVEN_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PASSPHRASE }}
+          STAGING_REPOSITORY: ${{ vars.MAVEN_STAGING_REPOSITORY }}
         run: |
-          mvn --batch-mode deploy -Dgpg.passphrase="${MAVEN_GPG_PASSPHRASE}" -PRelease
+          mvn --batch-mode deploy -Dgpg.passphrase="${MAVEN_GPG_PASSPHRASE}" -PRelease -DaltReleaseDeploymentRepository="${STAGING_REPOSITORY}"

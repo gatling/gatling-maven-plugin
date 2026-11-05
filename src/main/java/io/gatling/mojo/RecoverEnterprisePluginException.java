@@ -19,7 +19,6 @@ package io.gatling.mojo;
 import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.exceptions.UnsupportedJavaVersionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 
 public final class RecoverEnterprisePluginException {
 
@@ -28,7 +27,7 @@ public final class RecoverEnterprisePluginException {
     R apply() throws EnterprisePluginException;
   }
 
-  static <R> R handle(EnterprisePluginExceptionFunction<R> f, Log log) throws MojoFailureException {
+  static <R> R handle(EnterprisePluginExceptionFunction<R> f) throws MojoFailureException {
     try {
       return f.apply();
     } catch (UnsupportedJavaVersionException e) {

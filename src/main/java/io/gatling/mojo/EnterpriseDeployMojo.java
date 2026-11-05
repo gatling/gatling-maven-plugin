@@ -19,7 +19,6 @@ package io.gatling.mojo;
 import io.gatling.plugin.BatchEnterprisePlugin;
 import io.gatling.plugin.ConfigurationConstants;
 import io.gatling.plugin.deployment.DeploymentConfiguration;
-import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.model.DeploymentInfo;
 import java.io.File;
 import org.apache.maven.plugin.MojoFailureException;
@@ -45,25 +44,23 @@ public final class EnterpriseDeployMojo extends AbstractEnterprisePluginMojo {
     final File deploymentFile = getDeploymentFile();
     final Boolean isPrivateRepositoryEnabled = controlPlaneUrl != null;
     final BatchEnterprisePlugin plugin = initBatchEnterprisePlugin();
-    try {
-      DeploymentInfo deploymentInfo =
-          (validateSimulationId == null)
-              ? plugin.deployFromDescriptor(
-                  deploymentFile,
-                  packageFile,
-                  mavenProject.getArtifactId(),
-                  isPrivateRepositoryEnabled)
-              : plugin.deployFromDescriptor(
-                  deploymentFile,
-                  packageFile,
-                  mavenProject.getArtifactId(),
-                  isPrivateRepositoryEnabled,
-                  validateSimulationId);
+    final DeploymentInfo deploymentInfo =
+        RecoverEnterprisePluginException.handle(
+            () ->
+                (validateSimulationId == null)
+                    ? plugin.deployFromDescriptor(
+                        deploymentFile,
+                        packageFile,
+                        mavenProject.getArtifactId(),
+                        isPrivateRepositoryEnabled)
+                    : plugin.deployFromDescriptor(
+                        deploymentFile,
+                        packageFile,
+                        mavenProject.getArtifactId(),
+                        isPrivateRepositoryEnabled,
+                        validateSimulationId));
 
-      getPluginContext().put(CONTEXT_ENTERPRISE_DEPLOY_INFO, deploymentInfo);
-    } catch (EnterprisePluginException e) {
-      throw new MojoFailureException(e.getMessage(), e);
-    }
+    getPluginContext().put(CONTEXT_ENTERPRISE_DEPLOY_INFO, deploymentInfo);
   }
 
   private File getDeploymentFile() {

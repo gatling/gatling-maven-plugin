@@ -18,7 +18,6 @@ package io.gatling.mojo;
 
 import io.gatling.plugin.ConfigurationConstants;
 import io.gatling.plugin.EnterprisePlugin;
-import io.gatling.plugin.exceptions.EnterprisePluginException;
 import io.gatling.plugin.model.DeploymentInfo;
 import io.gatling.plugin.model.RunComment;
 import io.gatling.plugin.model.RunSummary;
@@ -68,31 +67,27 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
 
   @Override
   public void execute() throws MojoFailureException {
-    final Map context = getPluginContext();
+    final Map<?, ?> context = getPluginContext();
     final DeploymentInfo deploymentInfo =
         (DeploymentInfo) context.get(EnterpriseDeployMojo.CONTEXT_ENTERPRISE_DEPLOY_INFO);
     final EnterprisePlugin plugin = initEnterprisePlugin(requireBatchMode());
 
-    try {
-      final RunComment runComment = new RunComment(runTitle, runDescription);
-      final RunSummary runSummary =
-          plugin.startSimulation(simulationName, deploymentInfo, runComment);
+    final RunComment runComment = new RunComment(runTitle, runDescription);
+    final RunSummary runSummary =
+        RecoverEnterprisePluginException.handle(
+            () -> plugin.startSimulation(simulationName, deploymentInfo, runComment));
 
-      final URL reportsUrl =
-          WebAppUrlRenderer.toWebAppUrl(enterpriseWebAppUrl, runSummary.reportsUrl);
-      getLog().info(CommonLogMessage.simulationStartSuccess(reportsUrl));
-      waitForRunEnd(plugin, runSummary);
-    } catch (EnterprisePluginException e) {
-      throw new MojoFailureException(
-          "Unhandled Gatling Enterprise plugin exception: " + e.getMessage(), e);
-    }
+    final URL reportsUrl =
+        WebAppUrlRenderer.toWebAppUrl(enterpriseWebAppUrl, runSummary.reportsUrl);
+    getLog().info(CommonLogMessage.simulationStartSuccess(reportsUrl));
+    waitForRunEnd(plugin, runSummary);
   }
 
   private void waitForRunEnd(EnterprisePlugin plugin, RunSummary startedRun)
       throws MojoFailureException {
     if (waitForRunEnd) {
       final SimulationEndResult finishedRun =
-          RecoverEnterprisePluginException.handle(() -> plugin.waitForRunEnd(startedRun), getLog());
+          RecoverEnterprisePluginException.handle(() -> plugin.waitForRunEnd(startedRun));
       if (!finishedRun.successful) {
         throw new MojoFailureException("Simulation failed.");
       }

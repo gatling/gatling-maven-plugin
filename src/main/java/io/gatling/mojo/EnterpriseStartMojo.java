@@ -23,11 +23,9 @@ import io.gatling.plugin.model.DeploymentInfo;
 import io.gatling.plugin.model.RunComment;
 import io.gatling.plugin.model.RunSummary;
 import io.gatling.plugin.model.SimulationEndResult;
-
+import io.gatling.plugin.util.WebAppUrlRenderer;
 import java.net.URL;
 import java.util.Map;
-
-import io.gatling.plugin.util.WebAppUrlRenderer;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -80,7 +78,8 @@ public final class EnterpriseStartMojo extends AbstractEnterprisePluginMojo {
       final RunSummary runSummary =
           plugin.startSimulation(simulationName, deploymentInfo, runComment);
 
-      final URL reportsUrl = WebAppUrlRenderer.toWebAppUrl(enterpriseWebAppUrl, runSummary.reportsUrl);
+      final URL reportsUrl =
+          WebAppUrlRenderer.toWebAppUrl(enterpriseWebAppUrl, runSummary.reportsUrl);
       getLog().info(CommonLogMessage.simulationStartSuccess(reportsUrl));
       waitForRunEnd(plugin, runSummary);
     } catch (EnterprisePluginException e) {

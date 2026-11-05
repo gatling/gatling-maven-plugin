@@ -142,9 +142,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
             artifact.getGroupId(),
             artifact.getArtifactId(),
             artifact.getVersion(),
-            artifact.getClassifier()
-        ),
-        artifact.getFile()
-    );
+            artifact.getClassifier()),
+        artifact.getFile());
   }
 }

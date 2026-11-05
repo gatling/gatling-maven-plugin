@@ -32,7 +32,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -119,15 +118,9 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
   @Parameter(property = "gatling.sameProcess", defaultValue = "false")
   private boolean sameProcess;
 
-  @Parameter(defaultValue = "${plugin.artifacts}", readonly = true)
-  private List<Artifact> artifacts;
-
   /** Specify a different working directory. */
   @Parameter(property = "gatling.workingDirectory")
   private File workingDirectory;
-
-  @Parameter(defaultValue = "${project}", readonly = true)
-  private MavenProject project;
 
   private static final class SaveSimulationResultToFileException extends Exception {
     public SaveSimulationResultToFileException(IOException cause) {

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -47,6 +48,8 @@ import org.codehaus.plexus.util.ExceptionUtils;
     defaultPhase = LifecyclePhase.INTEGRATION_TEST,
     requiresDependencyResolution = ResolutionScope.TEST)
 public final class GatlingMojo extends AbstractGatlingExecutionMojo {
+
+  private static final String LAST_RUN_FILE_RESET_CONTEXT_KEY = "gatling_last_run_file_reset";
 
   /** A name of a Simulation class to run. */
   @Parameter(property = "gatling.simulationClass")
@@ -156,6 +159,11 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     if (!resultsFolder.exists() && !resultsFolder.mkdirs()) {
       throw new MojoExecutionException(
           "Could not create resultsFolder " + resultsFolder.getAbsolutePath());
+    }
+    try {
+      deleteStaleLastRunFile();
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not delete stale simulation results.", e);
     }
     Set<File> preExistingRunDirectories = runDirectories();
 
@@ -282,11 +290,29 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
     }
   }
 
+  /**
+   * The last run file is appended to so that multiple executions of this goal in the same build
+   * don't overwrite each other's results. It must still be reset once per build, so that a file
+   * left over by a previous build where the verify goal didn't run doesn't fail this one.
+   */
+  @SuppressWarnings("unchecked")
+  private void deleteStaleLastRunFile() throws IOException {
+    Map<Object, Object> pluginContext = getPluginContext();
+    if (pluginContext.putIfAbsent(LAST_RUN_FILE_RESET_CONTEXT_KEY, Boolean.TRUE) == null) {
+      Files.deleteIfExists(resultsFolder.toPath().resolve(LAST_RUN_FILE));
+    }
+  }
+
   private void saveSimulationResultToFile(Set<File> preExistingRunDirectories, Exception exception)
       throws IOException {
     Path resultsFile = resultsFolder.toPath().resolve(LAST_RUN_FILE);
 
-    try (BufferedWriter writer = Files.newBufferedWriter(resultsFile)) {
+    try (BufferedWriter writer =
+        Files.newBufferedWriter(
+            resultsFile,
+            StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.APPEND)) {
       for (File directory : runDirectories()) {
         if (!preExistingRunDirectories.contains(directory)) {
           writer.write(directory.getName() + System.lineSeparator());
@@ -297,7 +323,9 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
             exception instanceof GatlingSimulationAssertionsFailedException
                 ? "Gatling simulation assertions failed!"
                 : getRecursiveCauses(exception);
-        writer.write(LAST_RUN_FILE_ERROR_LINE + error + System.lineSeparator());
+        // the error must fit on a single line, see VerifyMojo
+        writer.write(
+            LAST_RUN_FILE_ERROR_LINE + error.replaceAll("\\R", " ") + System.lineSeparator());
       }
     }
   }

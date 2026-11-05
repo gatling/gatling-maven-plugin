@@ -51,4 +51,23 @@ class VerifyMojoTest {
             .toFile();
     Assertions.assertDoesNotThrow(verifyMojo::execute);
   }
+
+  @Test
+  void multipleErrors() throws IOException {
+    VerifyMojo verifyMojo = new VerifyMojo();
+    Path resultFolder =
+        createTempResultFolder(
+            Path.of("src/test/resources/golden-files/last-run/last-run-multiple-errors/"));
+    verifyMojo.resultsFolder = resultFolder.toFile();
+    MojoFailureException e =
+        Assertions.assertThrows(MojoFailureException.class, verifyMojo::execute);
+    Assertions.assertEquals(
+        String.join(
+            System.lineSeparator(),
+            "Gatling simulation assertions failed!",
+            "java.lang.IllegalStateException: boom"),
+        e.getMessage());
+    Assertions.assertFalse(
+        Files.exists(resultFolder.resolve(AbstractGatlingExecutionMojo.LAST_RUN_FILE)));
+  }
 }

@@ -1,0 +1,5 @@
+run1-20261105120000000
+ExecutionError: Gatling simulation assertions failed!
+run2-20261105120100000
+run3-ExecutionError: -20261105120200000
+ExecutionError: java.lang.IllegalStateException: boom

@@ -17,9 +17,11 @@
 package io.gatling.mojo;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -49,24 +51,19 @@ public final class VerifyMojo extends AbstractGatlingExecutionMojo {
   private void verifyLastRun() throws IOException, MojoFailureException {
     Path results = resultsFolder.toPath().resolve(LAST_RUN_FILE);
 
-    if (results.toFile().exists()) {
-      List<String> lines = Files.readAllLines(results);
-      results.toFile().delete();
-      for (String line : lines) {
-        checkError(line);
+    if (Files.exists(results)) {
+      List<String> lines = Files.readAllLines(results, StandardCharsets.UTF_8);
+      Files.delete(results);
+      List<String> errors =
+          lines.stream()
+              .filter(line -> line.startsWith(LAST_RUN_FILE_ERROR_LINE))
+              .map(line -> line.substring(LAST_RUN_FILE_ERROR_LINE.length()))
+              .collect(Collectors.toList());
+      if (!errors.isEmpty()) {
+        errors.forEach(getLog()::error);
+        getLog().error("See the reports in " + resultsFolder.getPath() + " for details.");
+        throw new MojoFailureException(String.join(System.lineSeparator(), errors));
       }
     }
-  }
-
-  private void checkError(String line) throws MojoFailureException {
-    if (line.contains(LAST_RUN_FILE_ERROR_LINE)) {
-      throwFailureException(line.substring(LAST_RUN_FILE_ERROR_LINE.length()));
-    }
-  }
-
-  private void throwFailureException(String message) throws MojoFailureException {
-    getLog().error(message);
-    getLog().error("See the reports in " + resultsFolder.getPath() + " for details.");
-    throw new MojoFailureException(message);
   }
 }

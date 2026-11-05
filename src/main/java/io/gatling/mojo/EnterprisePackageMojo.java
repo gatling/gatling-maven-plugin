@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.project.MavenProjectHelper;
@@ -96,7 +97,7 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
   }
 
   private Set<Dependency> getExtraDependencies(
-      Set<Artifact> allDeps, List<Artifact> gatlingArtifacts) {
+      Set<Artifact> allDeps, List<Artifact> gatlingArtifacts) throws MojoExecutionException {
     Set<Artifact> gatlingAndTransitiveDependencies =
         gatlingAndTransitiveDependencies(gatlingArtifacts);
     pluginLogger.debug("gatlingAndTransitiveDependencies=" + gatlingAndTransitiveDependencies);
@@ -113,13 +114,16 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
         .collect(Collectors.toSet());
   }
 
-  private Set<Artifact> gatlingAndTransitiveDependencies(List<Artifact> artifacts) {
-    return artifacts.stream()
-        .flatMap(artifact -> resolveTransitively(artifact).stream())
-        .collect(Collectors.toSet());
+  private Set<Artifact> gatlingAndTransitiveDependencies(List<Artifact> artifacts)
+      throws MojoExecutionException {
+    Set<Artifact> result = new HashSet<>();
+    for (Artifact artifact : artifacts) {
+      result.addAll(resolveTransitively(artifact));
+    }
+    return result;
   }
 
-  private Set<Artifact> resolveTransitively(Artifact artifact) {
+  private Set<Artifact> resolveTransitively(Artifact artifact) throws MojoExecutionException {
     pluginLogger.debug("Resolving artifact=" + artifact);
     ArtifactResolutionRequest request =
         new ArtifactResolutionRequest()
@@ -132,8 +136,17 @@ public class EnterprisePackageMojo extends AbstractEnterpriseMojo {
             .setProxies(session.getRequest().getProxies())
             .setLocalRepository(session.getLocalRepository())
             .setRemoteRepositories(session.getCurrentProject().getRemoteArtifactRepositories());
-    pluginLogger.debug("Resolved artifact=" + artifact);
-    return repository.resolve(request).getArtifacts();
+    ArtifactResolutionResult result = repository.resolve(request);
+    if (result.hasMissingArtifacts() || result.hasExceptions()) {
+      // otherwise, Gatling's unresolved transitive dependencies would be packaged as extra ones
+      StringBuilder msg =
+          new StringBuilder("Failed to resolve the transitive dependencies of ").append(artifact);
+      result.getMissingArtifacts().forEach(missing -> msg.append("\n  missing: ").append(missing));
+      result.getExceptions().forEach(e -> msg.append("\n  ").append(e.getMessage()));
+      throw new MojoExecutionException(msg.toString());
+    }
+    pluginLogger.debug("Resolved artifact=" + artifact + ", artifacts=" + result.getArtifacts());
+    return result.getArtifacts();
   }
 
   private static Dependency artifactToDependency(Artifact artifact) {

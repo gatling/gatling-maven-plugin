@@ -141,6 +141,17 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       return;
     }
 
+    if (MojoUtils.findByGroupIdAndArtifactId(
+            mavenProject.getArtifacts(), GATLING_GROUP_ID, GATLING_MODULE_APP)
+        == null) {
+      throw new MojoExecutionException(
+          "Could not find "
+              + GATLING_GROUP_ID
+              + ":"
+              + GATLING_MODULE_APP
+              + " in the project's test dependencies. Add io.gatling.highcharts:gatling-charts-highcharts as a test dependency.");
+    }
+
     // Create results directories
     if (!resultsFolder.exists() && !resultsFolder.mkdirs()) {
       throw new MojoExecutionException(

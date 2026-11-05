@@ -381,21 +381,11 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
       args.add(GatlingCliOptions.NoReports.shortOption());
     }
 
-    String[] gatlingVersion =
-        MojoUtils.findByGroupIdAndArtifactId(
-                mavenProject.getArtifacts(), GATLING_GROUP_ID, GATLING_MODULE_APP)
-            .getVersion()
-            .split("\\.");
-    int gatlingMajorVersion = Integer.parseInt(gatlingVersion[0]);
-    int gatlingMinorVersion = Integer.parseInt(gatlingVersion[1]);
-
-    if ((gatlingMajorVersion == 3 && gatlingMinorVersion >= 8) || gatlingMajorVersion > 4) {
-      args.addAll(List.of(GatlingCliOptions.Launcher.shortOption(), "maven"));
-      args.addAll(
-          List.of(
-              GatlingCliOptions.BuildToolVersion.shortOption(),
-              MavenProject.class.getPackage().getImplementationVersion()));
-    }
+    args.addAll(List.of(GatlingCliOptions.Launcher.shortOption(), "maven"));
+    args.addAll(
+        List.of(
+            GatlingCliOptions.BuildToolVersion.shortOption(),
+            MavenProject.class.getPackage().getImplementationVersion()));
 
     return args;
   }

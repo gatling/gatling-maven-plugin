@@ -332,14 +332,13 @@ public final class GatlingMojo extends AbstractGatlingExecutionMojo {
 
   private static String getRecursiveCauses(Throwable e) {
     return Arrays.stream(ExceptionUtils.getThrowables(e))
-        .map(
-            ex -> {
-              String exceptionClassName = ex.getClass().getName();
-              String exceptionMessage = ex.getMessage();
-              return exceptionMessage != null
-                  ? exceptionClassName + ": " + exceptionMessage
-                  : exceptionClassName;
-            })
+        .map(ex -> {
+          String exceptionClassName = ex.getClass().getName();
+          String exceptionMessage = ex.getMessage();
+          return exceptionMessage != null
+              ? exceptionClassName + ": " + exceptionMessage
+              : exceptionClassName;
+        })
         .collect(Collectors.joining(" | "));
   }
 

@@ -59,10 +59,8 @@ public final class MojoUtils {
   static Artifact findByGroupIdAndArtifactId(
       Collection<Artifact> artifacts, String groupId, String artifactId) {
     return artifacts.stream()
-        .filter(
-            artifact ->
-                artifact.getGroupId().equals(groupId)
-                    && artifact.getArtifactId().equals(artifactId))
+        .filter(artifact ->
+            artifact.getGroupId().equals(groupId) && artifact.getArtifactId().equals(artifactId))
         .findFirst()
         .orElse(null);
   }

@@ -45,20 +45,19 @@ public final class EnterpriseDeployMojo extends AbstractEnterprisePluginMojo {
     final Boolean isPrivateRepositoryEnabled = controlPlaneUrl != null;
     final BatchEnterprisePlugin plugin = initBatchEnterprisePlugin();
     final DeploymentInfo deploymentInfo =
-        RecoverEnterprisePluginException.handle(
-            () ->
-                (validateSimulationId == null)
-                    ? plugin.deployFromDescriptor(
-                        deploymentFile,
-                        packageFile,
-                        mavenProject.getArtifactId(),
-                        isPrivateRepositoryEnabled)
-                    : plugin.deployFromDescriptor(
-                        deploymentFile,
-                        packageFile,
-                        mavenProject.getArtifactId(),
-                        isPrivateRepositoryEnabled,
-                        validateSimulationId));
+        RecoverEnterprisePluginException.handle(() ->
+            (validateSimulationId == null)
+                ? plugin.deployFromDescriptor(
+                    deploymentFile,
+                    packageFile,
+                    mavenProject.getArtifactId(),
+                    isPrivateRepositoryEnabled)
+                : plugin.deployFromDescriptor(
+                    deploymentFile,
+                    packageFile,
+                    mavenProject.getArtifactId(),
+                    isPrivateRepositoryEnabled,
+                    validateSimulationId));
 
     getPluginContext().put(CONTEXT_ENTERPRISE_DEPLOY_INFO, deploymentInfo);
   }
